@@ -31,7 +31,7 @@ export const AppSidebar = () => {
         </div>
         {!collapsed && (
           <span className="font-bold text-foreground text-base tracking-tight">
-            Opera<span className="text-primary">Manage</span>
+            Nytzer<span className="text-primary">Vision</span>
           </span>
         )}
       </div>
