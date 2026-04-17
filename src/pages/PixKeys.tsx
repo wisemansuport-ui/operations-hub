@@ -33,7 +33,7 @@ const classifyPixKey = (key: string): PixType => {
 const PixColorClass: Record<PixType, { text: string, bg: string, ring: string, pillbg: string }> = {
   EMAIL: { text: "text-blue-400", bg: "bg-blue-400/10", ring: "ring-blue-400/30", pillbg: "bg-[#1e293b]" },
   CPF: { text: "text-amber-500", bg: "bg-amber-500/10", ring: "ring-amber-500/30", pillbg: "bg-[#451a03]" },
-  PHONE: { text: "text-emerald-500", bg: "bg-emerald-500/10", ring: "ring-emerald-500/30", pillbg: "bg-[#064e3b]" },
+  PHONE: { text: "text-primary", bg: "bg-primary/10", ring: "ring-primary/30", pillbg: "bg-[#4F3E17]" },
   INVALIDO: { text: "text-red-500", bg: "bg-red-500/10", ring: "ring-red-500/50", pillbg: "bg-red-950" }
 };
 
@@ -127,7 +127,7 @@ export default function PixKeys() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-green-500/10 text-green-500">
+          <div className="p-2 rounded-lg bg-primary/10 text-primary">
             <CreditCard className="w-6 h-6" />
           </div>
           <div>
@@ -147,16 +147,16 @@ export default function PixKeys() {
            <span className="text-2xl font-bold text-white">{keys.length}</span>
            <span className="text-[10px] text-zinc-500 font-semibold uppercase tracking-wider mt-1">Total</span>
         </div>
-        <div className="bg-[#0f1115] border border-emerald-900/40 rounded-xl p-4 flex flex-col items-center justify-center py-5 shadow-[0_0_15px_rgba(16,185,129,0.05)]">
-           <span className="text-2xl font-bold text-emerald-400">{getCountStatus('DISPONIVEL')}</span>
-           <span className="text-[10px] text-emerald-600/70 font-bold uppercase tracking-wider mt-1">Disponíveis</span>
+        <div className="bg-[#0f1115] border border-primary/20 rounded-xl p-4 flex flex-col items-center justify-center py-5 shadow-[0_0_15px_rgba(201,168,76,0.05)]">
+           <span className="text-2xl font-bold text-primary">{getCountStatus('DISPONIVEL')}</span>
+           <span className="text-[10px] text-primary/70 font-bold uppercase tracking-wider mt-1">Disponíveis</span>
         </div>
         <div className="bg-[#0f1115] border border-orange-900/40 rounded-xl p-4 flex flex-col items-center justify-center py-5 shadow-[0_0_15px_rgba(249,115,22,0.05)]">
            <span className="text-2xl font-bold text-orange-500">{getCountStatus('USADA')}</span>
            <span className="text-[10px] text-orange-600/70 font-bold uppercase tracking-wider mt-1">Usadas</span>
         </div>
         <div className="bg-[#0f1115] border border-zinc-800/80 rounded-xl p-4 flex flex-col items-center justify-center py-5">
-           <span className="text-2xl font-bold text-emerald-600">{getCountType('PHONE')}</span>
+           <span className="text-2xl font-bold text-primary">{getCountType('PHONE')}</span>
            <span className="text-[10px] text-zinc-500 font-semibold uppercase tracking-wider mt-1">Phone</span>
         </div>
         <div className="bg-[#0f1115] border border-zinc-800/80 rounded-xl p-4 flex flex-col items-center justify-center py-5">
@@ -176,8 +176,8 @@ export default function PixKeys() {
           
           <div className="bg-[#12141a] border border-zinc-800 rounded-xl p-5">
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
-                <Plus className="w-4 h-4 text-emerald-500" />
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
+                <Plus className="w-4 h-4 text-primary" />
               </div>
               <div>
                 <h3 className="text-sm font-bold text-white">Importar lote</h3>
@@ -221,14 +221,14 @@ export default function PixKeys() {
               <button 
                 onClick={handleImport}
                 disabled={!inputText.trim()}
-                className="flex-1 bg-[#10b981] hover:bg-[#059669] text-black font-semibold text-sm py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-primary hover:bg-primary/80 text-primary-foreground font-bold text-sm py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Importar chaves
               </button>
             </div>
             
             {lastImportCount > 0 && (
-              <p className="text-[10px] font-semibold text-emerald-500 text-center mt-2">{lastImportCount} chave(s) processada(s)</p>
+              <p className="text-[10px] font-semibold text-primary text-center mt-2">{lastImportCount} chave(s) processada(s)</p>
             )}
           </div>
 
@@ -329,7 +329,7 @@ export default function PixKeys() {
                       onClick={() => toggleStatus(key.id)}
                       className={`px-3 py-1.5 rounded border text-[10px] font-bold uppercase transition-colors flex items-center gap-1.5 ${
                         key.status === 'DISPONIVEL' 
-                        ? 'border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10' 
+                        ? 'border-primary/30 text-primary hover:bg-primary/10' 
                         : 'border-orange-500/30 text-orange-500 hover:bg-orange-500/10'
                       }`}
                     >

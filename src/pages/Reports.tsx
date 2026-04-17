@@ -139,7 +139,7 @@ const Reports = () => (
                 </td>
                 <td className="px-5 py-4 text-right">
                   <span className={`inline-flex text-[10px] px-2.5 py-1 rounded bg-card/80 border font-bold uppercase tracking-wider ${
-                    op.status === 'Em Alta' ? 'text-green-400 border-green-500/30' : 
+                    op.status === 'Em Alta' ? 'text-primary border-primary/30' : 
                     op.status === 'Consistente' ? 'text-blue-400 border-blue-500/30' : 
                     op.status === 'Estável' ? 'text-primary/80 border-primary/30' :
                     'text-orange-400 border-orange-500/30'

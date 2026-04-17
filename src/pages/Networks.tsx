@@ -18,10 +18,10 @@ interface NetworkData {
 }
 
 const networkData: NetworkData[] = [
-  { id: '1', rank: 1, name: 'VOY', status: '↑ ALTA', statusColor: 'text-green-500', score: 81, scoreColor: '#22c55e', metas: 1, contas: 50, mm: 2, winRate: 100, profitPerConta: 6.25, totalProfit: 312.80 },
-  { id: '2', rank: 2, name: 'DY', status: '↑ ALTA', statusColor: 'text-green-500', score: 72, scoreColor: '#22c55e', metas: 1, contas: 30, mm: 2, winRate: 100, profitPerConta: 7.49, totalProfit: 224.60 },
+  { id: '1', rank: 1, name: 'VOY', status: '↑ ALTA', statusColor: 'text-primary', score: 81, scoreColor: 'hsl(var(--primary))', metas: 1, contas: 50, mm: 2, winRate: 100, profitPerConta: 6.25, totalProfit: 312.80 },
+  { id: '2', rank: 2, name: 'DY', status: '↑ ALTA', statusColor: 'text-primary', score: 72, scoreColor: 'hsl(var(--primary))', metas: 1, contas: 30, mm: 2, winRate: 100, profitPerConta: 7.49, totalProfit: 224.60 },
   { id: '3', rank: 3, name: 'W1', status: '↔ ESTAVEL', statusColor: 'text-yellow-500', score: 65, scoreColor: '#f59e0b', metas: 1, contas: 20, mm: 2, winRate: 100, profitPerConta: 7.41, totalProfit: 148.20 },
-  { id: '4', rank: 4, name: 'OKOK', status: '↔ ESTAVEL', statusColor: 'text-yellow-500', score: 64, scoreColor: '#f59e0b', metas: 2, contas: 40, mm: 4, winRate: 50, profitPerConta: 3.60, totalProfit: 144.10 },
+  { id: '4', rank: 4, name: 'OKOK', status: '↔ ESTAVEL', statusColor: 'text-yellow-500', score: 64, scoreColor: '#f59e0b', metas: 2, contas: 40, mm: 4, winRate: 50, profitPerConta: -3.60, totalProfit: -144.10 },
 ];
 
 const CircularProgress = ({ score, color }: { score: number, color: string }) => {
@@ -77,9 +77,9 @@ const Networks = () => {
           <p className="text-[10px] text-muted-foreground font-bold tracking-widest mb-3 uppercase">Total de Redes</p>
           <p className="text-3xl font-extrabold text-blue-400 drop-shadow-[0_0_8px_rgba(96,165,250,0.4)]">4</p>
         </div>
-        <div className="glass-card rounded-xl p-5 border-green-900/30 hover:border-green-500/50 transition-colors bg-card/40 backdrop-blur-md">
+        <div className="glass-card rounded-xl p-5 border-primary/30 hover:border-primary/50 transition-colors bg-card/40 backdrop-blur-md">
           <p className="text-[10px] text-muted-foreground font-bold tracking-widest mb-3 uppercase">Redes Lucrativas</p>
-          <p className="text-3xl font-extrabold text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.4)]">3</p>
+          <p className="text-3xl font-extrabold text-primary drop-shadow-[0_0_8px_rgba(201,168,76,0.4)]">3</p>
         </div>
         <div className="glass-card rounded-xl p-5 border-green-900/30 hover:border-green-500/50 transition-colors bg-card/40 backdrop-blur-md">
           <p className="text-[10px] text-muted-foreground font-bold tracking-widest mb-3 uppercase">Lucro Total</p>
@@ -125,13 +125,13 @@ const Networks = () => {
                     <span><span className="text-foreground font-bold">{network.metas}</span> metas</span>
                     <span><span className="text-foreground font-bold">{network.contas}</span> contas</span>
                     <span><span className="text-foreground font-bold">{network.mm}</span> mm</span>
-                    <span>win <span className="text-green-500 font-bold">{network.winRate}%</span></span>
+                    <span>win <span className="text-primary font-bold">{network.winRate}%</span></span>
                   </div>
 
                   <div className="w-full bg-border/40 rounded-full h-1 overflow-hidden mt-1 shadow-inner">
                     <div 
                       className="h-full rounded-full transition-all duration-1000 relative" 
-                      style={{ width: `${network.score}%`, backgroundColor: network.scoreColor }} 
+                      style={{ width: `${network.score}%`, backgroundColor: network.totalProfit >= 0 ? '#4ade80' : '#ef4444' }} 
                     >
                       <div className="absolute inset-0 bg-white/20 w-full h-full" />
                     </div>
@@ -144,8 +144,8 @@ const Networks = () => {
                   R$ {network.profitPerConta.toFixed(2).replace('.', ',')}/conta
                 </p>
                 <div className="text-right mt-1">
-                  <p className="text-xl font-extrabold text-green-400 drop-shadow-[0_0_5px_rgba(74,222,128,0.2)]">
-                    +R$ {network.totalProfit.toFixed(2).replace('.', ',')}
+                  <p className={`text-xl font-extrabold drop-shadow-[0_0_5px_rgba(74,222,128,0.2)] ${network.totalProfit >= 0 ? 'text-green-400' : 'text-red-500 font-black'}`}>
+                    {network.totalProfit >= 0 ? '+' : ''}R$ {network.totalProfit.toFixed(2).replace('.', ',')}
                   </p>
                   <p className="text-[9px] text-muted-foreground font-bold tracking-[0.15em] uppercase hover:text-muted-foreground transition-colors">Lucro Total</p>
                 </div>

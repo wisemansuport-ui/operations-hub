@@ -68,7 +68,7 @@ export const AppSidebar = () => {
             onClick={() => setRole(role === 'ADMIN' ? 'OPERADOR' : 'ADMIN')}
             className="mx-3 px-3 py-2 rounded-lg bg-black/20 border border-primary/20 text-xs flex justify-between items-center cursor-pointer hover:bg-black/40 transition-colors"
           >
-            <span className="font-semibold text-muted-foreground">Visão: <span className={role === 'ADMIN' ? 'text-primary' : 'text-emerald-400'}>{role}</span></span>
+            <span className="font-semibold text-muted-foreground">Visão: <span className={role === 'ADMIN' ? 'text-primary' : 'text-primary/80'}>{role}</span></span>
             <UserCog className="w-3.5 h-3.5 text-muted-foreground" />
           </div>
         )}
