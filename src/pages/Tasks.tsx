@@ -52,7 +52,8 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
   const progresso = Math.min((totalCompletedContas / meta.contas) * 100, 100);
   const depositoTotal = remessas.reduce((acc, r) => acc + r.deposito, 0);
   const saqueTotal = remessas.reduce((acc, r) => acc + r.saque, 0);
-  const resultadoLiquido = saqueTotal - depositoTotal;
+  const resultadoBruto = saqueTotal - depositoTotal;
+  const resultadoLiquido = resultadoBruto - (meta.salarioOperador || 0);
   const lucroAcumulado = remessas.reduce((acc, r) => r.saque > r.deposito ? acc + (r.saque - r.deposito) : acc, 0);
   const prejuizoAcumulado = remessas.reduce((acc, r) => r.deposito > r.saque ? acc + (r.deposito - r.saque) : acc, 0);
   const remessasPositivas = remessas.filter(r => r.saque > r.deposito).length;
@@ -143,14 +144,14 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
          </div>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         <div className="glass-card flex flex-col justify-center p-4 rounded-xl border-border/40">
            <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Depósito</span>
-           <span className="text-base font-bold text-muted-foreground">{formatBRL(depositoTotal)}</span>
+           <span className="text-base font-bold text-foreground">{formatBRL(depositoTotal)}</span>
         </div>
         <div className="glass-card flex flex-col justify-center p-4 rounded-xl border-border/40">
            <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Saque</span>
-           <span className="text-base font-bold text-muted-foreground">{formatBRL(saqueTotal)}</span>
+           <span className="text-base font-bold text-foreground">{formatBRL(saqueTotal)}</span>
         </div>
         <div className="glass-card flex flex-col justify-center p-4 rounded-xl border-border/40">
            <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Lucro Acum.</span>
@@ -160,7 +161,20 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
            <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Prejuízo Acum.</span>
            <span className="text-base font-bold text-red-500">{formatBRL(prejuizoAcumulado)}</span>
         </div>
-        <div className="glass-card col-span-2 md:col-span-1 flex flex-col justify-center p-4 rounded-xl border-emerald-900/30 bg-emerald-950/10">
+        <div className="glass-card flex flex-col justify-center p-4 rounded-xl border-border/60 bg-muted/20">
+           <span className="text-[9px] uppercase font-bold text-primary tracking-widest mb-1 shadow-inner">Salário Operador</span>
+           <div className="flex items-center gap-1">
+             <span className="text-xs font-bold text-muted-foreground">R$</span>
+             <input 
+               type="number" 
+               value={meta.salarioOperador || ''} 
+               onChange={(e) => onUpdateMeta({ ...meta, salarioOperador: Number(e.target.value) })}
+               placeholder="0,00"
+               className="bg-transparent border-none p-0 w-full text-base font-black text-foreground focus:ring-0 focus:outline-none placeholder:text-muted-foreground/30"
+             />
+           </div>
+        </div>
+        <div className="glass-card col-span-2 md:col-span-1 flex flex-col justify-center p-4 rounded-xl border-emerald-900/30 bg-emerald-950/20 shadow-lg">
            <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Resultado Líquido</span>
            <span className={`text-xl font-black drop-shadow-md ${resultadoLiquido >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>
              {resultadoLiquido > 0 ? '+' : ''}{formatBRL(resultadoLiquido)}
