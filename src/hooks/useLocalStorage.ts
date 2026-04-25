@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((val: T) => T)) => void] {
   // Pass initial state function to useState so logic is only executed once
@@ -14,6 +14,18 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
       return initialValue;
     }
   });
+
+  // Listen for changes in other tabs
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === key && e.newValue) {
+        setStoredValue(JSON.parse(e.newValue));
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [key]);
 
   const setValue = (value: T | ((val: T) => T)) => {
     try {

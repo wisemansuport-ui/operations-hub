@@ -363,7 +363,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
 
 // --- MAIN Component ---
 const Tasks = () => {
-  const [metas, setMetas] = useLocalStorage<OperationMeta[]>('nytzer-operations', []);
+  const [metas, setMetas] = useLocalStorage<OperationMeta[]>('nytzer-metas', []);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Minha operacao');
   const [selectedMetaId, setSelectedMetaId] = useState<string | null>(null);
