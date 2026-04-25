@@ -96,7 +96,7 @@ const Dashboard = () => {
     </div>
 
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <KPICard title="Receita Mês Líquida" value={formatBRL(stats.receitaMensal)} change={`+ ${formatBRL(stats.totalSalarios)} comissões`} changeType="positive" icon={DollarSign} color="success" />
+      <KPICard title="Receita Mês Líquida" value={formatBRL(stats.receitaMensal)} change={`+ ${formatBRL(stats.totalSalarios)} FAT`} changeType="positive" icon={DollarSign} color="success" />
       <KPICard title="Metas Fechadas" value={`${stats.metasFechadas}/${stats.totalMetas}`} change="Registradas" changeType="positive" icon={Target} color="primary" />
       <KPICard title="Metas Ativas" value={stats.metasAtivas} change="Painel de controle" changeType="neutral" icon={Activity} color="warning" />
       <KPICard title="Contas Operadas" value={stats.contasProcessadas} change="Volume total" changeType="neutral" icon={Users} color="primary" />

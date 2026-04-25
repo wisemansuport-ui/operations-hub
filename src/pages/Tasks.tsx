@@ -162,7 +162,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
            <span className="text-base font-bold text-red-500">{formatBRL(prejuizoAcumulado)}</span>
         </div>
         <div className="glass-card flex flex-col justify-center p-4 rounded-xl border-border/60 bg-muted/20">
-           <span className="text-[9px] uppercase font-bold text-primary tracking-widest mb-1 shadow-inner">Salário Operador</span>
+           <span className="text-[9px] uppercase font-bold text-primary tracking-widest mb-1 shadow-inner">SALÁRIO (FAT)</span>
            <div className="flex items-center gap-1">
              <span className="text-xs font-bold text-muted-foreground">R$</span>
              <input 
@@ -331,11 +331,11 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
           <div className="bg-card w-full max-w-sm rounded-[24px] border border-border/50 p-6 shadow-2xl animate-fade-in relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
             <h3 className="text-xl font-bold text-foreground mb-1">Encerrar Meta</h3>
-            <p className="text-sm text-muted-foreground mb-6">Qual será o pagamento (salário) para o operador nesta meta?</p>
+            <p className="text-sm text-muted-foreground mb-6">Qual será o SALÁRIO (FAT) para o operador nesta meta?</p>
             
             <div className="space-y-4">
               <div>
-                <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase mb-1.5 block">Salário (R$)</label>
+                <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase mb-1.5 block">SALÁRIO (FAT) (R$)</label>
                 <div className="relative">
                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">R$</div>
                    <input type="number" value={salarioFinal} onChange={e => setSalarioFinal(e.target.value)} placeholder="0.00" className="w-full bg-background border border-border/50 rounded-xl py-3 pl-10 pr-4 text-sm font-bold text-foreground focus:outline-none focus:border-primary shadow-inner" />
@@ -563,7 +563,7 @@ const Tasks = () => {
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="text-[9px] font-bold text-muted-foreground/50">Bruto: R$ {lucroBruto.toFixed(0)}</span>
                       {salario > 0 && (
-                        <span className="text-[9px] font-bold text-emerald-500/70">Comissão: +{salario.toFixed(0)}</span>
+                        <span className="text-[9px] font-bold text-emerald-500/70">FAT: +{salario.toFixed(0)}</span>
                       )}
                     </div>
                   </div>
