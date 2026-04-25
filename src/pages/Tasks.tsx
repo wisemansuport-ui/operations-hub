@@ -96,28 +96,25 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
   const curPerConta = curRes / curContas;
 
   return (
-    <div className="space-y-6 animate-fade-in w-full pb-12">
+    <div className="space-y-4 animate-fade-in w-full pb-20">
       <div className="flex items-center gap-4">
         <button onClick={onBack} className="flex items-center gap-2 hover:bg-muted/50 px-4 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground transition-all">
           <ArrowLeft className="w-4 h-4" /> Voltar ao painel
         </button>
       </div>
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-           <div className="flex items-center gap-3">
-             <h1 className="text-3xl font-extrabold text-foreground tracking-tight">{meta.titulo}</h1>
-             <span className={`px-2 py-0.5 mt-1 rounded text-[10px] font-bold uppercase tracking-widest border ${meta.status === 'fechada' ? 'border-primary/50 text-primary bg-primary/10' : 'border-red-900/50 text-red-500 bg-red-950/30'}`}>
-               {meta.status || 'ativa'}
-             </span>
-           </div>
-           <p className="text-sm text-muted-foreground mt-1">
-             {meta.contas} contas · {remessas.length} remessas · {acertoPct}% de acerto
-           </p>
-        </div>
-        
+      <div className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 bg-background border border-border/50 hover:bg-muted text-foreground px-5 py-2.5 rounded-lg font-bold transition-all text-sm shadow-inner">
+           <h1 className="text-xl md:text-3xl font-extrabold text-foreground tracking-tight">{meta.titulo}</h1>
+           <span className={`px-2 py-0.5 mt-1 rounded text-[10px] font-bold uppercase tracking-widest border ${meta.status === 'fechada' ? 'border-primary/50 text-primary bg-primary/10' : 'border-red-900/50 text-red-500 bg-red-950/30'}`}>
+             {meta.status || 'ativa'}
+           </span>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {meta.contas} contas · {remessas.length} remessas · {acertoPct}% de acerto
+        </p>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button className="flex items-center gap-2 bg-background border border-border/50 hover:bg-muted text-foreground px-4 py-2 rounded-lg font-bold transition-all text-xs shadow-inner">
              Editar meta
           </button>
           {meta.status !== 'fechada' && (
@@ -126,7 +123,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
                 onUpdateMeta({ ...meta, status: 'fechada' });
                 pushNotify('🏁 Operação Finalizada', `Meta: ${meta.titulo} fechada. Resultado final: R$ ${resultadoLiquido.toFixed(2)}.`);
               }}
-              className="flex items-center gap-2 bg-primary/10 border border-primary/50 hover:bg-primary/20 text-primary px-5 py-2.5 rounded-lg font-bold transition-all text-sm shadow-inner"
+              className="flex items-center gap-2 bg-primary/10 border border-primary/50 hover:bg-primary/20 text-primary px-4 py-2 rounded-lg font-bold transition-all text-xs shadow-inner"
             >
               <CheckSquare className="w-4 h-4" /> Finalizar meta
             </button>
@@ -145,26 +142,26 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
          </div>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div className="glass-card flex flex-col justify-center p-5 rounded-2xl border-border/40">
-           <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Depósito Total</span>
-           <span className="text-xl font-bold text-muted-foreground">{formatBRL(depositoTotal)}</span>
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div className="glass-card flex flex-col justify-center p-4 rounded-xl border-border/40">
+           <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Depósito</span>
+           <span className="text-base font-bold text-muted-foreground">{formatBRL(depositoTotal)}</span>
         </div>
-        <div className="glass-card flex flex-col justify-center p-5 rounded-2xl border-border/40">
-           <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Saque Total</span>
-           <span className="text-xl font-bold text-muted-foreground">{formatBRL(saqueTotal)}</span>
+        <div className="glass-card flex flex-col justify-center p-4 rounded-xl border-border/40">
+           <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Saque</span>
+           <span className="text-base font-bold text-muted-foreground">{formatBRL(saqueTotal)}</span>
         </div>
-        <div className="glass-card flex flex-col justify-center p-5 rounded-2xl border-border/40">
-           <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Lucro Acumulado</span>
-           <span className="text-xl font-bold text-emerald-400">{formatBRL(lucroAcumulado)}</span>
+        <div className="glass-card flex flex-col justify-center p-4 rounded-xl border-border/40">
+           <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Lucro Acum.</span>
+           <span className="text-base font-bold text-emerald-400">{formatBRL(lucroAcumulado)}</span>
         </div>
-        <div className="glass-card flex flex-col justify-center p-5 rounded-2xl border-border/40">
-           <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Prejuízo Acum.</span>
-           <span className="text-xl font-bold text-red-500">{formatBRL(prejuizoAcumulado)}</span>
+        <div className="glass-card flex flex-col justify-center p-4 rounded-xl border-border/40">
+           <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Prejuízo Acum.</span>
+           <span className="text-base font-bold text-red-500">{formatBRL(prejuizoAcumulado)}</span>
         </div>
-        <div className="glass-card flex flex-col justify-center p-5 rounded-2xl border-border/20 bg-emerald-950/10 shadow-[0_0_20px_rgba(16,185,129,0.05)] border-emerald-900/30">
-           <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Resultado Líquido</span>
-           <span className={`text-2xl font-black drop-shadow-md ${resultadoLiquido >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>
+        <div className="glass-card col-span-2 md:col-span-1 flex flex-col justify-center p-4 rounded-xl border-emerald-900/30 bg-emerald-950/10">
+           <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Resultado Líquido</span>
+           <span className={`text-xl font-black drop-shadow-md ${resultadoLiquido >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>
              {resultadoLiquido > 0 ? '+' : ''}{formatBRL(resultadoLiquido)}
            </span>
         </div>
@@ -189,80 +186,75 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
            </div>
            <span className="text-[10px] text-muted-foreground font-mono">Remessa #{remessas.length + 1}</span>
         </div>
-        <form onSubmit={onRegister} className="p-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="space-y-2">
+        <form onSubmit={onRegister} className="p-4 space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Título</label>
               <input type="text" value={rTitulo} onChange={e=>setRTitulo(e.target.value)} className="w-full bg-background/50 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner text-foreground" />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Tipo</label>
               <select value={rTipo} onChange={e=>setRTipo(e.target.value)} className="w-full bg-background/50 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner text-foreground">
                 <option>Remessa</option><option>Bônus</option><option>Ajuste</option>
               </select>
             </div>
-            <div className="space-y-2">
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Saldo Ini.</label>
               <input type="number" value={rSaldoIni} onChange={e=>setRSaldoIni(e.target.value)} className="w-full bg-background/50 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner text-foreground" />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Contas *</label>
-              <div className="flex flex-col gap-2">
-                <input type="number" required value={rContas} onChange={e=>setRContas(e.target.value)} className="w-full bg-background/50 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner font-bold text-foreground text-center" />
-                <div className="flex gap-1">
-                  {[3,5,10,15,20].map(v => (
-                    <button type="button" key={v} onClick={()=>setRContas(String(v))} className="flex-1 text-[9px] font-bold py-1 bg-muted/30 border border-border/40 rounded hover:bg-primary/20 hover:text-primary transition-colors text-muted-foreground">{v}</button>
-                  ))}
-                </div>
+              <input type="number" required value={rContas} onChange={e=>setRContas(e.target.value)} className="w-full bg-background/50 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner font-bold text-foreground text-center" />
+              <div className="flex gap-1">
+                {[3,5,10,15,20].map(v => (
+                  <button type="button" key={v} onClick={()=>setRContas(String(v))} className="flex-1 text-[9px] font-bold py-1 bg-muted/30 border border-border/40 rounded hover:bg-primary/20 hover:text-primary transition-colors text-muted-foreground">{v}</button>
+                ))}
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-border/20 pt-6">
-            <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-3 border-t border-border/20 pt-4">
+            <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Depósito *</label>
               <input type="number" required value={rDeposito} onChange={e=>setRDeposito(e.target.value)} placeholder="Ex: 1055" className="w-full bg-background/50 border border-border/50 rounded-lg px-3 py-2 focus:outline-none focus:border-primary shadow-inner font-mono text-foreground" />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Saque *</label>
               <input type="number" required value={rSaque} onChange={e=>setRSaque(e.target.value)} placeholder="Ex: 941" className="w-full bg-background/50 border border-border/50 rounded-lg px-3 py-2 focus:outline-none focus:border-primary shadow-inner font-mono text-foreground" />
             </div>
-            
-            <div className={`p-3 rounded-lg border flex flex-col justify-center items-end ${curRes < 0 ? 'bg-red-950/20 border-red-900/40' : curRes > 0 ? 'bg-emerald-950/20 border-emerald-900/40' : 'bg-muted/10 border-border/30'} flex-1 h-[68px] mt-6`}>
-              {(!rDeposito && !rSaque) ? (
-                <span className="text-xs text-muted-foreground">Resultado</span>
-              ) : (
-                <>
-                  <p className={`text-[10px] uppercase font-bold tracking-widest mb-0.5 ${curRes < 0 ? 'text-red-500/70' : 'text-emerald-500/70'}`}>{curRes < 0 ? 'Prejuízo' : 'Lucro'}</p>
-                  <div className="flex items-end gap-2">
-                    <span className="text-[10px] text-muted-foreground font-mono">R$ {curPerConta.toFixed(2)}/conta</span>
-                    <span className={`text-lg font-black tracking-tight ${curRes < 0 ? 'text-red-500' : 'text-emerald-400'}`}>
-                      {curRes > 0 ? '+' : ''}{formatBRL(curRes)}
-                    </span>
-                  </div>
-                </>
-              )}
-            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-             <div className="space-y-2">
+          {(rDeposito || rSaque) && (
+            <div className={`p-3 rounded-lg border flex items-center justify-between ${curRes < 0 ? 'bg-red-950/20 border-red-900/40' : 'bg-emerald-950/20 border-emerald-900/40'}`}>
+              <p className={`text-xs font-bold uppercase tracking-widest ${curRes < 0 ? 'text-red-500/70' : 'text-emerald-500/70'}`}>{curRes < 0 ? 'Prejuízo' : 'Lucro'}</p>
+              <div className="flex items-baseline gap-2">
+                <span className="text-[10px] text-muted-foreground font-mono">R$ {curPerConta.toFixed(2)}/conta</span>
+                <span className={`text-lg font-black ${curRes < 0 ? 'text-red-500' : 'text-emerald-400'}`}>{curRes > 0 ? '+' : ''}{formatBRL(curRes)}</span>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 gap-3 pt-1">
+             <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Status</label>
-                <div className="flex gap-2">
+                <div className="grid grid-cols-4 gap-1">
                   {['Normal', 'Pendente', 'Bloqueada', 'Analise'].map(s => (
-                    <button type="button" key={s} onClick={()=>setRStatus(s)} className={`flex-1 text-[10px] font-bold py-2 rounded-lg border ${rStatus === s ? 'bg-primary/10 border-primary/50 text-primary shadow-inner' : 'bg-background/40 border-border/30 text-muted-foreground hover:bg-muted/30'} transition-all`}>
+                    <button type="button" key={s} onClick={()=>setRStatus(s)} className={`text-[9px] font-bold py-1.5 rounded-lg border ${rStatus === s ? 'bg-primary/10 border-primary/50 text-primary shadow-inner' : 'bg-background/40 border-border/30 text-muted-foreground hover:bg-muted/30'} transition-all`}>
                       {s}
                     </button>
                   ))}
                 </div>
              </div>
-             <div className="space-y-2">
+             <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Notas</label>
                 <input type="text" value={rNotas} onChange={e=>setRNotas(e.target.value)} placeholder="Opcional..." className="w-full bg-background/50 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner text-foreground" />
              </div>
           </div>
 
-          <button type="submit" disabled={!rDeposito || !rSaque || !rContas} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-extrabold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-transform hover:scale-[1.01] shadow-[0_10px_30px_hsl(var(--primary)/0.2)] disabled:opacity-50 disabled:hover:scale-100 mt-4">
+          <button type="submit" disabled={!rDeposito || !rSaque || !rContas} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-extrabold py-3 rounded-xl flex items-center justify-center gap-2 transition-transform hover:scale-[1.01] shadow-[0_10px_30px_hsl(var(--primary)/0.2)] disabled:opacity-50 disabled:hover:scale-100 mt-2">
              <ArrowUpRight className="w-5 h-5" /> Registrar remessa
           </button>
         </form>
@@ -277,45 +269,41 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
       </div>
 
       {remessas.length === 0 ? (
-        <div className="glass-card rounded-2xl flex flex-col items-center justify-center p-16 border border-dashed border-border/40">
+        <div className="glass-card rounded-2xl flex flex-col items-center justify-center p-10 border border-dashed border-border/40">
            <p className="text-sm text-muted-foreground">Nenhuma remessa registrada. Use o formulário acima.</p>
         </div>
       ) : (
         <div className="space-y-3">
-           {remessas.map((rem, i) => {
+           {remessas.map((rem) => {
               const rLucro = rem.saque - rem.deposito;
               const isWin = rLucro >= 0;
               return (
               <div key={rem.id} className="glass-card overflow-hidden rounded-xl border border-border/30 relative flex flex-col hover:border-border/60 transition-colors">
                 <div className={`absolute left-0 top-0 bottom-0 w-1 ${isWin ? 'bg-emerald-500' : 'bg-red-500'}`} />
-                <div className="p-4 pl-6 flex justify-between items-start">
+                <div className="p-3 pl-5 flex justify-between items-start">
                    <div>
-                     <div className="flex items-center gap-3">
-                       <h4 className="font-extrabold text-foreground">{rem.titulo}</h4>
+                     <div className="flex items-center gap-2 flex-wrap">
+                       <h4 className="font-extrabold text-foreground text-sm">{rem.titulo}</h4>
                        <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest border ${isWin ? 'bg-emerald-950/30 border-emerald-900/50 text-emerald-500' : 'bg-red-950/30 border-red-900/50 text-red-500'}`}>
                          {isWin ? '+ Lucro' : '- Prejuízo'}
                        </span>
                      </div>
-                     <p className="text-[10px] text-muted-foreground mt-1">
-                       remessa {new Date(rem.data).toLocaleString()}
-                     </p>
-                     {rem.notas && <p className="text-[10px] font-medium text-foreground/70 uppercase tracking-wider mt-2">{rem.notas}</p>}
+                     <p className="text-[10px] text-muted-foreground mt-1">{new Date(rem.data).toLocaleString()}</p>
+                     {rem.notas && <p className="text-[10px] font-medium text-foreground/70 uppercase tracking-wider mt-1">{rem.notas}</p>}
                    </div>
-                   <div className="text-right">
-                     <p className={`text-lg font-black tracking-tight ${isWin ? 'text-emerald-400' : 'text-red-500'}`}>
+                   <div className="text-right shrink-0 ml-3">
+                     <p className={`text-base font-black tracking-tight ${isWin ? 'text-emerald-400' : 'text-red-500'}`}>
                        {isWin ? '+' : ''}{formatBRL(rLucro)}
                      </p>
-                     <p className="text-[9px] text-muted-foreground mt-0.5">R$ {(rLucro/rem.contas).toFixed(2)} / conta</p>
-                     <div className="flex gap-2 justify-end mt-2 opacity-50 hover:opacity-100 transition-opacity">
-                       <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-red-400 cursor-pointer" />
-                     </div>
+                     <p className="text-[9px] text-muted-foreground mt-0.5">R$ {(rLucro/rem.contas).toFixed(2)}/cta</p>
+                     <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-red-400 cursor-pointer mt-2 ml-auto" />
                    </div>
                 </div>
-                <div className="bg-muted/10 border-t border-border/20 px-6 py-3 grid grid-cols-4 gap-4">
-                  <div><p className="text-[9px] font-bold text-muted-foreground tracking-widest uppercase mb-1">Saldo Ini.</p><p className="text-xs font-bold text-foreground">{formatBRL(rem.saldoIni)}</p></div>
-                  <div><p className="text-[9px] font-bold text-muted-foreground tracking-widest uppercase mb-1">Depósito</p><p className="text-xs font-bold text-foreground">{formatBRL(rem.deposito)}</p></div>
-                  <div><p className="text-[9px] font-bold text-muted-foreground tracking-widest uppercase mb-1">Saque</p><p className="text-xs font-bold text-foreground">{formatBRL(rem.saque)}</p></div>
-                  <div><p className="text-[9px] font-bold text-muted-foreground tracking-widest uppercase mb-1">Por Conta</p><p className={`text-xs font-bold ${isWin ? 'text-emerald-500' : 'text-red-500'}`}>{formatBRL(rLucro/rem.contas)}</p></div>
+                <div className="bg-muted/10 border-t border-border/20 px-5 py-2 grid grid-cols-4 gap-2">
+                  <div><p className="text-[9px] font-bold text-muted-foreground tracking-widest uppercase mb-0.5">Saldo Ini.</p><p className="text-xs font-bold text-foreground">{formatBRL(rem.saldoIni)}</p></div>
+                  <div><p className="text-[9px] font-bold text-muted-foreground tracking-widest uppercase mb-0.5">Depósito</p><p className="text-xs font-bold text-foreground">{formatBRL(rem.deposito)}</p></div>
+                  <div><p className="text-[9px] font-bold text-muted-foreground tracking-widest uppercase mb-0.5">Saque</p><p className="text-xs font-bold text-foreground">{formatBRL(rem.saque)}</p></div>
+                  <div><p className="text-[9px] font-bold text-muted-foreground tracking-widest uppercase mb-0.5">Por Conta</p><p className={`text-xs font-bold ${isWin ? 'text-emerald-500' : 'text-red-500'}`}>{formatBRL(rLucro/rem.contas)}</p></div>
                 </div>
               </div>
             )})}
@@ -521,8 +509,8 @@ const Tasks = () => {
 
       {/* Modal ... omitted here as it's the exact same logic. wait, I have to include it to not break the page */}
        {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
-          <div className="glass-card border border-primary/20 w-full max-w-lg rounded-2xl shadow-[0_0_40px_hsl(var(--primary)/0.1)] relative overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-background/80 backdrop-blur-sm animate-fade-in">
+          <div className="glass-card border border-primary/20 w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl shadow-[0_0_40px_hsl(var(--primary)/0.1)] relative overflow-hidden max-h-[90vh] overflow-y-auto">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-accent" />
             <div className="flex items-start justify-between p-6 border-b border-border/40">
               <div>
