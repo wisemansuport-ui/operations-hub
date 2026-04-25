@@ -60,11 +60,27 @@ export const TopBar = () => {
                 <div className="flex flex-col gap-1">
                   <span className="text-sm font-semibold text-foreground">Notificações</span>
                   <button 
-                    onClick={() => {
-                        import("react-onesignal").then((m) => m.default.Slidedown.promptPush());
+                    onClick={async () => {
+                      try {
+                        const OneSignal = (await import("react-onesignal")).default;
+                        // v3 SDK API: request permission and subscribe
+                        await OneSignal.Notifications.requestPermission();
+                        const isSubscribed = OneSignal.User.PushSubscription.optedIn;
+                        if (isSubscribed) {
+                          alert("✅ Alertas ativados com sucesso! Você receberá notificações mesmo com o app fechado.");
+                        }
+                      } catch (e) {
+                        console.error("Erro ao ativar alertas:", e);
+                        // Fallback: use native browser API
+                        if ("Notification" in window) {
+                          const result = await Notification.requestPermission();
+                          if (result === "granted") {
+                            new Notification("✅ Alertas Ativados!", { body: "Você receberá notificações do NytzerVision." });
+                          }
+                        }
+                      }
                     }} 
                     className="text-[10px] font-bold text-primary flex items-center gap-1 hover:underline"
-                    title="Receba alertas com o داش board fechado"
                   >
                     🔔 Ativar Alertas no Dispositivo
                   </button>
