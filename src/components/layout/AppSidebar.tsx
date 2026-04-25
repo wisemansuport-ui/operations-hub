@@ -27,8 +27,8 @@ export const AppSidebar = () => {
 
   return (
     <aside
-      className={`fixed left-0 top-0 h-screen bg-sidebar border-r border-sidebar-border z-40 transition-all duration-300 flex flex-col ${
-        collapsed ? "w-16" : "w-60"
+      className={`sticky left-0 top-0 h-screen bg-sidebar border-r border-sidebar-border z-40 transition-all duration-300 flex flex-col shrink-0 ${
+        collapsed ? "w-16" : "w-16 md:w-60"
       }`}
     >
       <div className="flex items-center gap-2.5 px-4 h-14 border-b border-sidebar-border shrink-0">
@@ -36,7 +36,7 @@ export const AppSidebar = () => {
           <Zap className="w-4 h-4 text-primary-foreground" />
         </div>
         {!collapsed && (
-          <span className="font-bold text-foreground text-base tracking-tight">
+          <span className="font-bold text-foreground text-base tracking-tight hidden md:inline">
             Nytzer<span className="text-primary">Vision</span>
           </span>
         )}
@@ -56,7 +56,7 @@ export const AppSidebar = () => {
               }`}
             >
               <Icon className={`w-[18px] h-[18px] shrink-0 ${active ? "text-primary" : ""}`} />
-              {!collapsed && <span>{label}</span>}
+              {!collapsed && <span className="hidden md:inline">{label}</span>}
             </Link>
           );
         })}
@@ -66,7 +66,7 @@ export const AppSidebar = () => {
         {!collapsed && (
           <div 
             onClick={() => setRole(role === 'ADMIN' ? 'OPERADOR' : 'ADMIN')}
-            className="mx-3 px-3 py-2 rounded-lg bg-black/20 border border-primary/20 text-xs flex justify-between items-center cursor-pointer hover:bg-black/40 transition-colors"
+            className="mx-3 px-3 py-2 rounded-lg bg-black/20 border border-primary/20 text-xs hidden md:flex justify-between items-center cursor-pointer hover:bg-black/40 transition-colors"
           >
             <span className="font-semibold text-muted-foreground">Visão: <span className={role === 'ADMIN' ? 'text-primary' : 'text-primary/80'}>{role}</span></span>
             <UserCog className="w-3.5 h-3.5 text-muted-foreground" />
@@ -74,7 +74,7 @@ export const AppSidebar = () => {
         )}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="mx-2 mb-3 flex items-center justify-center h-8 rounded-lg text-muted-foreground hover:bg-sidebar-accent transition-colors"
+          className="mx-2 mb-3 hidden md:flex items-center justify-center h-8 rounded-lg text-muted-foreground hover:bg-sidebar-accent transition-colors"
         >
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>

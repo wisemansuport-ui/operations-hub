@@ -26,7 +26,7 @@ export const TopBar = () => {
   };
 
   return (
-    <header className="h-14 border-b border-border bg-card/60 backdrop-blur-xl flex items-center justify-between px-6 sticky top-0 z-30">
+    <header className="h-14 border-b border-border bg-card/60 backdrop-blur-xl flex items-center justify-between px-4 md:px-6 sticky top-0 z-30">
       <div className="flex items-center gap-2">
         <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-success/10 text-success">
           ● Sistema ativo
