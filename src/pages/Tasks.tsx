@@ -528,34 +528,41 @@ const Tasks = () => {
         </div>
       )}
 
-        {/* MODAL - Nova Operação (Bottom Sheet) */}
+      {/* MODAL - Nova Operação (Full Screen Takeover) */}
       {isModalOpen && (
         <div
-          className="fixed inset-0 flex items-end justify-center bg-black/70 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 bg-background flex flex-col"
           style={{ zIndex: 9999 }}
-          onClick={(e) => { if (e.target === e.currentTarget) setIsModalOpen(false); }}
         >
-          <div className="bg-card border border-border rounded-t-2xl w-full max-h-[88vh] overflow-y-auto shadow-2xl">
-            <div className="sticky top-0 bg-card border-b border-border/40 px-5 py-4 flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-extrabold text-foreground">Nova operação</h2>
-                <p className="text-xs text-muted-foreground">Configure e inicie sua meta</p>
-              </div>
-              <button onClick={() => setIsModalOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-muted text-muted-foreground">
-                <X className="w-4 h-4" />
-              </button>
+          {/* Header */}
+          <div
+            className="flex items-center justify-between px-5 py-4 border-b border-border bg-card shrink-0"
+            style={{ paddingTop: `calc(env(safe-area-inset-top) + 16px)` }}
+          >
+            <div>
+              <h2 className="text-lg font-extrabold text-foreground">Nova Operação</h2>
+              <p className="text-xs text-muted-foreground">Configure e inicie sua meta</p>
             </div>
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="w-9 h-9 flex items-center justify-center rounded-full bg-muted text-muted-foreground"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
+          {/* Scrollable body */}
+          <div className="flex-1 overflow-y-auto">
             <form onSubmit={handleCreate} className="p-5 space-y-5">
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Plataforma *</label>
-                  <input type="text" value={plataforma} onChange={e => setPlataforma(e.target.value)} placeholder="Ex. Scorpionpg" className="w-full bg-background border border-border/60 rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary" required />
+                  <input type="text" value={plataforma} onChange={e => setPlataforma(e.target.value)} placeholder="Ex. Scorpionpg" className="w-full bg-muted/40 border border-border/60 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary" required />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Rede *</label>
-                  <select value={rede} onChange={e => setRede(e.target.value)} className="w-full bg-background border border-border/60 rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary" required>
+                  <select value={rede} onChange={e => setRede(e.target.value)} className="w-full bg-muted/40 border border-border/60 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary" required>
                     {redes.map(r => <option key={r} value={r}>{r}</option>)}
                   </select>
                 </div>
@@ -563,17 +570,17 @@ const Tasks = () => {
 
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Título *</label>
-                <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="Ex. Media 80 3,5x" className="w-full bg-background border border-border/60 rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary" required />
+                <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="Ex. Media 80 3,5x" className="w-full bg-muted/40 border border-border/60 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary" required />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Contas *</label>
-                  <input type="number" value={contas} onChange={e => setContas(e.target.value ? Number(e.target.value) : '')} placeholder="Ex. 70" className="w-full bg-background border border-border/60 rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary font-bold" min="1" required />
+                  <input type="number" value={contas} onChange={e => setContas(e.target.value ? Number(e.target.value) : '')} placeholder="Ex. 70" className="w-full bg-muted/40 border border-border/60 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary font-bold" min="1" required />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Total AP.V</label>
-                  <input type="number" value={totalApv} onChange={e => setTotalApv(e.target.value ? Number(e.target.value) : '')} placeholder="Ex. 20.000" className="w-full bg-background border border-border/60 rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary" min="0" />
+                  <input type="number" value={totalApv} onChange={e => setTotalApv(e.target.value ? Number(e.target.value) : '')} placeholder="Ex. 20.000" className="w-full bg-muted/40 border border-border/60 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary" min="0" />
                 </div>
               </div>
 
@@ -581,7 +588,11 @@ const Tasks = () => {
                 <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Seleção Rápida de Contas</label>
                 <div className="grid grid-cols-4 gap-2">
                   {[20, 30, 50, 60].map(val => (
-                    <button key={val} type="button" onClick={() => setContas(val)} className={`py-2.5 rounded-lg text-sm font-bold transition-all border ${contas === val ? 'bg-primary/20 border-primary text-primary' : 'bg-muted/30 border-border/50 text-muted-foreground'}`}>{val}</button>
+                    <button key={val} type="button" onClick={() => setContas(val)}
+                      className={`py-3 rounded-xl text-sm font-bold border transition-all ${
+                        contas === val ? 'bg-primary/20 border-primary text-primary' : 'bg-muted/30 border-border/50 text-muted-foreground'
+                      }`}
+                    >{val}</button>
                   ))}
                 </div>
               </div>
@@ -590,16 +601,25 @@ const Tasks = () => {
                 <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Modelo da Meta</label>
                 <div className="grid grid-cols-2 gap-2">
                   {(['Depositante', 'Recarga'] as const).map(mod => (
-                    <button key={mod} type="button" onClick={() => setModelo(mod)} className={`py-3 rounded-lg text-sm font-bold transition-all border ${modelo === mod ? 'bg-primary/10 border-primary text-primary' : 'bg-muted/30 border-border/50 text-muted-foreground'}`}>{mod}</button>
+                    <button key={mod} type="button" onClick={() => setModelo(mod)}
+                      className={`py-3.5 rounded-xl text-sm font-bold border transition-all ${
+                        modelo === mod ? 'bg-primary/10 border-primary text-primary' : 'bg-muted/30 border-border/50 text-muted-foreground'
+                      }`}
+                    >{mod}</button>
                   ))}
                 </div>
               </div>
 
-              <button type="submit" disabled={!plataforma || rede === 'Selecione' || !titulo || !contas} className="w-full bg-primary text-primary-foreground font-extrabold py-4 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50">
-                <Target className="w-5 h-5" /> Iniciar operação
+              <button
+                type="submit"
+                disabled={!plataforma || rede === 'Selecione' || !titulo || !contas}
+                className="w-full bg-primary text-primary-foreground font-extrabold py-4 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 text-base"
+              >
+                <Target className="w-5 h-5" /> Iniciar Operação
               </button>
 
-              <div className="h-6" />
+              {/* Bottom safe area spacer */}
+              <div style={{ height: `calc(env(safe-area-inset-bottom) + 20px)` }} />
             </form>
           </div>
         </div>
