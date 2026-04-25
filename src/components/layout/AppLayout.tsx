@@ -11,7 +11,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0 w-full transition-all duration-300">
           <TopBar />
-          <main className="p-4 md:p-6 animate-fade-in overflow-x-hidden">
+          <main className="p-4 md:p-6 animate-fade-in overflow-x-hidden pb-24 md:pb-6">
             {children}
           </main>
         </div>
