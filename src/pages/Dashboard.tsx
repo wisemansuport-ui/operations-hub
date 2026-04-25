@@ -29,34 +29,63 @@ const formatBRL = (val: number) => `R$ ${val.toFixed(2).replace('.', ',')}`;
 const Dashboard = () => {
   const [role] = useLocalStorage<'ADMIN' | 'OPERADOR'>('nytzer-role', 'ADMIN');
   const [metas] = useLocalStorage<OperationMeta[]>('nytzer-metas', []);
-  const allowedLinks = quickLinks.filter(link => link.roles.includes(role));
-
-  const stats = useMemo(() => {
+  const allowedLinks = quickLinks.filter(link => link.roles.includes(role));  const stats = useMemo(() => {
     let totalDepositado = 0;
     let totalSacado = 0;
     let totalSalarios = 0;
     let metasFechadas = 0;
     let contasProcessadas = 0;
+    const redesMap: Record<string, { lucro: number, contas: number, metas: number, acertos: number }> = {};
 
-    const metasAtivas = metas.filter(m => m.status !== 'lixeira' && m.status !== 'fechada').length;
+    const activeMetas = metas.filter(m => m.status !== 'lixeira' && m.status !== 'fechada');
+    const metasValidas = metas.filter(m => m.status !== 'lixeira');
     
-    metas.forEach(meta => {
-      if (meta.status === 'lixeira') return;
-      if (meta.status === 'fechada') {
-        metasFechadas++;
-        if (meta.salarioOperador) totalSalarios += Number(meta.salarioOperador);
-      }
+    metasValidas.forEach(meta => {
+      const isFechada = meta.status === 'fechada';
+      if (isFechada) metasFechadas++;
+      
+      const sal = Number(meta.salarioOperador || 0);
+      totalSalarios += sal;
       
       const remessas = meta.remessas || [];
+      let metaLucro = 0;
+      let metaContas = 0;
+
       remessas.forEach(r => {
-        totalDepositado += Number(r.deposito || 0);
-        totalSacado += Number(r.saque || 0);
+        const dep = Number(r.deposito || 0);
+        const saq = Number(r.saque || 0);
+        totalDepositado += dep;
+        totalSacado += saq;
         contasProcessadas += Number(r.contas || 0);
+        metaLucro += (saq - dep);
+        metaContas += Number(r.contas || 0);
       });
+
+      // Track by Network (Rede)
+      if (meta.rede && meta.rede !== 'Selecione') {
+        if (!redesMap[meta.rede]) redesMap[meta.rede] = { lucro: 0, contas: 0, metas: 0, acertos: 0 };
+        redesMap[meta.rede].lucro += (metaLucro + sal);
+        redesMap[meta.rede].contas += metaContas;
+        redesMap[meta.rede].metas += 1;
+        if (metaLucro + sal > 0) redesMap[meta.rede].acertos += 1;
+      }
     });
 
     const lucroBruto = totalSacado - totalDepositado;
     const receitaMensal = lucroBruto + totalSalarios;
+    const medioporMeta = metasFechadas > 0 ? receitaMensal / metasFechadas : 0;
+    const medioporConta = contasProcessadas > 0 ? receitaMensal / contasProcessadas : 0;
+
+    const rankingRedes = Object.entries(redesMap)
+      .map(([nome, d]) => ({ 
+        title: nome, 
+        subtitle: `${d.metas} metas · ${d.contas} contas`,
+        desc: `R$ ${(d.lucro / (d.contas || 1)).toFixed(2)}/cta · ${Math.round((d.acertos/d.metas)*100)}% acerto`,
+        val: `${d.lucro >= 0 ? '+' : ''}${formatBRL(d.lucro)}`,
+        lucroRaw: d.lucro
+      }))
+      .sort((a, b) => b.lucroRaw - a.lucroRaw)
+      .slice(0, 4);
 
     return {
       totalDepositado,
@@ -65,21 +94,26 @@ const Dashboard = () => {
       totalSalarios,
       receitaMensal,
       metasFechadas,
-      metasAtivas,
-      totalMetas: metas.filter(m => m.status !== 'lixeira').length,
-      contasProcessadas
+      metasAtivas: activeMetas.length,
+      totalMetas: metasValidas.length,
+      contasProcessadas,
+      medioporMeta,
+      medioporConta,
+      rankingRedes
     };
   }, [metas]);
 
-  // Generate dynamic chart data based on stats to prevent crash/empty limits
-  const barData = [
-    { name: "Ant", producao: stats.totalSacado * 0.8, meta: stats.totalSacado * 0.85 },
-    { name: "Atual", producao: stats.totalSacado, meta: stats.totalDepositado * 2 || 100 },
-  ];
+  // Dynamic Chart Data
+  const barData = useMemo(() => {
+    return [
+      { name: "Previsto", producao: stats.totalSacado * 0.9, meta: stats.totalDepositado * 1.5 },
+      { name: "Real", producao: stats.totalSacado, meta: stats.totalDepositado },
+    ];
+  }, [stats]);
 
   const pieData = [
-    { name: "Fechado", value: stats.metasFechadas || 1 },
-    { name: "Em Andamento", value: stats.metasAtivas || 1 },
+    { name: "Fechado", value: stats.metasFechadas || 0.1 },
+    { name: "Em Andamento", value: stats.metasAtivas || 0.1 },
     { name: "Aguardando", value: 1 },
   ];
 
@@ -201,7 +235,7 @@ const Dashboard = () => {
                <span className={`text-2xl font-black drop-shadow-md ${stats.lucroBruto >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>{formatBRL(stats.lucroBruto)}</span>
              </div>
              <div className="flex flex-col gap-1">
-               <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Ganho Fixo</span>
+               <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">SALÁRIO (FAT)</span>
                <span className="text-2xl font-black text-emerald-400 drop-shadow-md">+ {formatBRL(stats.totalSalarios)}</span>
              </div>
            </div>
@@ -214,32 +248,29 @@ const Dashboard = () => {
         <div className="space-y-5">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground">Lucro medio/meta</span>
-            <span className="text-sm font-bold text-emerald-400">R$ 165,94</span>
+            <span className="text-sm font-bold text-emerald-400">{formatBRL(stats.medioporMeta)}</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground">Lucro medio/conta</span>
-            <span className="text-sm font-bold text-emerald-400">R$ 5,93</span>
+            <span className="text-sm font-bold text-emerald-400">{formatBRL(stats.medioporConta)}</span>
           </div>
           <div className="flex items-center justify-between border-t border-border/40 pt-5 mt-3">
             <span className="text-sm font-medium text-muted-foreground">Proximas 50 contas (estimativa)</span>
-            <span className="text-base font-extrabold text-emerald-400">+R$ 296,32</span>
+            <span className="text-base font-extrabold text-emerald-400">+{formatBRL(stats.medioporConta * 50)}</span>
           </div>
         </div>
       </div>
 
       {/* Col 3: Redes Mais Lucrativas */}
-      <div className="glass-card rounded-2xl p-6 border-primary/10">
+      <div className="glass-card rounded-2xl p-6 border-primary/10 overflow-y-auto max-h-[400px] hide-scrollbar">
         <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.1em] mb-6">Redes Mais Lucrativas</h3>
         <div className="space-y-5">
-           {[
-             { title: 'VOY', subtitle: '1 metas · 50 contas', desc: 'R$ 6,26/conta · 100% acerto', val: '+R$ 312,80' },
-             { title: 'DY', subtitle: '1 metas · 30 contas', desc: 'R$ 7,49/conta · 100% acerto', val: '+R$ 224,60' },
-             { title: 'W1', subtitle: '1 metas · 20 contas', desc: 'R$ 7,41/conta · 100% acerto', val: '+R$ 148,20' },
-             { title: 'OKOK', subtitle: '2 metas · 40 contas', desc: 'R$ 3,60/conta · 50% acerto', val: '+R$ 144,10' }
-           ].map((net, i) => (
+           {stats.rankingRedes.length === 0 ? (
+             <p className="text-xs text-muted-foreground text-center py-10">Inicie operações para ver o ranking.</p>
+           ) : stats.rankingRedes.map((net, i) => (
              <div key={i} className="flex items-center justify-between border-b border-border/20 pb-4 last:border-0 last:pb-0">
                <div className="flex items-center gap-4">
-                 <div className="w-11 h-11 rounded-lg bg-red-950/30 border border-red-900/50 flex items-center justify-center font-black text-red-500 text-xs shadow-inner">
+                 <div className="w-11 h-11 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center font-black text-primary text-xs shadow-inner">
                    {net.title}
                  </div>
                  <div>
@@ -247,7 +278,7 @@ const Dashboard = () => {
                     <p className="text-[10px] font-medium text-muted-foreground mt-1">{net.desc}</p>
                  </div>
                </div>
-               <span className="font-bold text-emerald-400 text-sm tracking-tight">{net.val}</span>
+               <span className={`font-bold text-sm tracking-tight ${net.lucroRaw >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>{net.val}</span>
              </div>
            ))}
         </div>
