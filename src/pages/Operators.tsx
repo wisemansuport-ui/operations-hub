@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Users, Link as LinkIcon, Star, TrendingUp, TrendingDown, Copy, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { useLocalStorage } from "../hooks/useLocalStorage";
+import { OperationMeta } from "./Tasks";
 
 interface OperatorData {
   id: string;
@@ -13,16 +15,74 @@ interface OperatorData {
   metas: number;
   profitPerConta: number;
   totalProfit: number;
+  salary: number;
+  normais: number;
+  baixas: number;
 }
-
-const operatorData: OperatorData[] = [
-  { id: '1', rank: 1, initials: 'R', name: 'Rafael Lima', badge: 'Top performer', badgeColor: 'text-primary', deps: 70, metas: 2, profitPerConta: 7.13, totalProfit: 499.20 },
-  { id: '2', rank: 2, initials: 'J', name: 'Juliana Costa', badge: 'Top performer', badgeColor: 'text-primary', deps: 50, metas: 2, profitPerConta: 7.46, totalProfit: 372.80 },
-  { id: '3', rank: 3, initials: 'L', name: 'Lucas Mendes', badge: 'Oscilando', badgeColor: 'text-warning', deps: 20, metas: 1, profitPerConta: -2.11, totalProfit: -42.30 },
-];
 
 const Operators = () => {
   const [activeTab, setActiveTab] = useState('Ranking');
+  const [metas] = useLocalStorage<OperationMeta[]>('nytzer-metas', []);
+
+  const { operatorData, folhaTotal, totalMetas, totalContas, totalLucroEquipe } = useMemo(() => {
+     const opMap: Record<string, any> = {};
+     let tmpFolhaTotal = 0;
+     let tmpTotalMetasCount = 0;
+     let tmpTotalContasCount = 0;
+     let tmpTotalLucroEquipe = 0;
+
+     metas.forEach(meta => {
+        if (meta.status === 'lixeira') return;
+        const opName = meta.operador || 'Operador Central';
+        if (!opMap[opName]) {
+           opMap[opName] = { id: opName, name: opName, deps: 0, metas: 0, totalProfit: 0, normais: 0, baixas: 0, salary: 0 };
+        }
+        
+        let metaLucro = 0;
+        let metaNormais = 0;
+        let metaBaixas = 0;
+        let metaContas = 0;
+
+        (meta.remessas || []).forEach(r => {
+           const normais = (r as any).contasNormais || 0;
+           const baixas = (r as any).contasBaixas || 0;
+           metaNormais += normais;
+           metaBaixas += baixas;
+           metaLucro += (r.saque - r.deposito);
+           metaContas += r.contas;
+        });
+
+        const metaSalary = meta.salarioOperador ? meta.salarioOperador : ((metaNormais * 2) + (metaBaixas * 1));
+
+        opMap[opName].deps += metaContas;
+        opMap[opName].metas += 1;
+        opMap[opName].totalProfit += metaLucro;
+        opMap[opName].normais += metaNormais;
+        opMap[opName].baixas += metaBaixas;
+        opMap[opName].salary += metaSalary;
+
+        tmpFolhaTotal += metaSalary;
+        tmpTotalMetasCount += 1;
+        tmpTotalContasCount += metaContas;
+        tmpTotalLucroEquipe += metaLucro;
+     });
+
+     const ranked = Object.values(opMap).map(op => {
+        const initials = op.name.substring(0,2).toUpperCase();
+        const profitPerConta = op.deps > 0 ? (op.totalProfit / op.deps) : 0;
+        let badge = 'Em progressão';
+        let badgeColor = 'text-emerald-500/70 border-emerald-500/30';
+        if (profitPerConta > 2 && op.totalProfit > 100) { badge = 'Top performer'; badgeColor = 'text-primary border-primary'; }
+        else if (op.totalProfit < 0) { badge = 'Prejuízo'; badgeColor = 'text-red-500 border-red-500/50'; }
+
+        return { ...op, initials, profitPerConta, badge, badgeColor };
+     }).sort((a,b) => b.totalProfit - a.totalProfit) as OperatorData[];
+
+     ranked.forEach((op, i) => op.rank = i + 1);
+
+     return { operatorData: ranked, folhaTotal: tmpFolhaTotal, totalMetas: tmpTotalMetasCount, totalContas: tmpTotalContasCount, totalLucroEquipe: tmpTotalLucroEquipe };
+
+  }, [metas]);
 
   const handleCopyLink = () => {
     const inviteLink = `https://nytzer.com/register?r=${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
@@ -77,19 +137,19 @@ const Operators = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
          <div className="glass-card rounded-xl p-5 border-border/40 hover:border-border/80 transition-colors bg-card/40 backdrop-blur-md">
            <p className="text-[10px] text-muted-foreground font-bold tracking-widest mb-3 uppercase">Operadores</p>
-           <p className="text-3xl font-extrabold text-foreground drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]">3</p>
+           <p className="text-3xl font-extrabold text-foreground drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]">{operatorData.length}</p>
          </div>
          <div className="glass-card rounded-xl p-5 border-border/40 hover:border-border/80 transition-colors bg-card/40 backdrop-blur-md">
-           <p className="text-[10px] text-muted-foreground font-bold tracking-widest mb-3 uppercase">Ativos</p>
-           <p className="text-3xl font-extrabold text-foreground drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]">2</p>
+           <p className="text-[10px] text-muted-foreground font-bold tracking-widest mb-3 uppercase">Metas Totais</p>
+           <p className="text-3xl font-extrabold text-foreground drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]">{totalMetas}</p>
          </div>
          <div className="glass-card rounded-xl p-5 border-border/40 hover:border-border/80 transition-colors bg-card/40 backdrop-blur-md">
            <p className="text-[10px] text-muted-foreground font-bold tracking-widest mb-3 uppercase">Depositantes Totais</p>
-           <p className="text-3xl font-extrabold text-foreground drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]">160</p>
+           <p className="text-3xl font-extrabold text-foreground drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]">{totalContas}</p>
          </div>
          <div className="glass-card bg-primary/5 rounded-xl p-5 border-primary/20 hover:border-primary/50 transition-colors backdrop-blur-md shadow-[0_0_15px_hsl(var(--primary)/0.05)]">
            <p className="text-[10px] text-primary font-bold tracking-widest mb-3 uppercase drop-shadow-[0_0_5px_hsl(var(--primary)/0.5)]">Lucro Equipe</p>
-           <p className="text-3xl font-extrabold text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]">R$ 829,70</p>
+           <p className={`text-3xl font-extrabold ${totalLucroEquipe >= 0 ? 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]' : 'text-red-500'}`}>R$ {totalLucroEquipe.toFixed(2).replace('.', ',')}</p>
          </div>
       </div>
 
@@ -184,15 +244,12 @@ const Operators = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
              <p className="text-sm font-medium text-muted-foreground">Modelo: <strong className="text-foreground">R$ 2,00 por depositante (NORMAL) e R$ 1,00 (DEP BAIXO)</strong></p>
              <div className="text-right">
-                <p className="text-2xl font-extrabold text-emerald-400">R$ 280,00</p>
-                <p className="text-[10px] text-muted-foreground font-bold tracking-widest uppercase mt-1">Total a pagar (demo)</p>
+                <p className="text-2xl font-extrabold text-emerald-400">R$ {folhaTotal.toFixed(2).replace('.', ',')}</p>
+                <p className="text-[10px] text-muted-foreground font-bold tracking-widest uppercase mt-1">Total a pagar (Automático)</p>
              </div>
           </div>
 
-          <div className="glass-card bg-red-950/20 border-red-900/50 p-4 rounded-xl flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-red-500 shrink-0 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-            <p className="text-xs font-semibold text-red-400">Exemplo de operacao em andamento — os dados reais comecam quando voce criar sua primeira meta.</p>
-          </div>
+
 
           <div className="glass-card rounded-2xl border-border/40 overflow-hidden mt-6 hide-scrollbar overflow-x-auto">
              <table className="w-full text-sm text-left min-w-[700px]">
@@ -207,8 +264,6 @@ const Operators = () => {
                 </thead>
                 <tbody className="divide-y divide-border/20">
                    {operatorData.map(op => {
-                      // Demo math
-                      const payout = op.deps * 2; // Assuming all normal for demo
                       return (
                          <tr key={op.id} className="hover:bg-muted/10 transition-colors">
                             <td className="px-6 py-4">
@@ -216,7 +271,7 @@ const Operators = () => {
                                   <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-primary">{op.initials}</div>
                                   <div>
                                      <p className="font-bold text-foreground">{op.name}</p>
-                                     <p className="text-xs text-muted-foreground">{op.name.split(' ')[0].toLowerCase()}@email.com</p>
+                                     <p className="text-xs text-muted-foreground">Operador ativo</p>
                                   </div>
                                </div>
                             </td>
@@ -226,8 +281,8 @@ const Operators = () => {
                                {op.totalProfit > 0 ? '+' : ''}R$ {op.totalProfit.toFixed(2).replace('.', ',')}
                             </td>
                             <td className="px-6 py-4 text-right">
-                               <p className="font-extrabold text-red-400">R$ {payout.toFixed(2).replace('.', ',')}</p>
-                               <p className="text-[9px] text-muted-foreground font-medium mt-1">{op.deps} x R$ 2,00</p>
+                               <p className="font-extrabold text-emerald-400">R$ {op.salary.toFixed(2).replace('.', ',')}</p>
+                               <p className="text-[9px] text-muted-foreground font-medium mt-1">{op.normais} x R$ 2,00 | {op.baixas} x R$ 1,00</p>
                             </td>
                          </tr>
                       )
@@ -236,10 +291,10 @@ const Operators = () => {
                 <tfoot className="bg-muted/10 border-t border-border/40">
                    <tr>
                       <td className="px-6 py-4 font-bold text-foreground font-xl">Total</td>
-                      <td className="px-6 py-4 text-center font-bold">5</td>
-                      <td className="px-6 py-4 text-center font-bold">140</td>
-                      <td className="px-6 py-4 text-right font-bold text-emerald-400">R$ 829,70</td>
-                      <td className="px-6 py-4 text-right font-extrabold text-red-500 text-lg">R$ 280,00</td>
+                      <td className="px-6 py-4 text-center font-bold">{totalMetas}</td>
+                      <td className="px-6 py-4 text-center font-bold">{totalContas}</td>
+                      <td className={`px-6 py-4 text-right font-bold ${totalLucroEquipe >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>R$ {totalLucroEquipe.toFixed(2).replace('.','Macro')}</td>
+                      <td className="px-6 py-4 text-right font-extrabold text-emerald-400 text-lg">R$ {folhaTotal.toFixed(2).replace('.', ',')}</td>
                    </tr>
                 </tfoot>
              </table>

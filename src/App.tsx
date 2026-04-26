@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 import OneSignal from "react-onesignal";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -8,7 +8,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { useLocalStorage } from "./hooks/useLocalStorage";
 import Index from "./pages/Index";
+import Login from "./pages/Login";
 import Production from "./pages/Production";
 import Tasks from "./pages/Tasks";
 import Networks from "./pages/Networks";
@@ -22,13 +24,20 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
+  const [user] = useLocalStorage<any>('nytzer-user', null);
+  const isDevelopment = false; // Set to true to bypass login visually if needed
+  if (!user && !isDevelopment) return <Navigate to="/login" replace />;
+  return <AppLayout>{children}</AppLayout>;
+};
+
 const App = () => {
   useEffect(() => {
     OneSignal.init({
       appId: "25bd74d4-9b56-4021-bbb4-3260a00197f4",
       allowLocalhostAsSecureOrigin: true,
       notifyButton: {
-        enable: false, // Usaremos nosso botão customizado no TopBar
+        enable: false,
       },
     }).catch(e => console.error("OneSignal init error:", e));
   }, []);
@@ -41,21 +50,20 @@ const App = () => {
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <AppLayout>
                 <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/production" element={<Production />} />
-                  <Route path="/tasks" element={<Tasks />} />
-                  <Route path="/networks" element={<Networks />} />
-                  <Route path="/pix" element={<PixKeys />} />
-                  <Route path="/quality" element={<Quality />} />
-                  <Route path="/reports" element={<Reports />} />
-                  <Route path="/operators" element={<Operators />} />
-                  <Route path="/me" element={<OperatorExtract />} />
-                  <Route path="/tutorial" element={<Tutorial />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/" element={<PrivateRoute><Index /></PrivateRoute>} />
+                  <Route path="/production" element={<PrivateRoute><Production /></PrivateRoute>} />
+                  <Route path="/tasks" element={<PrivateRoute><Tasks /></PrivateRoute>} />
+                  <Route path="/networks" element={<PrivateRoute><Networks /></PrivateRoute>} />
+                  <Route path="/pix" element={<PrivateRoute><PixKeys /></PrivateRoute>} />
+                  <Route path="/quality" element={<PrivateRoute><Quality /></PrivateRoute>} />
+                  <Route path="/reports" element={<PrivateRoute><Reports /></PrivateRoute>} />
+                  <Route path="/operators" element={<PrivateRoute><Operators /></PrivateRoute>} />
+                  <Route path="/me" element={<PrivateRoute><OperatorExtract /></PrivateRoute>} />
+                  <Route path="/tutorial" element={<PrivateRoute><Tutorial /></PrivateRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-              </AppLayout>
             </BrowserRouter>
           </TooltipProvider>
         </NotificationProvider>

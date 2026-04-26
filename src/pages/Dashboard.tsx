@@ -44,22 +44,27 @@ const Dashboard = () => {
       const isFechada = meta.status === 'fechada';
       if (isFechada) metasFechadas++;
       
-      const sal = Number(meta.salarioOperador || 0);
-      totalSalarios += sal;
-      
       const remessas = meta.remessas || [];
       let metaLucro = 0;
       let metaContas = 0;
+      let autoSalario = 0;
 
       remessas.forEach(r => {
         const dep = Number(r.deposito || 0);
         const saq = Number(r.saque || 0);
+        const normais = (r as any).contasNormais || 0;
+        const baixas = (r as any).contasBaixas || 0;
+        
+        autoSalario += (normais * 2) + (baixas * 1);
         totalDepositado += dep;
         totalSacado += saq;
         contasProcessadas += Number(r.contas || 0);
         metaLucro += (saq - dep);
         metaContas += Number(r.contas || 0);
       });
+      
+      const sal = Number(meta.salarioOperador) || autoSalario;
+      totalSalarios += sal;
 
       // Track by Network (Rede)
       if (meta.rede && meta.rede !== 'Selecione') {

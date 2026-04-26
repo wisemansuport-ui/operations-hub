@@ -10,6 +10,8 @@ export interface Remessa {
   tipo: string;
   saldoIni: number;
   contas: number;
+  contasNormais?: number;
+  contasBaixas?: number;
   deposito: number;
   saque: number;
   status: string;
@@ -24,6 +26,7 @@ export interface OperationMeta {
   titulo: string;
   contas: number;
   modelo: string;
+  operador?: string;
   totalApv?: number;
   createdAt: string;
   status?: 'ativa' | 'fechada' | 'lixeira';
@@ -38,7 +41,8 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
   const [rTitulo, setRTitulo] = useState(String((meta.remessas?.length || 0) + 1));
   const [rTipo, setRTipo] = useState('Remessa');
   const [rSaldoIni, setRSaldoIni] = useState('');
-  const [rContas, setRContas] = useState('');
+  const [rContasNormais, setRContasNormais] = useState('');
+  const [rContasBaixas, setRContasBaixas] = useState('');
   const [rDeposito, setRDeposito] = useState('');
   const [rSaque, setRSaque] = useState('');
   const [rStatus, setRStatus] = useState('Normal');
@@ -63,14 +67,20 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
 
   const onRegister = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!rDeposito || !rSaque || !rContas) return;
+    const numNormais = Number(rContasNormais || 0);
+    const numBaixas = Number(rContasBaixas || 0);
+    const numTotal = numNormais + numBaixas;
+    
+    if (!rDeposito || !rSaque || numTotal === 0) return;
 
     const newR: Remessa = {
       id: Date.now().toString(),
       titulo: rTitulo || 'Remessa Extra',
       tipo: rTipo,
       saldoIni: Number(rSaldoIni || 0),
-      contas: Number(rContas),
+      contas: numTotal,
+      contasNormais: numNormais,
+      contasBaixas: numBaixas,
       deposito: Number(rDeposito),
       saque: Number(rSaque),
       status: rStatus,
@@ -88,7 +98,8 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
     );
     setRTitulo(String(remessas.length + 2));
     setRSaldoIni('');
-    setRContas('');
+    setRContasNormais('');
+    setRContasBaixas('');
     setRDeposito('');
     setRSaque('');
     setRNotas('');
@@ -97,7 +108,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
   const curDep = Number(rDeposito) || 0;
   const curSaq = Number(rSaque) || 0;
   const curRes = curSaq - curDep;
-  const curContas = Number(rContas) || 1;
+  const curContas = (Number(rContasNormais) || 0) + (Number(rContasBaixas) || 0) || 1;
   const curPerConta = curRes / curContas;
 
   return (
@@ -220,13 +231,14 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
               <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Saldo Ini.</label>
               <input type="number" value={rSaldoIni} onChange={e=>setRSaldoIni(e.target.value)} className="w-full bg-background/50 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner text-foreground" />
             </div>
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Contas *</label>
-              <input type="number" required value={rContas} onChange={e=>setRContas(e.target.value)} className="w-full bg-background/50 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner font-bold text-foreground text-center" />
-              <div className="flex gap-1">
-                {[3,5,10,15,20].map(v => (
-                  <button type="button" key={v} onClick={()=>setRContas(String(v))} className="flex-1 text-[9px] font-bold py-1 bg-muted/30 border border-border/40 rounded hover:bg-primary/20 hover:text-primary transition-colors text-muted-foreground">{v}</button>
-                ))}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase flex items-center justify-between">Normais <span className="text-primary ml-1">(R$ 2)</span></label>
+                <input type="number" required value={rContasNormais} onChange={e=>setRContasNormais(e.target.value)} placeholder="0" className="w-full bg-primary/5 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner font-bold text-foreground text-center" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase flex items-center justify-between">Baixo <span className="text-muted-foreground ml-1">(R$ 1)</span></label>
+                <input type="number" value={rContasBaixas} onChange={e=>setRContasBaixas(e.target.value)} placeholder="0" className="w-full bg-background/50 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner font-bold text-foreground text-center" />
               </div>
             </div>
           </div>
@@ -269,7 +281,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
              </div>
           </div>
 
-          <button type="submit" disabled={!rDeposito || !rSaque || !rContas} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-extrabold py-3 rounded-xl flex items-center justify-center gap-2 transition-transform hover:scale-[1.01] shadow-[0_10px_30px_hsl(var(--primary)/0.2)] disabled:opacity-50 disabled:hover:scale-100 mt-2">
+          <button type="submit" disabled={!rDeposito || !rSaque || (!rContasNormais && !rContasBaixas)} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-extrabold py-3 rounded-xl flex items-center justify-center gap-2 transition-transform hover:scale-[1.01] shadow-[0_10px_30px_hsl(var(--primary)/0.2)] disabled:opacity-50 disabled:hover:scale-100 mt-2">
              <ArrowUpRight className="w-5 h-5" /> Registrar remessa
           </button>
         </form>
@@ -318,7 +330,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
                   <div><p className="text-[9px] font-bold text-muted-foreground tracking-widest uppercase mb-0.5">Saldo Ini.</p><p className="text-xs font-bold text-foreground">{formatBRL(rem.saldoIni)}</p></div>
                   <div><p className="text-[9px] font-bold text-muted-foreground tracking-widest uppercase mb-0.5">Depósito</p><p className="text-xs font-bold text-foreground">{formatBRL(rem.deposito)}</p></div>
                   <div><p className="text-[9px] font-bold text-muted-foreground tracking-widest uppercase mb-0.5">Saque</p><p className="text-xs font-bold text-foreground">{formatBRL(rem.saque)}</p></div>
-                  <div><p className="text-[9px] font-bold text-muted-foreground tracking-widest uppercase mb-0.5">Por Conta</p><p className={`text-xs font-bold ${isWin ? 'text-emerald-500' : 'text-red-500'}`}>{formatBRL(rLucro/rem.contas)}</p></div>
+                  <div><p className="text-[9px] font-bold text-muted-foreground tracking-widest uppercase mb-0.5">{rem.contas} Contas</p><p className={`text-[10px] font-bold leading-tight ${isWin ? 'text-emerald-500' : 'text-red-500'}`}>{rem.contasNormais||0}N / {rem.contasBaixas||0}B<br/>{formatBRL(rLucro/rem.contas)}/cta</p></div>
                 </div>
               </div>
             )})}
@@ -379,13 +391,15 @@ const Tasks = () => {
   const [contas, setContas] = useState<number | ''>('');
   const [totalApv, setTotalApv] = useState<number | ''>('');
   const [modelo, setModelo] = useState<'Depositante' | 'Recarga'>('Depositante');
+  const [user] = useLocalStorage<any>('nytzer-user', null);
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!plataforma || rede === 'Selecione' || !titulo || !contas) return;
+    const activeOperator = user?.username || 'Operador Desconhecido';
+    if (!plataforma || rede === 'Selecione' || !titulo || !contas || !activeOperator) return;
     const newMeta: OperationMeta = {
       id: Date.now().toString(),
-      plataforma, rede, titulo, contas: Number(contas), modelo, 
+      plataforma, rede, titulo, contas: Number(contas), modelo, operador: activeOperator,
       totalApv: totalApv ? Number(totalApv) : undefined,
       createdAt: new Date().toISOString(),
       status: 'ativa',
@@ -625,9 +639,10 @@ const Tasks = () => {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Título *</label>
-                <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="Ex. Media 80 3,5x" className="w-full bg-muted/40 border border-border/60 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary" required />
+                <div className="space-y-1.5 col-span-2">
+                  <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Título *</label>
+                  <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="Ex. Media 80 3,5x" className="w-full bg-muted/40 border border-border/60 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary" required />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">

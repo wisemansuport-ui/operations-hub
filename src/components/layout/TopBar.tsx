@@ -2,12 +2,22 @@ import { Bell, Sun, Moon, User } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { useState, useRef, useEffect } from "react";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export const TopBar = () => {
   const { theme, toggleTheme } = useTheme();
   const { notifications, unreadCount, markAsRead, markAllRead } = useNotifications();
   const [showNotifs, setShowNotifs] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const [user, setUser] = useLocalStorage<any>('nytzer-user', null);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+     setUser(null);
+     navigate('/login');
+  };
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -141,14 +151,20 @@ export const TopBar = () => {
           )}
         </div>
 
-        <div className="ml-2 flex items-center gap-2 pl-3 border-l border-border">
+        <div className="ml-2 flex items-center gap-2 pl-3 border-l border-border relative group">
           <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
             <User className="w-4 h-4 text-primary" />
           </div>
           <div className="hidden sm:block">
-            <p className="text-sm font-medium text-foreground leading-tight">Admin</p>
-            <p className="text-[11px] text-muted-foreground leading-tight">Administrador</p>
+            <p className="text-sm font-medium text-foreground leading-tight truncate max-w-[120px]">{user?.username || 'Usuário'}</p>
+            <p className="text-[11px] text-muted-foreground leading-tight">{user?.role || 'Operador'}</p>
           </div>
+          <button 
+             onClick={handleLogout}
+             className="hidden group-hover:flex absolute right-0 top-10 whitespace-nowrap items-center gap-2 px-4 py-2 bg-popover border border-border rounded-lg shadow-lg text-xs font-bold text-destructive hover:bg-destructive/10 transition-colors animate-fade-in"
+          >
+             <LogOut className="w-3.5 h-3.5" /> Sair da conta
+          </button>
         </div>
       </div>
     </div>
