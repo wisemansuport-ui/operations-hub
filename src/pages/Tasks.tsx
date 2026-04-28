@@ -174,13 +174,13 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
 
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
-           <h1 className="text-xl md:text-3xl font-extrabold text-foreground tracking-tight">{meta.titulo}</h1>
+           <h1 className="text-xl md:text-3xl font-extrabold text-foreground tracking-tight">{meta.plataforma} {meta.rede !== 'Selecione' ? `- ${meta.rede}` : ''}</h1>
            <span className={`px-2 py-0.5 mt-1 rounded text-[10px] font-bold uppercase tracking-widest border ${meta.status === 'fechada' ? 'border-primary/50 text-primary bg-primary/10' : 'border-red-900/50 text-red-500 bg-red-950/30'}`}>
              {meta.status || 'ativa'}
            </span>
         </div>
         <p className="text-xs text-muted-foreground">
-          {meta.contas} contas · {remessas.length} remessas · {acertoPct}% de acerto
+          <strong className="text-foreground/80">Requisitos:</strong> {meta.titulo} · {meta.contas} contas · {remessas.length} remessas · {acertoPct}% de acerto
         </p>
         <div className="flex items-center gap-2 flex-wrap">
           {meta.status !== 'fechada' && (
@@ -653,8 +653,8 @@ const Tasks = () => {
                 <div className="flex items-center gap-3 min-w-0 flex-1" onClick={() => setSelectedMetaId(meta.id)}>
                   <div className={`w-2 h-2 rounded-full shrink-0 ${meta.status === 'fechada' ? 'bg-primary' : meta.status === 'lixeira' ? 'bg-red-500' : 'bg-emerald-500'}`} />
                   <div className="min-w-0">
-                    <p className="font-bold text-foreground text-sm truncate">{meta.titulo}</p>
-                    <p className="text-[10px] text-muted-foreground">{meta.plataforma} · {meta.rede} · {meta.contas} contas</p>
+                    <p className="font-bold text-foreground text-sm truncate">{meta.plataforma}</p>
+                    <p className="text-[10px] text-muted-foreground"><strong className="text-foreground/80">Req:</strong> {meta.titulo} · {meta.rede} · {meta.contas} contas</p>
                     <p className="text-[10px] text-muted-foreground">{rem.length} remessa(s) · {meta.modelo}</p>
                   </div>
                 </div>
@@ -745,7 +745,7 @@ const Tasks = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Título *</label>
+                  <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Requisitos *</label>
                   <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="Ex. Media 80 3,5x" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" required />
                 </div>
 
