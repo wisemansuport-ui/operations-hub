@@ -17,6 +17,7 @@ export interface Remessa {
   status: string;
   notas: string;
   data: string;
+  apv?: number;
 }
 
 export interface OperationMeta {
@@ -48,6 +49,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
   const [rSaque, setRSaque] = useState('');
   const [rStatus, setRStatus] = useState('Normal');
   const [rNotas, setRNotas] = useState('');
+  const [rApv, setRApv] = useState('');
 
   const [editingRemessaId, setEditingRemessaId] = useState<string | null>(null);
   const [eTitulo, setETitulo] = useState('');
@@ -59,6 +61,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
   const [eSaque, setESaque] = useState('');
   const [eStatus, setEStatus] = useState('Normal');
   const [eNotas, setENotas] = useState('');
+  const [eApv, setEApv] = useState('');
 
   const remessas = meta.remessas || [];
   
@@ -72,6 +75,8 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
   const prejuizoAcumulado = remessas.reduce((acc, r) => r.deposito > r.saque ? acc + (r.deposito - r.saque) : acc, 0);
   const remessasPositivas = remessas.filter(r => r.saque > r.deposito).length;
   const acertoPct = remessas.length > 0 ? ((remessasPositivas / remessas.length) * 100).toFixed(0) : '0';
+  const totalApvFeito = remessas.reduce((acc, r) => acc + (r.apv || 0), 0);
+  const apvRestante = meta.totalApv ? Math.max(0, meta.totalApv - totalApvFeito) : 0;
 
   const formatBRL = (val: number) => `R$ ${val.toFixed(2).replace('.', ',')}`;
 
@@ -104,7 +109,8 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
       saque: Number(rSaque),
       status: rStatus,
       notas: rNotas,
-      data: new Date().toISOString()
+      data: new Date().toISOString(),
+      apv: rApv ? Number(rApv) : undefined
     };
     
     onUpdateMeta({ ...meta, remessas: [newR, ...remessas] });
@@ -122,6 +128,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
     setRDeposito('');
     setRSaque('');
     setRNotas('');
+    setRApv('');
   };
 
   const curDep = Number(rDeposito) || 0;
@@ -141,6 +148,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
     setESaque(String(rem.saque));
     setEStatus(rem.status || 'Normal');
     setENotas(rem.notas || '');
+    setEApv(rem.apv ? String(rem.apv) : '');
   };
 
   const onSaveEdit = (e: React.FormEvent) => {
@@ -154,7 +162,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
     const updatedRemessas = remessas.map(r => {
       if (r.id === editingRemessaId) {
         return {
-          ...r, titulo: eTitulo, tipo: eTipo, saldoIni: Number(eSaldoIni || 0), contas: numTotal, contasNormais: numNormais, contasBaixas: numBaixas, deposito: Number(eDeposito), saque: Number(eSaque), status: eStatus, notas: eNotas,
+          ...r, titulo: eTitulo, tipo: eTipo, saldoIni: Number(eSaldoIni || 0), contas: numTotal, contasNormais: numNormais, contasBaixas: numBaixas, deposito: Number(eDeposito), saque: Number(eSaque), status: eStatus, notas: eNotas, apv: eApv ? Number(eApv) : undefined,
         };
       }
       return r;
@@ -181,6 +189,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
         </div>
         <p className="text-xs text-muted-foreground">
           <strong className="text-foreground/80">Requisitos:</strong> {meta.titulo} · {meta.contas} contas · {remessas.length} remessas · {acertoPct}% de acerto
+          {meta.totalApv ? ` · AP.V Restante: ${apvRestante}` : ''}
         </p>
         <div className="flex items-center gap-2 flex-wrap">
           {meta.status !== 'fechada' && (
@@ -243,14 +252,28 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
         </div>
       </div>
 
-      <div className="glass-card rounded-2xl border-border/40 p-5">
-        <div className="flex justify-between items-center mb-3">
-          <span className="text-sm font-bold text-foreground">Progresso: {totalCompletedContas}/{meta.contas} contas</span>
-          <span className="text-sm font-bold text-primary">{Math.floor(progresso)}%</span>
+      <div className="glass-card rounded-2xl border-border/40 p-5 space-y-4">
+        <div>
+          <div className="flex justify-between items-center mb-3">
+            <span className="text-sm font-bold text-foreground">Progresso de Contas: {totalCompletedContas}/{meta.contas}</span>
+            <span className="text-sm font-bold text-primary">{Math.floor(progresso)}%</span>
+          </div>
+          <div className="w-full bg-muted/30 rounded-full h-2.5 overflow-hidden">
+             <div className="bg-primary h-full rounded-full shadow-[0_0_10px_hsl(var(--primary)/0.5)] transition-all duration-1000" style={{ width: `${progresso}%` }} />
+          </div>
         </div>
-        <div className="w-full bg-muted/30 rounded-full h-2.5 overflow-hidden">
-           <div className="bg-primary h-full rounded-full shadow-[0_0_10px_hsl(var(--primary)/0.5)] transition-all duration-1000" style={{ width: `${progresso}%` }} />
-        </div>
+        
+        {meta.totalApv ? (
+          <div>
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-sm font-bold text-foreground">Progresso AP.V: {totalApvFeito}/{meta.totalApv}</span>
+              <span className="text-sm font-bold text-primary">{Math.min(100, Math.floor((totalApvFeito / meta.totalApv) * 100))}%</span>
+            </div>
+            <div className="w-full bg-muted/30 rounded-full h-2.5 overflow-hidden">
+               <div className="bg-primary h-full rounded-full shadow-[0_0_10px_hsl(var(--primary)/0.5)] transition-all duration-1000" style={{ width: `${Math.min(100, (totalApvFeito / meta.totalApv) * 100)}%` }} />
+            </div>
+          </div>
+        ) : null}
       </div>
 
       {meta.status !== 'fechada' && (
@@ -277,9 +300,15 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Saldo Ini.</label>
-              <input type="number" value={rSaldoIni} onChange={e=>setRSaldoIni(e.target.value)} className="w-full bg-background/50 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner text-foreground" />
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Saldo Ini.</label>
+                <input type="number" value={rSaldoIni} onChange={e=>setRSaldoIni(e.target.value)} className="w-full bg-background/50 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner text-foreground" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase" title="Apostas Válidas">AP.V</label>
+                <input type="number" value={rApv} onChange={e=>setRApv(e.target.value)} placeholder="0" className="w-full bg-background/50 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner text-foreground" />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1.5">
@@ -406,9 +435,15 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
                   <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Título</label>
                   <input type="text" value={eTitulo} onChange={e=>setETitulo(e.target.value)} className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none" />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Saldo Ini.</label>
-                  <input type="number" value={eSaldoIni} onChange={e=>setESaldoIni(e.target.value)} className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none" />
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Saldo Ini.</label>
+                    <input type="number" value={eSaldoIni} onChange={e=>setESaldoIni(e.target.value)} className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">AP.V</label>
+                    <input type="number" value={eApv} onChange={e=>setEApv(e.target.value)} className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none" />
+                  </div>
                 </div>
               </div>
 
