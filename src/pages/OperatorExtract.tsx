@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Wallet, Target, Activity, CheckCircle2, History } from "lucide-react";
 import { DataTable, Column } from "@/components/spreadsheet/DataTable";
+import { useLocalStorage } from "../hooks/useLocalStorage";
+import { OperationMeta } from "./Tasks";
 
 const columns: Column[] = [
   { key: "data", label: "Data" },
@@ -10,22 +12,68 @@ const columns: Column[] = [
   { key: "status", label: "Status" },
 ];
 
-const mockExtrato = [
-  { id: '1', data: '16/04/2026', lote: 'Campanha CPL', tipo: 'NORMAL', valor: '2.00', status: 'Processado' },
-  { id: '2', data: '16/04/2026', lote: 'Campanha Reativação', tipo: 'DEP BAIXO', valor: '1.00', status: 'Processado' },
-  { id: '3', data: '15/04/2026', lote: 'Campanha CPL', tipo: 'NORMAL', valor: '2.00', status: 'Processado' },
-  { id: '4', data: '15/04/2026', lote: 'Campanha CPL', tipo: 'NORMAL', valor: '2.00', status: 'Processado' },
-];
-
 export default function OperatorExtract() {
   const [timeFilter, setTimeFilter] = useState<'HOJE' | 'SEMANA' | 'MES'>('HOJE');
+  const [metas] = useLocalStorage<OperationMeta[]>('nytzer-metas', []);
+  const [user] = useLocalStorage<any>('nytzer-user', null);
+  const operatorName = user?.username || 'Operador Central';
 
-  // Hardcoded for demo
-  const stats = {
-    HOJE: { normal: 14, depBaixo: 5 },
-    SEMANA: { normal: 82, depBaixo: 24 },
-    MES: { normal: 245, depBaixo: 68 },
-  };
+  const { stats, extratoData } = useMemo(() => {
+    const now = new Date();
+    const isSameDay = (d: Date) => d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    const isThisWeek = (d: Date) => (now.getTime() - d.getTime()) <= 7 * 24 * 60 * 60 * 1000;
+    const isThisMonth = (d: Date) => d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+
+    const newStats = {
+      HOJE: { normal: 0, depBaixo: 0 },
+      SEMANA: { normal: 0, depBaixo: 0 },
+      MES: { normal: 0, depBaixo: 0 },
+    };
+
+    const extrato: any[] = [];
+
+    metas.forEach(meta => {
+      // Exclude deleted metas, and only include metas assigned to the current operator
+      if (meta.status === 'lixeira' || meta.operador !== operatorName) return;
+      
+      (meta.remessas || []).forEach(r => {
+        const d = new Date(r.data || meta.createdAt);
+        const normais = r.contasNormais || 0;
+        const baixas = r.contasBaixas || 0;
+
+        if (isSameDay(d)) { newStats.HOJE.normal += normais; newStats.HOJE.depBaixo += baixas; }
+        if (isThisWeek(d)) { newStats.SEMANA.normal += normais; newStats.SEMANA.depBaixo += baixas; }
+        if (isThisMonth(d)) { newStats.MES.normal += normais; newStats.MES.depBaixo += baixas; }
+
+        if (normais > 0) {
+          extrato.push({
+            id: r.id + '-norm',
+            data: d.toLocaleDateString(),
+            lote: meta.titulo,
+            tipo: 'NORMAL',
+            valor: '2.00',
+            status: meta.status === 'fechada' ? 'Processado' : 'Aguardando',
+            timestamp: d.getTime()
+          });
+        }
+        if (baixas > 0) {
+          extrato.push({
+            id: r.id + '-baix',
+            data: d.toLocaleDateString(),
+            lote: meta.titulo,
+            tipo: 'DEP BAIXO',
+            valor: '1.00',
+            status: meta.status === 'fechada' ? 'Processado' : 'Aguardando',
+            timestamp: d.getTime()
+          });
+        }
+      });
+    });
+
+    extrato.sort((a, b) => b.timestamp - a.timestamp);
+
+    return { stats: newStats, extratoData: extrato };
+  }, [metas, operatorName]);
 
   const currentStats = stats[timeFilter];
   const lucroTotal = (currentStats.normal * 2) + (currentStats.depBaixo * 1);
@@ -95,7 +143,7 @@ export default function OperatorExtract() {
         <h3 className="text-base font-bold text-foreground mb-4 flex items-center gap-2">
           <History className="w-4 h-4 text-primary" /> Histórico de Processamento
         </h3>
-        <DataTable columns={columns} data={mockExtrato} title="Extrato de Operações" subtitle="Registros validados pelo controle de qualidade" />
+        <DataTable columns={columns} data={extratoData} title="Extrato de Operações" subtitle="Registros validados pelo controle de qualidade" />
       </div>
 
     </div>
