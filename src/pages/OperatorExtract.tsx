@@ -7,8 +7,8 @@ import { OperationMeta } from "./Tasks";
 const columns: Column[] = [
   { key: "data", label: "Data" },
   { key: "plataforma", label: "Plataforma" },
-  { key: "tipo", label: "Tipo de Conta", type: "status", options: ["NORMAL", "DEP BAIXO"] },
-  { key: "valor", label: "Rate (R$)", type: "number" },
+  { key: "contas", label: "Contas Realizadas" },
+  { key: "valor", label: "Pagamento (R$)", type: "number" },
   { key: "status", label: "Status" },
 ];
 
@@ -36,38 +36,38 @@ export default function OperatorExtract() {
       // Exclude deleted metas, and only include metas assigned to the current operator
       if (meta.status === 'lixeira' || meta.operador !== operatorName) return;
       
+      let normais = 0;
+      let baixas = 0;
+      let lastDate = new Date(meta.createdAt);
+
       (meta.remessas || []).forEach(r => {
         const d = new Date(r.data || meta.createdAt);
-        const normais = r.contasNormais || 0;
-        const baixas = r.contasBaixas || 0;
+        if (d > lastDate) lastDate = d;
 
-        if (isSameDay(d)) { newStats.HOJE.normal += normais; newStats.HOJE.depBaixo += baixas; }
-        if (isThisWeek(d)) { newStats.SEMANA.normal += normais; newStats.SEMANA.depBaixo += baixas; }
-        if (isThisMonth(d)) { newStats.MES.normal += normais; newStats.MES.depBaixo += baixas; }
+        const rn = r.contasNormais || 0;
+        const rb = r.contasBaixas || 0;
+        normais += rn;
+        baixas += rb;
 
-        if (normais > 0) {
-          extrato.push({
-            id: r.id + '-norm',
-            data: d.toLocaleDateString(),
-            plataforma: meta.plataforma || 'N/A',
-            tipo: 'NORMAL',
-            valor: '2.00',
-            status: meta.status === 'fechada' ? 'Processado' : 'Aguardando',
-            timestamp: d.getTime()
-          });
-        }
-        if (baixas > 0) {
-          extrato.push({
-            id: r.id + '-baix',
-            data: d.toLocaleDateString(),
-            plataforma: meta.plataforma || 'N/A',
-            tipo: 'DEP BAIXO',
-            valor: '1.00',
-            status: meta.status === 'fechada' ? 'Processado' : 'Aguardando',
-            timestamp: d.getTime()
-          });
-        }
+        if (isSameDay(d)) { newStats.HOJE.normal += rn; newStats.HOJE.depBaixo += rb; }
+        if (isThisWeek(d)) { newStats.SEMANA.normal += rn; newStats.SEMANA.depBaixo += rb; }
+        if (isThisMonth(d)) { newStats.MES.normal += rn; newStats.MES.depBaixo += rb; }
       });
+
+      const totalContas = normais + baixas;
+      const pagamentoTotal = (normais * 2) + (baixas * 1);
+
+      if (totalContas > 0 || meta.status === 'fechada') {
+        extrato.push({
+          id: meta.id,
+          data: lastDate.toLocaleDateString(),
+          plataforma: meta.plataforma || 'N/A',
+          contas: totalContas.toString(),
+          valor: pagamentoTotal.toFixed(2),
+          status: meta.status === 'fechada' ? 'Finalizada' : 'Em Andamento',
+          timestamp: lastDate.getTime()
+        });
+      }
     });
 
     extrato.sort((a, b) => b.timestamp - a.timestamp);
