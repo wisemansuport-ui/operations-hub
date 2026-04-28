@@ -52,11 +52,12 @@ const Operators = () => {
            metaContas += r.contas;
         });
 
-        const metaSalary = meta.salarioOperador ? meta.salarioOperador : ((metaNormais * 2) + (metaBaixas * 1));
+        const metaSalary = ((metaNormais * 2) + (metaBaixas * 1));
+        const faturamentoExtra = meta.salarioOperador ? Number(meta.salarioOperador) : 0;
 
         opMap[opName].deps += metaContas;
         opMap[opName].metas += 1;
-        opMap[opName].totalProfit += metaLucro;
+        opMap[opName].totalProfit += (metaLucro + faturamentoExtra);
         opMap[opName].normais += metaNormais;
         opMap[opName].baixas += metaBaixas;
         opMap[opName].salary += metaSalary;
@@ -64,7 +65,7 @@ const Operators = () => {
         tmpFolhaTotal += metaSalary;
         tmpTotalMetasCount += 1;
         tmpTotalContasCount += metaContas;
-        tmpTotalLucroEquipe += metaLucro;
+        tmpTotalLucroEquipe += (metaLucro + faturamentoExtra);
      });
 
      const ranked = Object.values(opMap).map(op => {

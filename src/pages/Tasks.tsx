@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Target, Plus, X, Search, ArrowUpRight, ArrowLeft, AlertTriangle, CheckSquare, Trash2, RotateCcw, BarChart2 } from 'lucide-react';
+import { Target, Plus, X, Search, ArrowUpRight, ArrowLeft, AlertTriangle, CheckSquare, Trash2, RotateCcw, BarChart2, Edit2 } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { pushNotify, requestNotificationPermission } from '../lib/notifications';
 
@@ -38,6 +38,7 @@ const redes = ['Selecione', 'WE', 'W1', 'VOY', '91', 'DZ', 'A8', 'OKOK', 'ANJO',
 
 // --- SUBCOMPONENT: Meta Dashboard (Inside a Meta) ---
 const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onBack: () => void, onUpdateMeta: (m: OperationMeta) => void }) => {
+  const [isFinishing, setIsFinishing] = useState(false);
   const [rTitulo, setRTitulo] = useState(String((meta.remessas?.length || 0) + 1));
   const [rTipo, setRTipo] = useState('Remessa');
   const [rSaldoIni, setRSaldoIni] = useState('');
@@ -47,6 +48,17 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
   const [rSaque, setRSaque] = useState('');
   const [rStatus, setRStatus] = useState('Normal');
   const [rNotas, setRNotas] = useState('');
+
+  const [editingRemessaId, setEditingRemessaId] = useState<string | null>(null);
+  const [eTitulo, setETitulo] = useState('');
+  const [eTipo, setETipo] = useState('Remessa');
+  const [eSaldoIni, setESaldoIni] = useState('');
+  const [eContasNormais, setEContasNormais] = useState('');
+  const [eContasBaixas, setEContasBaixas] = useState('');
+  const [eDeposito, setEDeposito] = useState('');
+  const [eSaque, setESaque] = useState('');
+  const [eStatus, setEStatus] = useState('Normal');
+  const [eNotas, setENotas] = useState('');
 
   const remessas = meta.remessas || [];
   
@@ -62,6 +74,15 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
   const acertoPct = remessas.length > 0 ? ((remessasPositivas / remessas.length) * 100).toFixed(0) : '0';
 
   const formatBRL = (val: number) => `R$ ${val.toFixed(2).replace('.', ',')}`;
+
+  const handleFinishMeta = () => {
+    setIsFinishing(true);
+    setTimeout(() => {
+      onUpdateMeta({ ...meta, status: 'fechada' });
+      pushNotify('🏁 Operação Finalizada', `Meta: ${meta.titulo} fechada!`);
+      setIsFinishing(false);
+    }, 1500);
+  };
 
   const onRegister = (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,6 +130,40 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
   const curContas = (Number(rContasNormais) || 0) + (Number(rContasBaixas) || 0) || 1;
   const curPerConta = curRes / curContas;
 
+  const openEdit = (rem: Remessa) => {
+    setEditingRemessaId(rem.id);
+    setETitulo(rem.titulo);
+    setETipo(rem.tipo || 'Remessa');
+    setESaldoIni(rem.saldoIni ? String(rem.saldoIni) : '');
+    setEContasNormais(rem.contasNormais ? String(rem.contasNormais) : '');
+    setEContasBaixas(rem.contasBaixas ? String(rem.contasBaixas) : '');
+    setEDeposito(String(rem.deposito));
+    setESaque(String(rem.saque));
+    setEStatus(rem.status || 'Normal');
+    setENotas(rem.notas || '');
+  };
+
+  const onSaveEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingRemessaId || !eDeposito || !eSaque) return;
+    const numNormais = Number(eContasNormais || 0);
+    const numBaixas = Number(eContasBaixas || 0);
+    const numTotal = numNormais + numBaixas;
+    if (numTotal === 0) return;
+
+    const updatedRemessas = remessas.map(r => {
+      if (r.id === editingRemessaId) {
+        return {
+          ...r, titulo: eTitulo, tipo: eTipo, saldoIni: Number(eSaldoIni || 0), contas: numTotal, contasNormais: numNormais, contasBaixas: numBaixas, deposito: Number(eDeposito), saque: Number(eSaque), status: eStatus, notas: eNotas,
+        };
+      }
+      return r;
+    });
+    onUpdateMeta({ ...meta, remessas: updatedRemessas });
+    pushNotify('✏️ Remessa Atualizada', `A remessa foi editada com sucesso.`);
+    setEditingRemessaId(null);
+  };
+
   return (
     <div className="space-y-4 animate-fade-in w-full pb-20">
       <div className="flex items-center gap-4">
@@ -128,16 +183,10 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
           {meta.contas} contas · {remessas.length} remessas · {acertoPct}% de acerto
         </p>
         <div className="flex items-center gap-2 flex-wrap">
-          <button className="flex items-center gap-2 bg-background border border-border/50 hover:bg-muted text-foreground px-4 py-2 rounded-lg font-bold transition-all text-xs shadow-inner">
-             Editar meta
-          </button>
           {meta.status !== 'fechada' && (
             <button 
-              onClick={() => {
-                onUpdateMeta({ ...meta, status: 'fechada' });
-                pushNotify('🏁 Operação Finalizada', `Meta: ${meta.titulo} fechada!`);
-              }}
-              className="flex items-center gap-2 bg-primary/10 border border-primary/50 hover:bg-primary/20 text-primary px-4 py-2 rounded-lg font-bold transition-all text-xs shadow-inner"
+              onClick={handleFinishMeta}
+              className="flex items-center gap-2 bg-primary/10 border border-primary/50 hover:bg-primary/20 text-primary px-4 py-2 rounded-lg font-bold transition-all text-xs shadow-[0_0_15px_hsl(var(--primary)/0.2)]"
             >
               <CheckSquare className="w-4 h-4" /> Finalizar meta
             </button>
@@ -288,7 +337,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
         </form>
       </div>)}
 
-      <div className="flex justify-between items-end mt-8 mb-4">
+      <div id="historico-remessas" className="flex justify-between items-end mt-8 mb-4">
         <div>
           <h2 className="text-xl font-bold text-foreground">Histórico</h2>
           <p className="text-xs text-muted-foreground mt-0.5">{remessas.length} remessas · mais recentes primeiro</p>
@@ -324,7 +373,10 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
                        {isWin ? '+' : ''}{formatBRL(rLucro)}
                      </p>
                      <p className="text-[9px] text-muted-foreground mt-0.5">R$ {(rLucro/rem.contas).toFixed(2)}/cta</p>
-                     <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-red-400 cursor-pointer mt-2 ml-auto" />
+                     <div className="flex justify-end gap-3 mt-2">
+                       <Edit2 onClick={() => openEdit(rem)} className="w-3.5 h-3.5 text-muted-foreground hover:text-primary cursor-pointer" />
+                       <Trash2 onClick={() => onUpdateMeta({ ...meta, remessas: remessas.filter(r => r.id !== rem.id) })} className="w-3.5 h-3.5 text-muted-foreground hover:text-red-400 cursor-pointer" />
+                     </div>
                    </div>
                 </div>
                 <div className="bg-muted/10 border-t border-border/20 px-5 py-2 grid grid-cols-4 gap-2">
@@ -336,6 +388,74 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
               </div>
             )})}
         </div>
+      )}
+
+      {/* MODAL EDITAR REMESSA */}
+      {editingRemessaId && createPortal(
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4">
+          <div className="bg-card w-full max-w-md rounded-[24px] border border-border/50 p-6 shadow-2xl animate-fade-in relative overflow-hidden max-h-[90vh] overflow-y-auto">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
+            <div className="flex justify-between items-center mb-6 relative z-10">
+              <h3 className="text-xl font-bold text-foreground">Editar Remessa</h3>
+              <button onClick={() => setEditingRemessaId(null)} className="text-muted-foreground hover:text-foreground"><X className="w-5 h-5"/></button>
+            </div>
+            
+            <form onSubmit={onSaveEdit} className="space-y-4 relative z-10">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Título</label>
+                  <input type="text" value={eTitulo} onChange={e=>setETitulo(e.target.value)} className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Saldo Ini.</label>
+                  <input type="number" value={eSaldoIni} onChange={e=>setESaldoIni(e.target.value)} className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Normais</label>
+                  <input type="number" required value={eContasNormais} onChange={e=>setEContasNormais(e.target.value)} className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none text-center" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Baixas</label>
+                  <input type="number" value={eContasBaixas} onChange={e=>setEContasBaixas(e.target.value)} className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none text-center" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Depósito *</label>
+                  <input type="number" required value={eDeposito} onChange={e=>setEDeposito(e.target.value)} className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 font-mono text-foreground focus:border-primary focus:outline-none" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Saque *</label>
+                  <input type="number" required value={eSaque} onChange={e=>setESaque(e.target.value)} className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 font-mono text-foreground focus:border-primary focus:outline-none" />
+                </div>
+              </div>
+
+              <button type="submit" className="w-full bg-primary text-primary-foreground font-bold py-3 rounded-xl mt-4 shadow-[0_5px_15px_hsl(var(--primary)/0.2)] hover:scale-[1.02] transition-transform">
+                Salvar Alterações
+              </button>
+            </form>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* FINISH META ANIMATION OVERLAY */}
+      {isFinishing && createPortal(
+        <div className="fixed inset-0 bg-background/95 backdrop-blur-md z-[99999] flex flex-col items-center justify-center animate-fade-in transition-all">
+          <div className="relative">
+             <div className="absolute inset-0 bg-primary/30 rounded-full blur-[50px] animate-pulse" />
+             <div className="w-24 h-24 rounded-full bg-background border border-primary shadow-[0_0_30px_hsl(var(--primary)/0.4)] flex items-center justify-center relative z-10 animate-bounce">
+               <CheckSquare className="w-10 h-10 text-primary" />
+             </div>
+          </div>
+          <h2 className="mt-8 text-3xl font-black tracking-tighter text-foreground animate-pulse">Sucesso!</h2>
+          <p className="text-muted-foreground text-sm mt-2 font-medium">Finalizando operação e salvando resultados...</p>
+        </div>,
+        document.body
       )}
 
     </div>
