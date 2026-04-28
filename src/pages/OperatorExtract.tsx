@@ -57,17 +57,15 @@ export default function OperatorExtract() {
       const totalContas = normais + baixas;
       const pagamentoTotal = (normais * 2) + (baixas * 1);
 
-      if (totalContas > 0 || meta.status === 'fechada') {
-        extrato.push({
-          id: meta.id,
-          data: lastDate.toLocaleDateString(),
-          plataforma: meta.plataforma || 'N/A',
-          contas: totalContas.toString(),
-          valor: pagamentoTotal.toFixed(2),
-          status: meta.status === 'fechada' ? 'Finalizada' : 'Em Andamento',
-          timestamp: lastDate.getTime()
-        });
-      }
+      extrato.push({
+        id: meta.id,
+        data: lastDate.toLocaleDateString(),
+        plataforma: meta.plataforma || 'N/A',
+        contas: totalContas.toString(),
+        valor: pagamentoTotal.toFixed(2),
+        status: meta.status === 'fechada' ? 'Finalizada' : 'Em Andamento',
+        timestamp: lastDate.getTime()
+      });
     });
 
     extrato.sort((a, b) => b.timestamp - a.timestamp);
