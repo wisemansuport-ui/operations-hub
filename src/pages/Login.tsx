@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ShieldCheck, Mail } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Mail, Eye, EyeOff } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { toast } from 'sonner';
 
@@ -8,6 +8,8 @@ const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [, setUserData] = useLocalStorage<any>('nytzer-user', null);
   const navigate = useNavigate();
 
@@ -15,6 +17,11 @@ const Login = () => {
     e.preventDefault();
     if (!username || !password) {
       toast.error('Preencha os dados de acesso');
+      return;
+    }
+
+    if (!isLogin && password !== confirmPassword) {
+      toast.error('As senhas não coincidem');
       return;
     }
     
@@ -55,7 +62,7 @@ const Login = () => {
       <div className="w-full max-w-md p-8 relative z-10">
         <div className="mb-10 text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <h1 className="text-4xl font-black tracking-tighter text-foreground">Opera<span className="text-primary">Manage</span></h1>
+            <h1 className="text-4xl font-black tracking-tighter text-foreground">NYTZER<span className="text-primary">VISION</span></h1>
           </div>
           <p className="text-sm text-muted-foreground font-medium tracing-wide">Autenticação do Painel</p>
         </div>
@@ -93,14 +100,45 @@ const Login = () => {
             
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase ml-1">Senha</label>
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary shadow-inner transition-colors"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary shadow-inner transition-colors pr-12"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
+
+            {!isLogin && (
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase ml-1">Repetir Senha</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={e => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary shadow-inner transition-colors pr-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+            )}
 
             <button
               type="submit"

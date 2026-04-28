@@ -47,8 +47,6 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
   const [rSaque, setRSaque] = useState('');
   const [rStatus, setRStatus] = useState('Normal');
   const [rNotas, setRNotas] = useState('');
-  const [showCloseModal, setShowCloseModal] = useState(false);
-  const [salarioFinal, setSalarioFinal] = useState('');
 
   const remessas = meta.remessas || [];
   
@@ -135,7 +133,10 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
           </button>
           {meta.status !== 'fechada' && (
             <button 
-              onClick={() => setShowCloseModal(true)}
+              onClick={() => {
+                onUpdateMeta({ ...meta, status: 'fechada' });
+                pushNotify('🏁 Operação Finalizada', `Meta: ${meta.titulo} fechada!`);
+              }}
               className="flex items-center gap-2 bg-primary/10 border border-primary/50 hover:bg-primary/20 text-primary px-4 py-2 rounded-lg font-bold transition-all text-xs shadow-inner"
             >
               <CheckSquare className="w-4 h-4" /> Finalizar meta
@@ -335,37 +336,6 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
               </div>
             )})}
         </div>
-      )}
-
-      {/* MODAL ENCERRAR META */}
-      {showCloseModal && createPortal(
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4">
-          <div className="bg-card w-full max-w-sm rounded-[24px] border border-border/50 p-6 shadow-2xl animate-fade-in relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
-            <h3 className="text-xl font-bold text-foreground mb-1">Encerrar Meta</h3>
-            <p className="text-sm text-muted-foreground mb-6">Qual será o SALÁRIO (FAT) para o operador nesta meta?</p>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase mb-1.5 block">SALÁRIO (FAT) (R$)</label>
-                <div className="relative">
-                   <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">R$</div>
-                   <input type="number" value={salarioFinal} onChange={e => setSalarioFinal(e.target.value)} placeholder="0.00" className="w-full bg-background border border-border/50 rounded-xl py-3 pl-10 pr-4 text-sm font-bold text-foreground focus:outline-none focus:border-primary shadow-inner" />
-                </div>
-              </div>
-              
-              <div className="flex gap-3 pt-2">
-                <button onClick={() => setShowCloseModal(false)} className="flex-1 py-3 bg-muted/30 text-muted-foreground font-bold rounded-xl text-sm border border-transparent hover:bg-muted/50 transition-all">Cancelar</button>
-                <button onClick={() => {
-                  onUpdateMeta({ ...meta, status: 'fechada', salarioOperador: Number(salarioFinal) || 0 });
-                  setShowCloseModal(false);
-                  pushNotify('🏁 Operação Finalizada', `Meta: ${meta.titulo} fechada! Salário lançado: R$ ${Number(salarioFinal || 0).toFixed(2)}`);
-                }} className="flex-1 py-3 bg-primary text-primary-foreground font-bold rounded-xl text-sm transition-all shadow-[0_0_15px_hsl(var(--primary)/0.4)]">Encerrar</button>
-              </div>
-            </div>
-          </div>
-        </div>,
-        document.body
       )}
 
     </div>
