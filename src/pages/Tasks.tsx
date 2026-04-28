@@ -599,100 +599,121 @@ const Tasks = () => {
         </div>
       )}
 
-      {/* MODAL - Nova Operação (Full Screen Takeover via Portal) */}
+      {/* MODAL - Nova Operação */}
       {isModalOpen && createPortal(
         <div
-          className="fixed inset-0 bg-background flex flex-col"
+          className="fixed inset-0 flex items-stretch md:items-center md:justify-center bg-background/70 backdrop-blur-xl md:p-6"
           style={{ zIndex: 9999 }}
+          onClick={(e) => { if (e.target === e.currentTarget) setIsModalOpen(false); }}
         >
-          {/* Header */}
           <div
-            className="flex items-center justify-between px-5 py-4 border-b border-border bg-card shrink-0"
-            style={{ paddingTop: `calc(env(safe-area-inset-top) + 16px)` }}
+            className="relative flex flex-col w-full md:max-w-xl md:rounded-2xl md:border md:border-border/60 bg-card md:shadow-2xl md:shadow-primary/5 overflow-hidden"
+            style={{ maxHeight: '100dvh' }}
           >
-            <div>
-              <h2 className="text-lg font-extrabold text-foreground">Nova Operação</h2>
-              <p className="text-xs text-muted-foreground">Configure e inicie sua meta</p>
-            </div>
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="w-9 h-9 flex items-center justify-center rounded-full bg-muted text-muted-foreground"
+            {/* subtle gradient accent */}
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+            <div className="pointer-events-none absolute -top-24 -right-24 w-64 h-64 rounded-full bg-primary/10 blur-3xl" />
+
+            {/* Header */}
+            <div
+              className="relative flex items-center justify-between px-6 py-5 border-b border-border/50 shrink-0"
+              style={{ paddingTop: `max(env(safe-area-inset-top), 20px)` }}
             >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Scrollable body */}
-          <div className="flex-1 overflow-y-auto">
-            <form onSubmit={handleCreate} className="p-5 space-y-5">
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Plataforma *</label>
-                  <input type="text" value={plataforma} onChange={e => setPlataforma(e.target.value)} placeholder="Ex. Scorpionpg" className="w-full bg-muted/40 border border-border/60 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary" required />
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                  <Target className="w-4 h-4 text-primary" />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Rede *</label>
-                  <select value={rede} onChange={e => setRede(e.target.value)} className="w-full bg-muted/40 border border-border/60 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary" required>
-                    {redes.map(r => <option key={r} value={r}>{r}</option>)}
-                  </select>
+                <div>
+                  <h2 className="text-base font-bold text-foreground tracking-tight">Nova Operação</h2>
+                  <p className="text-[11px] text-muted-foreground">Configure e inicie sua meta</p>
                 </div>
               </div>
-
-                <div className="space-y-1.5 col-span-2">
-                  <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Título *</label>
-                  <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="Ex. Media 80 3,5x" className="w-full bg-muted/40 border border-border/60 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary" required />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Contas *</label>
-                  <input type="number" value={contas} onChange={e => setContas(e.target.value ? Number(e.target.value) : '')} placeholder="Ex. 70" className="w-full bg-muted/40 border border-border/60 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary font-bold" min="1" required />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Total AP.V</label>
-                  <input type="number" value={totalApv} onChange={e => setTotalApv(e.target.value ? Number(e.target.value) : '')} placeholder="Ex. 20.000" className="w-full bg-muted/40 border border-border/60 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary" min="0" />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Seleção Rápida de Contas</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {[20, 30, 50, 60].map(val => (
-                    <button key={val} type="button" onClick={() => setContas(val)}
-                      className={`py-3 rounded-xl text-sm font-bold border transition-all ${
-                        contas === val ? 'bg-primary/20 border-primary text-primary' : 'bg-muted/30 border-border/50 text-muted-foreground'
-                      }`}
-                    >{val}</button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Modelo da Meta</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {(['Depositante', 'Recarga'] as const).map(mod => (
-                    <button key={mod} type="button" onClick={() => setModelo(mod)}
-                      className={`py-3.5 rounded-xl text-sm font-bold border transition-all ${
-                        modelo === mod ? 'bg-primary/10 border-primary text-primary' : 'bg-muted/30 border-border/50 text-muted-foreground'
-                      }`}
-                    >{mod}</button>
-                  ))}
-                </div>
-              </div>
-
               <button
-                type="submit"
-                disabled={!plataforma || rede === 'Selecione' || !titulo || !contas}
-                className="w-full bg-primary text-primary-foreground font-extrabold py-4 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 text-base"
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
               >
-                <Target className="w-5 h-5" /> Iniciar Operação
+                <X className="w-4 h-4" />
               </button>
+            </div>
 
-              {/* Bottom safe area spacer */}
-              <div style={{ height: `calc(env(safe-area-inset-bottom) + 80px)` }} />
-            </form>
+            {/* Scrollable body */}
+            <div className="flex-1 overflow-y-auto">
+              <form onSubmit={handleCreate} className="p-6 space-y-5">
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Plataforma *</label>
+                    <input type="text" value={plataforma} onChange={e => setPlataforma(e.target.value)} placeholder="Ex. Scorpionpg" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" required />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Rede *</label>
+                    <select value={rede} onChange={e => setRede(e.target.value)} className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" required>
+                      {redes.map(r => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Título *</label>
+                  <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="Ex. Media 80 3,5x" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" required />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Contas *</label>
+                    <input type="number" value={contas} onChange={e => setContas(e.target.value ? Number(e.target.value) : '')} placeholder="Ex. 70" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 font-semibold transition-colors" min="1" required />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Total AP.V</label>
+                    <input type="number" value={totalApv} onChange={e => setTotalApv(e.target.value ? Number(e.target.value) : '')} placeholder="Ex. 20.000" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" min="0" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Seleção Rápida</label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[20, 30, 50, 60].map(val => (
+                      <button key={val} type="button" onClick={() => setContas(val)}
+                        className={`h-10 rounded-lg text-sm font-semibold border transition-all ${
+                          contas === val
+                            ? 'bg-primary/15 border-primary/60 text-primary shadow-[0_0_0_3px_hsl(var(--primary)/0.08)]'
+                            : 'bg-muted/20 border-border/40 text-muted-foreground hover:text-foreground hover:border-border'
+                        }`}
+                      >{val}</button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Modelo da Meta</label>
+                  <div className="grid grid-cols-2 gap-2 p-1 bg-muted/30 border border-border/40 rounded-xl">
+                    {(['Depositante', 'Recarga'] as const).map(mod => (
+                      <button key={mod} type="button" onClick={() => setModelo(mod)}
+                        className={`h-10 rounded-lg text-sm font-semibold transition-all ${
+                          modelo === mod
+                            ? 'bg-background text-foreground shadow-sm border border-border/60'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >{mod}</button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={!plataforma || rede === 'Selecione' || !titulo || !contas}
+                    className="w-full h-12 bg-primary text-primary-foreground font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 text-sm tracking-tight"
+                  >
+                    <Target className="w-4 h-4" /> Iniciar Operação
+                  </button>
+                </div>
+
+                {/* Bottom safe area spacer (mobile) */}
+                <div className="md:hidden" style={{ height: `calc(env(safe-area-inset-bottom) + 16px)` }} />
+              </form>
+            </div>
           </div>
         </div>,
         document.body
