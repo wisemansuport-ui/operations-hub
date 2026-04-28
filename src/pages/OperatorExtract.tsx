@@ -141,7 +141,13 @@ export default function OperatorExtract() {
         <h3 className="text-base font-bold text-foreground mb-4 flex items-center gap-2">
           <History className="w-4 h-4 text-primary" /> Histórico de Processamento
         </h3>
-        <DataTable columns={columns} data={extratoData} title="Extrato de Operações" subtitle="Registros validados pelo controle de qualidade" />
+        <DataTable 
+          title="Extrato de Operações" 
+          subtitle="Registros validados pelo controle de qualidade"
+          columns={columns} 
+          data={extratoData} 
+          dynamicData={true}
+        />
       </div>
 
     </div>

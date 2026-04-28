@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
 import { ArrowUpDown, ArrowUp, ArrowDown, Search, Plus, Trash2 } from "lucide-react";
 
@@ -16,6 +16,7 @@ interface DataTableProps {
   onDataChange?: (data: Record<string, any>[]) => void;
   title: string;
   subtitle?: string;
+  dynamicData?: boolean;
 }
 
 const statusColors: Record<string, string> = {
@@ -30,17 +31,23 @@ const statusColors: Record<string, string> = {
   "Baixo": "bg-warning/15 text-warning",
 };
 
-export const DataTable = ({ columns, data: initialData, onDataChange, title, subtitle }: DataTableProps) => {
+export const DataTable = ({ columns, data: initialData, onDataChange, title, subtitle, dynamicData }: DataTableProps) => {
   const [data, setData] = useLocalStorage(`nytzer-table-${title}`, initialData);
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [search, setSearch] = useState("");
   const [editingCell, setEditingCell] = useState<{ row: number; col: string } | null>(null);
 
+  useEffect(() => {
+    if (dynamicData) {
+      setData(initialData);
+    }
+  }, [initialData, dynamicData, setData]);
+
   const updateData = useCallback((newData: Record<string, any>[]) => {
     setData(newData);
     onDataChange?.(newData);
-  }, [onDataChange]);
+  }, [onDataChange, setData]);
 
   const handleSort = (key: string) => {
     if (sortKey === key) {
