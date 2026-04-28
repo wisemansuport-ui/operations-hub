@@ -28,17 +28,23 @@ const formatBRL = (val: number) => `R$ ${val.toFixed(2).replace('.', ',')}`;
 
 const Dashboard = () => {
   const [role] = useLocalStorage<'ADMIN' | 'OPERADOR'>('nytzer-role', 'ADMIN');
+  const [user] = useLocalStorage<any>('nytzer-user', null);
+  const operatorName = user?.username || 'Operador Central';
   const [metas] = useLocalStorage<OperationMeta[]>('nytzer-metas', []);
-  const allowedLinks = quickLinks.filter(link => link.roles.includes(role));  const stats = useMemo(() => {
+  const allowedLinks = quickLinks.filter(link => link.roles.includes(role));  
+  
+  const stats = useMemo(() => {
     let totalDepositado = 0;
     let totalSacado = 0;
     let totalSalarios = 0;
     let metasFechadas = 0;
     let contasProcessadas = 0;
+    let contasNormais = 0;
+    let contasBaixas = 0;
     const redesMap: Record<string, { lucro: number, contas: number, metas: number, acertos: number }> = {};
 
-    const activeMetas = metas.filter(m => m.status !== 'lixeira' && m.status !== 'fechada');
-    const metasValidas = metas.filter(m => m.status !== 'lixeira');
+    const metasValidas = metas.filter(m => m.status !== 'lixeira' && (role === 'ADMIN' || m.operador === operatorName));
+    const activeMetas = metasValidas.filter(m => m.status !== 'fechada');
     
     metasValidas.forEach(meta => {
       const isFechada = meta.status === 'fechada';
@@ -55,6 +61,8 @@ const Dashboard = () => {
         const normais = (r as any).contasNormais || 0;
         const baixas = (r as any).contasBaixas || 0;
         
+        contasNormais += normais;
+        contasBaixas += baixas;
         autoSalario += (normais * 2) + (baixas * 1);
         totalDepositado += dep;
         totalSacado += saq;
@@ -102,11 +110,13 @@ const Dashboard = () => {
       metasAtivas: activeMetas.length,
       totalMetas: metasValidas.length,
       contasProcessadas,
+      contasNormais,
+      contasBaixas,
       medioporMeta,
       medioporConta,
       rankingRedes
     };
-  }, [metas]);
+  }, [metas, role, operatorName]);
 
   // Dynamic Chart Data
   const barData = useMemo(() => {
@@ -121,6 +131,95 @@ const Dashboard = () => {
     { name: "Em Andamento", value: stats.metasAtivas || 0.1 },
     { name: "Aguardando", value: 1 },
   ];
+
+  if (role === 'OPERADOR') {
+    return (
+      <div className="space-y-6 relative z-10 pb-20 md:pb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Meu Painel</h1>
+            <p className="text-sm text-primary/70 mt-1 uppercase tracking-widest font-semibold flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--primary))]" />
+              Sincronizado via Metas
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <KPICard title="Saldo Total" value={formatBRL(stats.totalSalarios)} change={`${stats.contasProcessadas} contas operadas`} changeType="positive" icon={DollarSign} color="success" />
+          <KPICard title="Metas Fechadas" value={`${stats.metasFechadas}/${stats.totalMetas}`} change="Registradas" changeType="positive" icon={Target} color="primary" />
+          <KPICard title="Contas (NORMAL)" value={stats.contasNormais} change="R$ 2,00 por conta" changeType="neutral" icon={Activity} color="primary" />
+          <KPICard title="Contas (BAIXO)" value={stats.contasBaixas} change="R$ 1,00 por conta" changeType="neutral" icon={Users} color="warning" />
+        </div>
+
+        {/* Proporção Operacional - Simple Chart for Operator */}
+        <div className="glass-card rounded-2xl p-6 border-primary/10 flex flex-col md:flex-row items-center justify-between relative overflow-hidden gap-6">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10" />
+          <div className="w-full md:w-1/2">
+            <h3 className="text-xl font-bold text-foreground mb-2">Desempenho Geral</h3>
+            <p className="text-sm text-muted-foreground mb-6">Acompanhamento das suas metas finalizadas e pendentes.</p>
+            <div className="space-y-4">
+              <div className="flex justify-between items-end border-b border-border/30 pb-3">
+                <span className="text-sm font-medium text-muted-foreground">Ganhos Acumulados</span>
+                <span className="font-bold text-emerald-400 tracking-tight text-2xl">{formatBRL(stats.totalSalarios)}</span>
+              </div>
+              <div className="flex justify-between items-end border-b border-border/30 pb-3">
+                <span className="text-sm font-medium text-muted-foreground">Total de Contas</span>
+                <span className="font-bold text-foreground tracking-tight text-xl">{stats.contasProcessadas}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="w-full md:w-1/3 flex flex-col items-center">
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie 
+                  data={pieData} 
+                  cx="50%" cy="50%" 
+                  innerRadius={60} 
+                  outerRadius={80} 
+                  paddingAngle={5}
+                  dataKey="value" 
+                  strokeWidth={0}
+                >
+                  {pieData.map((_, i) => <Cell key={i} fill={pieColors[i]} />)}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ background: "rgba(10, 10, 10, 0.9)", border: "1px solid hsl(var(--primary)/0.2)", borderRadius: 12 }} 
+                  itemStyle={{ color: "hsl(var(--foreground))", fontSize: '14px', fontWeight: 'bold' }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="flex flex-wrap justify-center gap-4 mt-2">
+              {pieData.map((d, i) => (
+                <div key={d.name} className="flex items-center gap-2 text-xs text-foreground font-medium">
+                  <div className="w-3 h-3 rounded-md" style={{ background: pieColors[i] }} />
+                  {d.name}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-sm font-bold text-foreground mb-4 tracking-wide uppercase">Comandos Rápidos</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {allowedLinks.map(({ path, label, icon: Icon, desc }) => (
+              <Link key={path} to={path} className="flex items-center gap-4 p-4 rounded-[12px] border border-border/30 bg-background/40 hover:bg-muted/20 transition-all group shadow-sm">
+                <div className="w-10 h-10 rounded-md shrink-0 bg-primary/5 border border-primary/20 flex items-center justify-center group-hover:bg-primary/20 group-hover:border-primary/50 transition-colors">
+                  <Icon className="w-5 h-5 text-primary" />
+                </div>
+                <div className="text-left">
+                  <p className="text-[14px] font-bold text-foreground/90">{label}</p>
+                  <p className="text-[11px] font-medium text-muted-foreground mt-0.5">{desc}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
   <div className="space-y-6 relative z-10 pb-20 md:pb-6">
