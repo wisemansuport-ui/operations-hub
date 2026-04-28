@@ -6,7 +6,7 @@ import { OperationMeta } from "./Tasks";
 
 const columns: Column[] = [
   { key: "data", label: "Data" },
-  { key: "lote", label: "Lote / Campanha" },
+  { key: "plataforma", label: "Plataforma" },
   { key: "tipo", label: "Tipo de Conta", type: "status", options: ["NORMAL", "DEP BAIXO"] },
   { key: "valor", label: "Rate (R$)", type: "number" },
   { key: "status", label: "Status" },
@@ -49,7 +49,7 @@ export default function OperatorExtract() {
           extrato.push({
             id: r.id + '-norm',
             data: d.toLocaleDateString(),
-            lote: meta.titulo,
+            plataforma: meta.plataforma || 'N/A',
             tipo: 'NORMAL',
             valor: '2.00',
             status: meta.status === 'fechada' ? 'Processado' : 'Aguardando',
@@ -60,7 +60,7 @@ export default function OperatorExtract() {
           extrato.push({
             id: r.id + '-baix',
             data: d.toLocaleDateString(),
-            lote: meta.titulo,
+            plataforma: meta.plataforma || 'N/A',
             tipo: 'DEP BAIXO',
             valor: '1.00',
             status: meta.status === 'fechada' ? 'Processado' : 'Aguardando',
