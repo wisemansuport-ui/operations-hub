@@ -1,5 +1,7 @@
-import React from 'react';
-import { Radio, AlertCircle, Star } from "lucide-react";
+import React, { useMemo } from 'react';
+import { Radio, Star } from "lucide-react";
+import { useLocalStorage } from '../hooks/useLocalStorage';
+import { OperationMeta } from './Tasks';
 
 interface NetworkData {
   id: string;
@@ -16,13 +18,6 @@ interface NetworkData {
   profitPerConta: number;
   totalProfit: number;
 }
-
-const networkData: NetworkData[] = [
-  { id: '1', rank: 1, name: 'VOY', status: '↑ ALTA', statusColor: 'text-primary', score: 81, scoreColor: 'hsl(var(--primary))', metas: 1, contas: 50, mm: 2, winRate: 100, profitPerConta: 6.25, totalProfit: 312.80 },
-  { id: '2', rank: 2, name: 'DY', status: '↑ ALTA', statusColor: 'text-primary', score: 72, scoreColor: 'hsl(var(--primary))', metas: 1, contas: 30, mm: 2, winRate: 100, profitPerConta: 7.49, totalProfit: 224.60 },
-  { id: '3', rank: 3, name: 'W1', status: '↔ ESTAVEL', statusColor: 'text-yellow-500', score: 65, scoreColor: '#f59e0b', metas: 1, contas: 20, mm: 2, winRate: 100, profitPerConta: 7.41, totalProfit: 148.20 },
-  { id: '4', rank: 4, name: 'OKOK', status: '↔ ESTAVEL', statusColor: 'text-yellow-500', score: 64, scoreColor: '#f59e0b', metas: 2, contas: 40, mm: 4, winRate: 50, profitPerConta: -3.60, totalProfit: -144.10 },
-];
 
 const CircularProgress = ({ score, color }: { score: number, color: string }) => {
   const radius = 24;
@@ -52,6 +47,89 @@ const CircularProgress = ({ score, color }: { score: number, color: string }) =>
 };
 
 const Networks = () => {
+  const [metas] = useLocalStorage<OperationMeta[]>('nytzer-metas', []);
+
+  const networkData = useMemo(() => {
+    const redesMap: Record<string, { lucro: number, contas: number, metas: number, acertos: number }> = {};
+    
+    metas.forEach(meta => {
+      if (meta.status === 'lixeira' || !meta.rede || meta.rede === 'Selecione') return;
+      
+      let metaLucro = 0;
+      let metaContas = 0;
+      (meta.remessas || []).forEach(r => {
+        const dep = Number(r.deposito || 0);
+        const saq = Number(r.saque || 0);
+        metaLucro += (saq - dep);
+        metaContas += Number(r.contas || 0);
+      });
+      
+      const sal = Number(meta.salarioOperador) || 0;
+      
+      if (!redesMap[meta.rede]) redesMap[meta.rede] = { lucro: 0, contas: 0, metas: 0, acertos: 0 };
+      redesMap[meta.rede].lucro += (metaLucro + sal);
+      redesMap[meta.rede].contas += metaContas;
+      redesMap[meta.rede].metas += 1;
+      if (metaLucro + sal > 0) redesMap[meta.rede].acertos += 1;
+    });
+
+    const data: NetworkData[] = Object.entries(redesMap).map(([name, d]) => {
+      const winRate = d.metas > 0 ? (d.acertos / d.metas) * 100 : 0;
+      const profitPerConta = d.contas > 0 ? d.lucro / d.contas : 0;
+      
+      let score = 50; 
+      if (winRate >= 80) score += 20;
+      else if (winRate >= 50) score += 10;
+      else score -= 10;
+      
+      if (profitPerConta > 5) score += 20;
+      else if (profitPerConta > 0) score += 10;
+      else score -= 20;
+      
+      score = Math.min(100, Math.max(0, score));
+
+      let status = '↔ ESTAVEL';
+      let statusColor = 'text-yellow-500';
+      let scoreColor = '#f59e0b';
+
+      if (score >= 70) {
+        status = '↑ ALTA';
+        statusColor = 'text-primary';
+        scoreColor = 'hsl(var(--primary))';
+      } else if (score < 40) {
+        status = '↓ BAIXA';
+        statusColor = 'text-red-500';
+        scoreColor = '#ef4444';
+      }
+
+      return {
+        id: name,
+        rank: 0,
+        name,
+        status,
+        statusColor,
+        score,
+        scoreColor,
+        metas: d.metas,
+        contas: d.contas,
+        mm: Math.round(d.contas / (d.metas || 1)),
+        winRate: Math.round(winRate),
+        profitPerConta,
+        totalProfit: d.lucro
+      };
+    });
+
+    data.sort((a, b) => b.totalProfit - a.totalProfit);
+    data.forEach((d, i) => d.rank = i + 1);
+
+    return data;
+  }, [metas]);
+
+  const totalRedes = networkData.length;
+  const redesLucrativas = networkData.filter(n => n.totalProfit > 0).length;
+  const lucroTotal = networkData.reduce((acc, n) => acc + n.totalProfit, 0);
+  const scoreMedio = totalRedes > 0 ? Math.round(networkData.reduce((acc, n) => acc + n.score, 0) / totalRedes) : 0;
+
   return (
     <div className="space-y-8 animate-fade-in max-w-5xl mx-auto pb-12 relative z-10 w-full">
       {/* Header */}
@@ -65,29 +143,30 @@ const Networks = () => {
         </div>
       </div>
 
-      {/* Alert */}
-      <div className="glass-card bg-red-950/20 border-red-900/50 p-4 rounded-xl flex items-center gap-3 shadow-[0_0_10px_rgba(239,68,68,0.05)]">
-        <div className="w-2 h-2 rounded-full bg-red-500 shrink-0 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-        <p className="text-xs font-semibold text-red-400">Exemplo de operação em andamento — os dados reais começam quando você criar sua primeira meta.</p>
-      </div>
+      {networkData.length === 0 && (
+        <div className="glass-card bg-red-950/20 border-red-900/50 p-4 rounded-xl flex items-center gap-3 shadow-[0_0_10px_rgba(239,68,68,0.05)]">
+          <div className="w-2 h-2 rounded-full bg-red-500 shrink-0 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+          <p className="text-xs font-semibold text-red-400">Nenhum dado real ainda. Crie metas e selecione as redes para popular o sistema.</p>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="glass-card rounded-xl p-5 border-blue-900/30 hover:border-blue-500/50 transition-colors bg-card/40 backdrop-blur-md">
           <p className="text-[10px] text-muted-foreground font-bold tracking-widest mb-3 uppercase">Total de Redes</p>
-          <p className="text-3xl font-extrabold text-blue-400 drop-shadow-[0_0_8px_rgba(96,165,250,0.4)]">4</p>
+          <p className="text-3xl font-extrabold text-blue-400 drop-shadow-[0_0_8px_rgba(96,165,250,0.4)]">{totalRedes}</p>
         </div>
         <div className="glass-card rounded-xl p-5 border-primary/30 hover:border-primary/50 transition-colors bg-card/40 backdrop-blur-md">
           <p className="text-[10px] text-muted-foreground font-bold tracking-widest mb-3 uppercase">Redes Lucrativas</p>
-          <p className="text-3xl font-extrabold text-primary drop-shadow-[0_0_8px_rgba(201,168,76,0.4)]">3</p>
+          <p className="text-3xl font-extrabold text-primary drop-shadow-[0_0_8px_rgba(201,168,76,0.4)]">{redesLucrativas}</p>
         </div>
         <div className="glass-card rounded-xl p-5 border-green-900/30 hover:border-green-500/50 transition-colors bg-card/40 backdrop-blur-md">
           <p className="text-[10px] text-muted-foreground font-bold tracking-widest mb-3 uppercase">Lucro Total</p>
-          <p className="text-3xl font-extrabold text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.4)]">R$ 829,70</p>
+          <p className="text-3xl font-extrabold text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.4)]">R$ {lucroTotal.toFixed(2).replace('.', ',')}</p>
         </div>
         <div className="glass-card rounded-xl p-5 border-purple-900/30 hover:border-purple-500/50 transition-colors bg-card/40 backdrop-blur-md">
           <p className="text-[10px] text-muted-foreground font-bold tracking-widest mb-3 uppercase">Score Médio</p>
-          <p className="text-3xl font-extrabold text-purple-400 drop-shadow-[0_0_8px_rgba(192,132,252,0.4)]">71<span className="text-sm font-semibold text-muted-foreground">/100</span></p>
+          <p className="text-3xl font-extrabold text-purple-400 drop-shadow-[0_0_8px_rgba(192,132,252,0.4)]">{scoreMedio}<span className="text-sm font-semibold text-muted-foreground">/100</span></p>
         </div>
       </div>
 

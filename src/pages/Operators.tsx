@@ -23,6 +23,9 @@ interface OperatorData {
 const Operators = () => {
   const [activeTab, setActiveTab] = useState('Ranking');
   const [metas] = useLocalStorage<OperationMeta[]>('nytzer-metas', []);
+  const [user] = useLocalStorage<any>('nytzer-user', null);
+  const [users] = useLocalStorage<any[]>('nytzer-users', []);
+  const activeOperator = user?.username || 'admin';
 
   const { operatorData, folhaTotal, totalMetas, totalContas, totalLucroEquipe } = useMemo(() => {
      const opMap: Record<string, any> = {};
@@ -32,7 +35,14 @@ const Operators = () => {
      let tmpTotalLucroEquipe = 0;
 
      metas.forEach(meta => {
-        if (meta.status === 'lixeira') return;
+        if (meta.status === 'lixeira' || meta.isAdminMeta) return;
+        
+        const isAffiliated = (users.find(u => u.username === meta.operador)?.affiliatedTo === activeOperator) ||
+                             (meta.operador === activeOperator) ||
+                             (!meta.operador && activeOperator === 'wiseman');
+                             
+        if (!isAffiliated) return;
+        
         const opName = meta.operador || 'Operador Central';
         if (!opMap[opName]) {
            opMap[opName] = { id: opName, name: opName, deps: 0, metas: 0, totalProfit: 0, normais: 0, baixas: 0, salary: 0 };
@@ -86,7 +96,8 @@ const Operators = () => {
   }, [metas]);
 
   const handleCopyLink = () => {
-    const inviteLink = `https://nytzer.com/register?r=${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+    const activeAdmin = user?.username || 'admin';
+    const inviteLink = `https://nytzer.com/register?ref=${activeAdmin}`;
     navigator.clipboard.writeText(inviteLink);
     toast.success("Link único gerado e copiado para a área de transferência!");
   };
@@ -289,13 +300,13 @@ const Operators = () => {
                       )
                    })}
                 </tbody>
-                <tfoot className="bg-muted/10 border-t border-border/40">
+                <tfoot className="bg-primary/5 border-t-2 border-primary/20 shadow-[0_-10px_20px_-10px_hsl(var(--primary)/0.1)] relative">
                    <tr>
-                      <td className="px-6 py-4 font-bold text-foreground font-xl">Total</td>
-                      <td className="px-6 py-4 text-center font-bold">{totalMetas}</td>
-                      <td className="px-6 py-4 text-center font-bold">{totalContas}</td>
-                      <td className={`px-6 py-4 text-right font-bold ${totalLucroEquipe >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>R$ {totalLucroEquipe.toFixed(2).replace('.','Macro')}</td>
-                      <td className="px-6 py-4 text-right font-extrabold text-emerald-400 text-lg">R$ {folhaTotal.toFixed(2).replace('.', ',')}</td>
+                      <td className="px-6 py-5 font-black text-primary uppercase tracking-widest text-sm drop-shadow-sm">TOTAL GERAL</td>
+                      <td className="px-6 py-5 text-center font-black text-foreground text-base">{totalMetas}</td>
+                      <td className="px-6 py-5 text-center font-black text-foreground text-base">{totalContas}</td>
+                      <td className={`px-6 py-5 text-right font-black text-base ${totalLucroEquipe >= 0 ? 'text-emerald-400 drop-shadow-sm' : 'text-red-500 drop-shadow-sm'}`}>{totalLucroEquipe > 0 ? '+' : ''}R$ {totalLucroEquipe.toFixed(2).replace('.', ',')}</td>
+                      <td className="px-6 py-5 text-right font-black text-primary text-2xl drop-shadow-[0_0_8px_hsl(var(--primary)/0.4)]">R$ {folhaTotal.toFixed(2).replace('.', ',')}</td>
                    </tr>
                 </tfoot>
              </table>

@@ -33,6 +33,8 @@ export interface OperationMeta {
   status?: 'ativa' | 'fechada' | 'lixeira';
   remessas?: Remessa[];
   salarioOperador?: number;
+  pagamentoOperador?: number;
+  isAdminMeta?: boolean;
 }
 
 const redes = ['Selecione', 'WE', 'W1', 'VOY', '91', 'DZ', 'A8', 'OKOK', 'ANJO', 'XW', 'EK', 'DY', '777', '888', 'WP', 'BRA', 'GAME', 'ALFA', 'KK', 'MK'];
@@ -65,9 +67,10 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
 
   const remessas = meta.remessas || [];
   
+  const isRecarga = meta.modelo === 'Recarga';
   const totalCompletedContas = remessas.reduce((acc, r) => acc + r.contas, 0);
-  const progresso = Math.min((totalCompletedContas / meta.contas) * 100, 100);
   const depositoTotal = remessas.reduce((acc, r) => acc + r.deposito, 0);
+  const progresso = Math.min(((isRecarga ? depositoTotal : totalCompletedContas) / meta.contas) * 100, 100);
   const saqueTotal = remessas.reduce((acc, r) => acc + r.saque, 0);
   const resultadoBruto = saqueTotal - depositoTotal;
   const resultadoLiquido = resultadoBruto + (meta.salarioOperador || 0);
@@ -188,7 +191,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
            </span>
         </div>
         <p className="text-xs text-muted-foreground">
-          <strong className="text-foreground/80">Requisitos:</strong> {meta.titulo} · {meta.contas} contas · {remessas.length} remessas · {acertoPct}% de acerto
+          <strong className="text-foreground/80">Requisitos:</strong> {meta.titulo} · {isRecarga ? `R$ ${meta.contas} recarga` : `${meta.contas} contas`} · {remessas.length} remessas · {acertoPct}% de acerto
           {meta.totalApv ? ` · AP.V Restante: ${apvRestante}` : ''}
         </p>
         <div className="flex items-center gap-2 flex-wrap">
@@ -214,7 +217,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
          </div>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3">
         <div className="glass-card flex flex-col justify-center p-4 rounded-xl border-border/40">
            <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Depósito</span>
            <span className="text-base font-bold text-foreground">{formatBRL(depositoTotal)}</span>
@@ -231,7 +234,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
            <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Prejuízo Acum.</span>
            <span className="text-base font-bold text-red-500">{formatBRL(prejuizoAcumulado)}</span>
         </div>
-        <div className="glass-card flex flex-col justify-center p-4 rounded-xl border-border/60 bg-muted/20">
+        <div className="glass-card flex flex-col justify-center p-4 rounded-xl border-border/60 bg-muted/20 relative group">
            <span className="text-[9px] uppercase font-bold text-primary tracking-widest mb-1 shadow-inner">SALÁRIO (FAT)</span>
            <div className="flex items-center gap-1">
              <span className="text-xs font-bold text-muted-foreground">R$</span>
@@ -242,6 +245,25 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
                placeholder="0,00"
                className="bg-transparent border-none p-0 w-full text-base font-black text-foreground focus:ring-0 focus:outline-none placeholder:text-muted-foreground/30"
              />
+           </div>
+           <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-background border border-border p-2 rounded shadow-lg text-[10px] text-muted-foreground opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10 w-max max-w-[200px] text-center">
+             Faturamento bruto para repasses e contratos
+           </div>
+        </div>
+        <div className="glass-card flex flex-col justify-center p-4 rounded-xl border-border/60 bg-muted/20 relative group">
+           <span className="text-[9px] uppercase font-bold text-emerald-500 tracking-widest mb-1 shadow-inner">SALÁRIO OP</span>
+           <div className="flex items-center gap-1">
+             <span className="text-xs font-bold text-muted-foreground">R$</span>
+             <input 
+               type="number" 
+               value={meta.pagamentoOperador || ''} 
+               onChange={(e) => onUpdateMeta({ ...meta, pagamentoOperador: Number(e.target.value) })}
+               placeholder="0,00"
+               className="bg-transparent border-none p-0 w-full text-base font-black text-foreground focus:ring-0 focus:outline-none placeholder:text-muted-foreground/30"
+             />
+           </div>
+           <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-background border border-border p-2 rounded shadow-lg text-[10px] text-muted-foreground opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10 w-max max-w-[150px] text-center">
+             Pagamento manual do operador
            </div>
         </div>
         <div className="glass-card col-span-2 md:col-span-1 flex flex-col justify-center p-4 rounded-xl border-emerald-900/30 bg-emerald-950/20 shadow-lg">
@@ -255,7 +277,9 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
       <div className="glass-card rounded-2xl border-border/40 p-5 space-y-4">
         <div>
           <div className="flex justify-between items-center mb-3">
-            <span className="text-sm font-bold text-foreground">Progresso de Contas: {totalCompletedContas}/{meta.contas}</span>
+            <span className="text-sm font-bold text-foreground">
+              {isRecarga ? `Progresso da Recarga: R$ ${depositoTotal} / R$ ${meta.contas}` : `Progresso de Contas: ${totalCompletedContas}/${meta.contas}`}
+            </span>
             <span className="text-sm font-bold text-primary">{Math.floor(progresso)}%</span>
           </div>
           <div className="w-full bg-muted/30 rounded-full h-2.5 overflow-hidden">
@@ -310,16 +334,23 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
                 <input type="number" value={rApv} onChange={e=>setRApv(e.target.value)} placeholder="0" className="w-full bg-background/50 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner text-foreground" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase flex items-center justify-between">Normais <span className="text-primary ml-1">(R$ 2)</span></label>
-                <input type="number" required value={rContasNormais} onChange={e=>setRContasNormais(e.target.value)} placeholder="0" className="w-full bg-primary/5 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner font-bold text-foreground text-center" />
+            {!meta.isAdminMeta ? (
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase flex items-center justify-between">Normais {!isRecarga && <span className="text-primary ml-1">(R$ 2)</span>}</label>
+                  <input type="number" required value={rContasNormais} onChange={e=>setRContasNormais(e.target.value)} placeholder="0" className="w-full bg-primary/5 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner font-bold text-foreground text-center" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase flex items-center justify-between">Baixo {!isRecarga && <span className="text-muted-foreground ml-1">(R$ 1)</span>}</label>
+                  <input type="number" value={rContasBaixas} onChange={e=>setRContasBaixas(e.target.value)} placeholder="0" className="w-full bg-background/50 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner font-bold text-foreground text-center" />
+                </div>
               </div>
+            ) : (
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase flex items-center justify-between">Baixo <span className="text-muted-foreground ml-1">(R$ 1)</span></label>
-                <input type="number" value={rContasBaixas} onChange={e=>setRContasBaixas(e.target.value)} placeholder="0" className="w-full bg-background/50 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner font-bold text-foreground text-center" />
+                <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Contas Finalizadas</label>
+                <input type="number" required value={rContasNormais} onChange={e=>setRContasNormais(e.target.value)} placeholder="0" className="w-full bg-background/50 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner text-foreground text-center" />
               </div>
-            </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3 border-t border-border/20 pt-4">
@@ -447,17 +478,6 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Normais</label>
-                  <input type="number" required value={eContasNormais} onChange={e=>setEContasNormais(e.target.value)} className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none text-center" />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Baixas</label>
-                  <input type="number" value={eContasBaixas} onChange={e=>setEContasBaixas(e.target.value)} className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none text-center" />
-                </div>
-              </div>
-
               <div className="grid grid-cols-2 gap-3 pt-2">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Depósito *</label>
@@ -468,6 +488,19 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
                   <input type="number" required value={eSaque} onChange={e=>setESaque(e.target.value)} className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 font-mono text-foreground focus:border-primary focus:outline-none" />
                 </div>
               </div>
+
+              {!meta.isAdminMeta && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Normais</label>
+                    <input type="number" required value={eContasNormais} onChange={e=>setEContasNormais(e.target.value)} className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none text-center" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Baixas</label>
+                    <input type="number" value={eContasBaixas} onChange={e=>setEContasBaixas(e.target.value)} className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none text-center" />
+                  </div>
+                </div>
+              )}
 
               <button type="submit" className="w-full bg-primary text-primary-foreground font-bold py-3 rounded-xl mt-4 shadow-[0_5px_15px_hsl(var(--primary)/0.2)] hover:scale-[1.02] transition-transform">
                 Salvar Alterações
@@ -503,6 +536,7 @@ const Tasks = () => {
   const [metas, setMetas] = useLocalStorage<OperationMeta[]>('nytzer-metas', []);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Minha operacao');
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedMetaId, setSelectedMetaId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -516,7 +550,10 @@ const Tasks = () => {
   const [contas, setContas] = useState<number | ''>('');
   const [totalApv, setTotalApv] = useState<number | ''>('');
   const [modelo, setModelo] = useState<'Depositante' | 'Recarga'>('Depositante');
+  const [isAdminMeta, setIsAdminMeta] = useState(false);
   const [user] = useLocalStorage<any>('nytzer-user', null);
+  const [role] = useLocalStorage<'ADMIN' | 'OPERADOR'>('nytzer-role', 'ADMIN');
+  const [users] = useLocalStorage<any[]>('nytzer-users', []);
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -528,9 +565,11 @@ const Tasks = () => {
       totalApv: totalApv ? Number(totalApv) : undefined,
       createdAt: new Date().toISOString(),
       status: 'ativa',
-      remessas: []
+      remessas: [],
+      isAdminMeta: role === 'ADMIN' ? isAdminMeta : false
     };
     setMetas([newMeta, ...metas]);
+    setIsAdminMeta(false);
     setIsModalOpen(false);
 
     // Notification Hook - Meta Initiated
@@ -555,10 +594,27 @@ const Tasks = () => {
     setMetas(metas.filter(m => m.id !== id));
   };
 
+  const activeOperator = user?.username || 'Operador Desconhecido';
+
+  const visibleMetas = React.useMemo(() => {
+    if (role === 'ADMIN') {
+      return metas.filter(m => {
+        if (m.operador === activeOperator) return true; // Suas proprias metas (ex: Admin operando)
+        const opUser = users.find(u => u.username === m.operador);
+        if (opUser && opUser.affiliatedTo === activeOperator) return true; // Metas de operadores afiliados a este admin
+        
+        // Backwards compatibility: metas sem operador ou de um operador desconhecido aparecem pro admin logado
+        if (!m.operador && activeOperator === 'wiseman') return true; 
+        return false;
+      });
+    }
+    return metas.filter(m => m.operador === activeOperator && !m.isAdminMeta);
+  }, [metas, role, activeOperator, users]);
+
   // Derive Lists
-  const listActive = metas.filter(m => !m.status || m.status === 'ativa');
-  const listFechadas = metas.filter(m => m.status === 'fechada');
-  const listLixeira = metas.filter(m => m.status === 'lixeira');
+  const listActive = visibleMetas.filter(m => !m.status || m.status === 'ativa');
+  const listFechadas = visibleMetas.filter(m => m.status === 'fechada');
+  const listLixeira = visibleMetas.filter(m => m.status === 'lixeira');
 
   // Currently Selected
   const selectedMeta = metas.find(m => m.id === selectedMetaId);
@@ -571,23 +627,30 @@ const Tasks = () => {
   let emptyMsg = "Crie sua primeira meta de operacao operando no modelo Nytzer.";
   if (activeTab === 'Metas & Fechamento') { displayList = listFechadas; emptyMsg = "Nenhuma meta finalizada. Suas metas fechadas aparecerão aqui."; }
   if (activeTab === 'Lixeira') { displayList = listLixeira; emptyMsg = "Lixeira limpa."; }
-  if (activeTab === 'Visao geral') { displayList = metas.filter(m => m.status !== 'lixeira'); emptyMsg = "Nenhuma meta registrada no sistema."; } // Visao geral mocks totality
+  if (activeTab === 'Visao geral') { displayList = visibleMetas.filter(m => m.status !== 'lixeira'); emptyMsg = "Nenhuma meta registrada no sistema."; } // Visao geral mocks totality
+
+  const ITEMS_PER_PAGE = 10;
+  const totalPages = Math.ceil(displayList.length / ITEMS_PER_PAGE);
+  const paginatedList = displayList.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   const renderTableBody = () => {
-    return displayList.map(meta => {
+    return paginatedList.map(meta => {
       const rem = meta.remessas || [];
       const lucroProj = rem.reduce((acc, r) => acc + (r.saque - r.deposito), 0); // Real calc from remessas if exist
       const mockProj = meta.contas * 2.5; // fallback before first remessa
       const isNegative = lucroProj < 0;
 
       return (
-        <tr key={meta.id} className="hover:bg-muted/10 transition-colors group">
+        <tr key={meta.id} className={meta.isAdminMeta ? "bg-black hover:bg-[#0a0a0a] transition-colors group border-y border-border/10 shadow-[inset_4px_0_0_0_hsl(var(--primary))]" : "hover:bg-muted/10 transition-colors group"}>
           <td className="px-6 py-4 cursor-pointer" onClick={() => setSelectedMetaId(meta.id)}>
              <div className="flex items-center gap-3">
                <div className={`w-2 h-2 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.8)] ${meta.status === 'fechada' ? 'bg-primary' : meta.status === 'lixeira' ? 'bg-red-500' : 'bg-emerald-500'}`} />
                <div>
-                 <p className="font-bold text-foreground text-sm hover:text-primary transition-colors">{meta.titulo}</p>
-                 <p className="text-[10px] text-muted-foreground">{new Date(meta.createdAt).toLocaleDateString()}</p>
+                 <div className="flex items-center gap-2">
+                   {meta.isAdminMeta && <span className="px-1.5 py-0.5 rounded text-[8px] font-black tracking-widest bg-primary/20 text-primary border border-primary/30 uppercase">Admin</span>}
+                   <p className="font-bold text-foreground text-sm hover:text-primary transition-colors">{meta.titulo}</p>
+                 </div>
+                 <p className="text-[10px] text-muted-foreground mt-0.5">{new Date(meta.createdAt).toLocaleDateString()}</p>
                </div>
              </div>
           </td>
@@ -599,7 +662,7 @@ const Tasks = () => {
              <span className="px-2.5 py-1 bg-muted/50 border border-border/50 rounded text-[10px] font-bold text-muted-foreground uppercase">{meta.modelo}</span>
           </td>
           <td className="px-6 py-4 text-center">
-             <span className="font-black text-foreground">{meta.contas}</span>
+             <span className="font-black text-foreground">{meta.modelo === 'Recarga' ? `R$ ${meta.contas}` : meta.contas}</span>
              <p className="text-[9px] text-muted-foreground">{rem.length} rem.</p>
           </td>
           <td className="px-6 py-4 text-right">
@@ -636,7 +699,7 @@ const Tasks = () => {
         {['Visao geral', 'Minha operacao', 'Metas & Fechamento', 'Lixeira'].map(tab => (
            <button
              key={tab}
-             onClick={() => { setActiveTab(tab); setSelectedMetaId(null); }}
+             onClick={() => { setActiveTab(tab); setSelectedMetaId(null); setCurrentPage(1); }}
              className={`px-5 py-2 text-sm font-semibold rounded-md transition-all whitespace-nowrap ${
                activeTab === tab 
                  ? 'bg-muted text-foreground shadow-sm border border-border/50' 
@@ -654,7 +717,7 @@ const Tasks = () => {
            <p className="text-sm text-muted-foreground mt-1">Gerenciamento automático do hub.</p>
         </div>
         {activeTab === 'Minha operacao' && (
-          <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-5 py-2.5 rounded-lg font-bold transition-all hover:scale-105 shadow-[0_0_15px_hsl(var(--primary)/0.3)]">
+          <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2.5 rounded-xl font-bold transition-all hover:scale-105 hover:-translate-y-1 shadow-[0_0_20px_hsl(var(--primary)/0.4)]">
             <Plus className="w-5 h-5" /> Nova meta
           </button>
         )}
@@ -665,7 +728,7 @@ const Tasks = () => {
           <div className="absolute -right-10 top-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
           <div>
             <h3 className="text-xs uppercase font-bold tracking-widest text-primary mb-2">Resumo Global</h3>
-            <p className="text-3xl font-black text-foreground">{metas.length} Operações Totais</p>
+            <p className="text-3xl font-black text-foreground">{visibleMetas.length} Operações Totais</p>
             <p className="text-sm text-muted-foreground mt-2">{listActive.length} ativas, {listFechadas.length} fechadas, {listLixeira.length} na lixeira.</p>
           </div>
           <BarChart2 className="w-20 h-20 text-primary/10" />
@@ -678,49 +741,98 @@ const Tasks = () => {
         </div>
       ) : (
         <div className="mt-4 space-y-3">
-          {displayList.map(meta => {
+          {paginatedList.map(meta => {
             const rem = meta.remessas || [];
             const lucroBruto = rem.reduce((acc, r) => acc + (r.saque - r.deposito), 0);
             const salario = meta.salarioOperador || 0;
             const lucroLiquido = lucroBruto + salario;
             return (
-              <div key={meta.id} className="glass-card rounded-xl border border-border/40 p-4 flex items-center justify-between gap-3 hover:border-primary/30 transition-colors">
-                <div className="flex items-center gap-3 min-w-0 flex-1" onClick={() => setSelectedMetaId(meta.id)}>
-                  <div className={`w-2 h-2 rounded-full shrink-0 ${meta.status === 'fechada' ? 'bg-primary' : meta.status === 'lixeira' ? 'bg-red-500' : 'bg-emerald-500'}`} />
-                  <div className="min-w-0">
-                    <p className="font-bold text-foreground text-sm truncate">{meta.plataforma}</p>
-                    <p className="text-[10px] text-muted-foreground"><strong className="text-foreground/80">Req:</strong> {meta.titulo} · {meta.rede} · {meta.contas} contas</p>
-                    <p className="text-[10px] text-muted-foreground">{rem.length} remessa(s) · {meta.modelo}</p>
+              <div key={meta.id} className={meta.isAdminMeta ? "glass-card bg-[#111111]/95 rounded-2xl border border-yellow-500/20 p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:border-yellow-500/40 hover:bg-[#161616] hover:shadow-[0_8px_30px_-10px_rgba(234,179,8,0.15)] hover:-translate-y-0.5 transition-all relative overflow-hidden group cursor-pointer" : "glass-card rounded-2xl border border-border/30 p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:border-primary/40 hover:shadow-[0_8px_30px_-10px_hsl(var(--primary)/0.15)] hover:-translate-y-0.5 transition-all relative overflow-hidden group cursor-pointer"} onClick={() => setSelectedMetaId(meta.id)}>
+                <div className={`absolute left-0 top-0 bottom-0 w-1 transition-colors ${meta.status === 'fechada' ? 'bg-primary/40' : meta.status === 'lixeira' ? 'bg-red-500' : meta.isAdminMeta ? 'bg-gradient-to-b from-yellow-600 via-yellow-600/80 to-transparent shadow-[0_0_15px_rgba(202,138,4,0.5)]' : 'bg-gradient-to-b from-primary via-primary/80 to-transparent shadow-[0_0_15px_hsl(var(--primary)/0.5)]'}`} />
+                <div className="flex items-center gap-4 min-w-0 flex-1">
+                  <div className={`w-2.5 h-2.5 rounded-full shrink-0 shadow-[0_0_8px_currentColor] transition-colors ${meta.status === 'fechada' ? 'text-primary/40 bg-primary/40' : meta.status === 'lixeira' ? 'text-red-500 bg-red-500' : meta.isAdminMeta ? 'text-yellow-600 bg-yellow-600 animate-[pulse_2s_ease-in-out_infinite]' : 'text-primary bg-primary animate-[pulse_2s_ease-in-out_infinite]'}`} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                      {meta.isAdminMeta && <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-yellow-500/10 text-yellow-600 border border-yellow-600/30 mr-1 shadow-[0_0_10px_rgba(202,138,4,0.1)]">Admin</span>}
+                      <p className="font-extrabold text-foreground text-base truncate group-hover:text-primary transition-colors">{meta.plataforma}</p>
+                      <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest bg-muted/40 text-muted-foreground border border-border/50">{meta.rede !== 'Selecione' ? meta.rede : 'Geral'}</span>
+                      <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest bg-muted/40 text-muted-foreground border border-border/50">{meta.modelo}</span>
+                    </div>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                        <strong className="text-foreground/80">Req:</strong> {meta.titulo}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-border/50"></span>
+                        {meta.modelo === 'Recarga' ? `R$ ${meta.contas} de recarga` : `${meta.contas} contas`}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-border/50"></span>
+                        {rem.length} remessa(s)
+                      </p>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 shrink-0 text-right">
-                  <div className="flex flex-col items-end">
-                    <p className={`text-[13px] font-black tracking-tight ${lucroLiquido >= 0 ? 'text-primary' : 'text-red-500'}`}>
+                <div className="flex items-center gap-6 shrink-0 text-right w-full md:w-auto justify-between md:justify-end mt-2 md:mt-0">
+                  <div className="flex flex-col items-start md:items-end">
+                    <p className={`text-[16px] font-black tracking-tight ${lucroLiquido >= 0 ? 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.2)]' : 'text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.2)]'}`}>
                       {lucroLiquido > 0 ? '+' : ''}R$ {lucroLiquido.toFixed(2).replace('.', ',')}
-                      <span className="text-[10px] ml-1 opacity-60 uppercase font-black tracking-tighter">Líq</span>
+                      <span className="text-[9px] ml-1 opacity-60 uppercase font-black tracking-tighter">Líq</span>
                     </p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-[9px] font-bold text-muted-foreground/50">Bruto: R$ {lucroBruto.toFixed(0)}</span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[10px] font-bold text-muted-foreground/60">Bruto: R$ {lucroBruto.toFixed(0)}</span>
                       {salario > 0 && (
-                        <span className="text-[9px] font-bold text-emerald-500/70">FAT: +{salario.toFixed(0)}</span>
+                        <span className="text-[10px] font-bold text-emerald-500/80 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">FAT: +{salario.toFixed(0)}</span>
                       )}
                     </div>
                   </div>
-                  {activeTab === 'Lixeira' ? (
-                    <>
-                      <button onClick={() => onRestoreMeta(meta.id)} className="p-2 rounded-lg bg-muted/20 text-muted-foreground hover:text-emerald-400 transition-colors"><RotateCcw className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => onPermDelete(meta.id)} className="p-2 rounded-lg bg-muted/20 text-muted-foreground hover:text-red-400 transition-colors"><X className="w-3.5 h-3.5" /></button>
-                    </>
-                  ) : (
-                    <>
-                      <button onClick={() => setSelectedMetaId(meta.id)} className="p-2 rounded-lg bg-muted/20 text-muted-foreground hover:text-primary transition-colors"><ArrowUpRight className="w-3.5 h-3.5" /></button>
-                      {activeTab !== 'Visao geral' && <button onClick={() => onTrashMeta(meta.id)} className="p-2 rounded-lg bg-muted/20 text-muted-foreground hover:text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>}
-                    </>
-                  )}
+                  <div className="flex gap-2" onClick={e => e.stopPropagation()}>
+                    {activeTab === 'Lixeira' ? (
+                      <>
+                        <button onClick={() => onRestoreMeta(meta.id)} className="p-2.5 rounded-xl bg-muted/20 border border-border/30 text-muted-foreground hover:text-emerald-400 hover:bg-muted/40 hover:scale-105 transition-all"><RotateCcw className="w-4 h-4" /></button>
+                        <button onClick={() => onPermDelete(meta.id)} className="p-2.5 rounded-xl bg-muted/20 border border-border/30 text-muted-foreground hover:text-red-400 hover:bg-muted/40 hover:scale-105 transition-all"><X className="w-4 h-4" /></button>
+                      </>
+                    ) : (
+                      <>
+                        <button onClick={() => setSelectedMetaId(meta.id)} className="p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground hover:scale-105 hover:shadow-[0_0_15px_hsl(var(--primary)/0.4)] transition-all group-hover:bg-primary group-hover:text-primary-foreground"><ArrowUpRight className="w-4 h-4" /></button>
+                        {activeTab !== 'Visao geral' && <button onClick={() => onTrashMeta(meta.id)} className="p-2.5 rounded-xl bg-muted/20 border border-border/30 text-muted-foreground hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 hover:scale-105 transition-all"><Trash2 className="w-4 h-4" /></button>}
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {displayList.length > 10 && (
+        <div className="flex justify-center items-center gap-2 mt-6 animate-fade-in">
+          <button 
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-1.5 rounded-lg bg-muted/20 border border-border/40 text-muted-foreground disabled:opacity-30 hover:bg-muted/40 transition-colors text-xs font-bold"
+          >
+            Anterior
+          </button>
+          <div className="flex gap-1">
+            {Array.from({ length: totalPages }).map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentPage(i + 1)}
+                className={`w-7 h-7 rounded-md text-xs font-bold transition-all ${currentPage === i + 1 ? 'bg-primary text-primary-foreground shadow-[0_0_10px_hsl(var(--primary)/0.3)]' : 'bg-muted/20 border border-border/40 text-muted-foreground hover:bg-muted/40 hover:text-foreground'}`}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
+          <button 
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1.5 rounded-lg bg-muted/20 border border-border/40 text-muted-foreground disabled:opacity-30 hover:bg-muted/40 transition-colors text-xs font-bold"
+          >
+            Próxima
+          </button>
         </div>
       )}
 
@@ -786,8 +898,8 @@ const Tasks = () => {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Contas *</label>
-                    <input type="number" value={contas} onChange={e => setContas(e.target.value ? Number(e.target.value) : '')} placeholder="Ex. 70" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 font-semibold transition-colors" min="1" required />
+                    <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">{modelo === 'Recarga' ? 'Valor da Recarga (R$) *' : 'Contas *'}</label>
+                    <input type="number" value={contas} onChange={e => setContas(e.target.value ? Number(e.target.value) : '')} placeholder={modelo === 'Recarga' ? 'Ex. 5000' : 'Ex. 70'} className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 font-semibold transition-colors" min="1" required />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Total AP.V</label>
@@ -798,7 +910,7 @@ const Tasks = () => {
                 <div className="space-y-2">
                   <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Seleção Rápida</label>
                   <div className="grid grid-cols-4 gap-2">
-                    {[20, 30, 50, 60].map(val => (
+                    {(modelo === 'Recarga' ? [2500, 5000, 7000, 10000] : [20, 30, 50, 60]).map(val => (
                       <button key={val} type="button" onClick={() => setContas(val)}
                         className={`h-10 rounded-lg text-sm font-semibold border transition-all ${
                           contas === val
@@ -824,6 +936,16 @@ const Tasks = () => {
                     ))}
                   </div>
                 </div>
+
+                {role === 'ADMIN' && (
+                  <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-xl mt-2">
+                    <input type="checkbox" id="adminMetaCheck" checked={isAdminMeta} onChange={e => setIsAdminMeta(e.target.checked)} className="w-4 h-4 rounded text-primary focus:ring-primary accent-primary" />
+                    <label htmlFor="adminMetaCheck" className="text-xs font-bold text-foreground cursor-pointer">
+                      Criar como Meta Administrativa
+                      <p className="text-[10px] text-muted-foreground font-normal mt-0.5">Metas de admin não contabilizam folha de pagamento.</p>
+                    </label>
+                  </div>
+                )}
 
                 <div className="pt-2">
                   <button

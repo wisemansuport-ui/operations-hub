@@ -1,18 +1,30 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, ShieldCheck, Mail, Eye, EyeOff, User, Lock, Monitor, Smartphone } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { toast } from 'sonner';
 
 const Login = () => {
+  const [searchParams] = useSearchParams();
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  
   const [, setUserData] = useLocalStorage<any>('nytzer-user', null);
+  const [users, setUsers] = useLocalStorage<any[]>('nytzer-users', []);
+  const [, setGlobalRole] = useLocalStorage<'ADMIN' | 'OPERADOR'>('nytzer-role', 'OPERADOR');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const ref = searchParams.get('ref');
+    if (ref) {
+      setIsLogin(false);
+      toast.info(`Você foi convidado por: ${ref}`);
+    }
+  }, [searchParams]);
 
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,21 +33,53 @@ const Login = () => {
       return;
     }
 
-    if (!isLogin && password !== confirmPassword) {
-      toast.error('As senhas não coincidem');
-      return;
+    if (!isLogin) {
+      if (password !== confirmPassword) {
+        toast.error('As senhas não coincidem');
+        return;
+      }
+      if (users.find(u => u.username === username)) {
+        toast.error('Usuário já existe. Faça login.');
+        return;
+      }
+      
+      const ref = searchParams.get('ref');
+      // Assume the very first user is ADMIN, others are OPERADOR unless specified
+      const role = users.length === 0 ? 'ADMIN' : 'OPERADOR';
+      
+      const newUser = {
+        username,
+        password,
+        role, 
+        affiliatedTo: ref || null,
+        token: Math.random().toString(36).substring(2, 10),
+        createdAt: new Date().toISOString()
+      };
+      
+      setUsers([...users, newUser]);
+      setUserData(newUser);
+      setGlobalRole(role);
+      
+      toast.success('Conta criada com sucesso!');
+      navigate('/production');
+    } else {
+      const user = users.find(u => u.username === username);
+      if (!user) {
+        toast.error('Usuário não encontrado');
+        return;
+      }
+      if (user.password !== password) {
+        toast.error('Senha incorreta');
+        return;
+      }
+      
+      const sessionUser = { ...user, token: Math.random().toString(36).substring(2, 10) };
+      setUserData(sessionUser);
+      setGlobalRole(user.role || 'OPERADOR');
+      
+      toast.success('Bem-vindo de volta, ' + username + '!');
+      navigate('/production');
     }
-    
-    // Fake Auth
-    setUserData({
-      username: username,
-      role: 'OPERADOR', // Padrao
-      token: Math.random().toString(36).substring(2, 10),
-      createdAt: new Date().toISOString()
-    });
-    
-    toast.success('Bem-vindo de volta, ' + username + '!');
-    navigate('/production'); // ou pra onde quer que redirecione
   };
 
   const handleGoogleLogin = () => {

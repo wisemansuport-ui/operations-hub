@@ -1,5 +1,5 @@
 import { KPICard } from "@/components/dashboard/KPICard";
-import { DollarSign, Target, Activity, Users, CalendarDays, ListTodo, ShieldCheck, Wrench, BarChart3, Globe, ChartNoAxesCombined, CreditCard, PlayCircle } from "lucide-react";
+import { DollarSign, Target, Activity, Users, CalendarDays, ListTodo, ShieldCheck, Wrench, BarChart3, Globe, ChartNoAxesCombined, CreditCard, PlayCircle, Wallet } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from "recharts";
 import { Link } from "react-router-dom";
 import { useLocalStorage } from "../hooks/useLocalStorage";
@@ -22,6 +22,7 @@ const quickLinks = [
   { path: "/tasks", label: "Tarefas", icon: CalendarDays, desc: "Gestão", roles: ['ADMIN', 'OPERADOR'] },
   { path: "/reports", label: "Relatórios", icon: BarChart3, desc: "Avançado", roles: ['ADMIN'] },
   { path: "/pix", label: "Chaves PIX", icon: CreditCard, desc: "Financeiro", roles: ['ADMIN', 'OPERADOR'] },
+  { path: "/extrato", label: "Extrato", icon: Wallet, desc: "Produtividade", roles: ['OPERADOR'] },
 ];
 
 const formatBRL = (val: number) => `R$ ${val.toFixed(2).replace('.', ',')}`;
@@ -29,6 +30,7 @@ const formatBRL = (val: number) => `R$ ${val.toFixed(2).replace('.', ',')}`;
 const Dashboard = () => {
   const [role] = useLocalStorage<'ADMIN' | 'OPERADOR'>('nytzer-role', 'ADMIN');
   const [user] = useLocalStorage<any>('nytzer-user', null);
+  const [users] = useLocalStorage<any[]>('nytzer-users', []);
   const operatorName = user?.username || 'Operador Central';
   const [metas] = useLocalStorage<OperationMeta[]>('nytzer-metas', []);
   const allowedLinks = quickLinks.filter(link => link.roles.includes(role));  
@@ -37,52 +39,91 @@ const Dashboard = () => {
     let totalDepositado = 0;
     let totalSacado = 0;
     let totalSalarios = 0;
+    let totalAutoSalarios = 0;
     let metasFechadas = 0;
     let contasProcessadas = 0;
     let contasNormais = 0;
     let contasBaixas = 0;
     const redesMap: Record<string, { lucro: number, contas: number, metas: number, acertos: number }> = {};
+    const chartDataByDate: Record<string, { name: string, contas: number, lucro: number }> = {};
 
-    const metasValidas = metas.filter(m => m.status !== 'lixeira' && (role === 'ADMIN' || m.operador === operatorName));
-    const activeMetas = metasValidas.filter(m => m.status !== 'fechada');
-    
-    metasValidas.forEach(meta => {
+    let metasAtivas = 0;
+    let totalMetas = 0;
+
+    for (const meta of metas) {
+      if (meta.status === 'lixeira') continue;
+      
+      let isVisible = false;
+      if (role === 'ADMIN') {
+        isVisible = meta.operador === operatorName || 
+                    (users.find(u => u.username === meta.operador)?.affiliatedTo === operatorName) ||
+                    (!meta.operador && operatorName === 'wiseman');
+      } else {
+        isVisible = meta.operador === operatorName;
+      }
+      
+      if (!isVisible) continue;
+      totalMetas++;
       const isFechada = meta.status === 'fechada';
       if (isFechada) metasFechadas++;
+      else metasAtivas++;
       
       const remessas = meta.remessas || [];
       let metaLucro = 0;
       let metaContas = 0;
-      let autoSalario = 0;
-
+      let autoSalarioMeta = 0;
       remessas.forEach(r => {
         const dep = Number(r.deposito || 0);
         const saq = Number(r.saque || 0);
         const normais = (r as any).contasNormais || 0;
         const baixas = (r as any).contasBaixas || 0;
-        
-        contasNormais += normais;
-        contasBaixas += baixas;
-        autoSalario += (normais * 2) + (baixas * 1);
-        totalDepositado += dep;
-        totalSacado += saq;
-        contasProcessadas += Number(r.contas || 0);
+
+        if (!meta.isAdminMeta && isFechada) {
+          if (meta.modelo !== 'Recarga') {
+            contasNormais += normais;
+            contasBaixas += baixas;
+            autoSalarioMeta += (normais * 2) + (baixas * 1);
+          }
+        }
+        if (isFechada) {
+          totalDepositado += dep;
+          totalSacado += saq;
+          contasProcessadas += Number(r.contas || 0);
+        }
         metaLucro += (saq - dep);
         metaContas += Number(r.contas || 0);
       });
       
-      const sal = Number(meta.salarioOperador) || autoSalario;
-      totalSalarios += sal;
+      const sal = Number(meta.salarioOperador) || 0;
+      const pagOp = Number(meta.pagamentoOperador) || 0;
+      if (isFechada) {
+        totalSalarios += sal;
+        if (!meta.isAdminMeta) {
+          autoSalarioMeta += pagOp;
+        }
+      }
+      totalAutoSalarios += autoSalarioMeta;
+
+      if (isFechada) {
+        const d = new Date(meta.createdAt);
+        const dateStr = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        if (!chartDataByDate[dateStr]) chartDataByDate[dateStr] = { name: dateStr, contas: 0, lucro: 0, lucroOperador: 0 };
+        chartDataByDate[dateStr].contas += metaContas;
+        chartDataByDate[dateStr].lucro += (metaLucro + sal);
+        if (!meta.isAdminMeta) {
+          chartDataByDate[dateStr].lucroOperador += autoSalarioMeta;
+        }
+      }
 
       // Track by Network (Rede)
-      if (meta.rede && meta.rede !== 'Selecione') {
+      if (isFechada && meta.rede && meta.rede !== 'Selecione') {
         if (!redesMap[meta.rede]) redesMap[meta.rede] = { lucro: 0, contas: 0, metas: 0, acertos: 0 };
         redesMap[meta.rede].lucro += (metaLucro + sal);
         redesMap[meta.rede].contas += metaContas;
         redesMap[meta.rede].metas += 1;
         if (metaLucro + sal > 0) redesMap[meta.rede].acertos += 1;
       }
-    });
+    }
 
     const lucroBruto = totalSacado - totalDepositado;
     const receitaMensal = lucroBruto + totalSalarios;
@@ -100,37 +141,45 @@ const Dashboard = () => {
       .sort((a, b) => b.lucroRaw - a.lucroRaw)
       .slice(0, 4);
 
+    let chartData = Object.values(chartDataByDate).sort((a, b) => {
+      const [da, ma] = a.name.split('/');
+      const [db, mb] = b.name.split('/');
+      return new Date(2026, Number(ma)-1, Number(da)).getTime() - new Date(2026, Number(mb)-1, Number(db)).getTime();
+    }).slice(-7);
+
+    if (chartData.length === 0) {
+      chartData = [{ name: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }), contas: 0, lucro: 0, lucroOperador: 0 }];
+    }
+
     return {
       totalDepositado,
       totalSacado,
       lucroBruto,
       totalSalarios,
+      totalAutoSalarios,
       receitaMensal,
       metasFechadas,
-      metasAtivas: activeMetas.length,
-      totalMetas: metasValidas.length,
+      metasAtivas,
+      totalMetas,
       contasProcessadas,
       contasNormais,
       contasBaixas,
       medioporMeta,
       medioporConta,
-      rankingRedes
+      rankingRedes,
+      chartData
     };
   }, [metas, role, operatorName]);
 
   // Dynamic Chart Data
-  const barData = useMemo(() => {
-    return [
-      { name: "Previsto", producao: stats.totalSacado * 0.9, meta: stats.totalDepositado * 1.5 },
-      { name: "Real", producao: stats.totalSacado, meta: stats.totalDepositado },
-    ];
-  }, [stats]);
+  const barData = stats.chartData;
 
   const pieData = [
-    { name: "Fechado", value: stats.metasFechadas || 0.1 },
-    { name: "Em Andamento", value: stats.metasAtivas || 0.1 },
-    { name: "Aguardando", value: 1 },
-  ];
+    { name: "Fechado", value: stats.metasFechadas },
+    { name: "Em Andamento", value: stats.metasAtivas },
+  ].filter(d => d.value > 0);
+  
+  if (pieData.length === 0) pieData.push({ name: "Sem Dados", value: 1 });
 
   if (role === 'OPERADOR') {
     return (
@@ -146,10 +195,10 @@ const Dashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <KPICard title="Saldo Total" value={formatBRL(stats.totalSalarios)} change={`${stats.contasProcessadas} contas operadas`} changeType="positive" icon={DollarSign} color="success" />
-          <KPICard title="Metas Fechadas" value={`${stats.metasFechadas}/${stats.totalMetas}`} change="Registradas" changeType="positive" icon={Target} color="primary" />
-          <KPICard title="Contas (NORMAL)" value={stats.contasNormais} change="R$ 2,00 por conta" changeType="neutral" icon={Activity} color="primary" />
-          <KPICard title="Contas (BAIXO)" value={stats.contasBaixas} change="R$ 1,00 por conta" changeType="neutral" icon={Users} color="warning" />
+          <KPICard title="Saldo Total" value={formatBRL(stats.totalAutoSalarios)} change={`${stats.contasProcessadas} contas operadas`} changeType="positive" icon={DollarSign} color="success" tooltip="O valor total a receber (salário + comissões) baseado na sua produção validada." />
+          <KPICard title="Metas Fechadas" value={`${stats.metasFechadas}/${stats.totalMetas}`} change="Registradas" changeType="positive" icon={Target} color="primary" tooltip="Quantidade de metas concluídas em relação ao total atribuído a você." />
+          <KPICard title="Contas (NORMAL)" value={stats.contasNormais} change="R$ 2,00 por conta" changeType="neutral" icon={Activity} color="primary" tooltip="Volume de contas normais validadas (R$ 2,00 por unidade)." />
+          <KPICard title="Contas (BAIXO)" value={stats.contasBaixas} change="R$ 1,00 por conta" changeType="neutral" icon={Users} color="warning" tooltip="Volume de contas com depósito baixo validadas (R$ 1,00 por unidade)." />
         </div>
 
         {/* Proporção Operacional - Simple Chart for Operator */}
@@ -161,7 +210,7 @@ const Dashboard = () => {
             <div className="space-y-4">
               <div className="flex justify-between items-end border-b border-border/30 pb-3">
                 <span className="text-sm font-medium text-muted-foreground">Ganhos Acumulados</span>
-                <span className="font-bold text-emerald-400 tracking-tight text-2xl">{formatBRL(stats.totalSalarios)}</span>
+                <span className="font-bold text-emerald-400 tracking-tight text-2xl">{formatBRL(stats.totalAutoSalarios)}</span>
               </div>
               <div className="flex justify-between items-end border-b border-border/30 pb-3">
                 <span className="text-sm font-medium text-muted-foreground">Total de Contas</span>
@@ -201,7 +250,49 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div>
+        {/* Evolução do Faturamento - Operator */}
+        <div className="glass-card rounded-2xl p-6 border-primary/10 relative overflow-hidden group mt-6">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10 group-hover:bg-primary/10 transition-all duration-700" />
+          <h3 className="text-base font-bold text-foreground mb-1">Evolução do Faturamento</h3>
+          <p className="text-xs text-muted-foreground mb-6">Métricas fiéis ligadas ao seu processamento.</p>
+          <ResponsiveContainer width="100%" height={280}>
+            <AreaChart data={barData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorLucroOp" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
+              <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} />
+              <Tooltip 
+                content={({ active, payload, label }) => {
+                  if (active && payload && payload.length) {
+                    return (
+                      <div className="bg-background/95 backdrop-blur-md border border-primary/20 p-3 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)]">
+                        <p className="text-foreground font-bold mb-2">{label}</p>
+                        <p className="text-sm font-medium text-muted-foreground">Contas criadas: <span className="text-foreground font-bold">{payload[0].payload.contas}</span></p>
+                        <p className="text-sm font-medium text-primary mt-1">Lucro contabilizado: <span className="font-extrabold">{formatBRL(payload[0].payload.lucroOperador)}</span></p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="lucroOperador" 
+                stroke="hsl(var(--primary))" 
+                strokeWidth={3}
+                fillOpacity={1} 
+                fill="url(#colorLucroOp)" 
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="mt-6">
           <h3 className="text-sm font-bold text-foreground mb-4 tracking-wide uppercase">Comandos Rápidos</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {allowedLinks.map(({ path, label, icon: Icon, desc }) => (
@@ -234,10 +325,10 @@ const Dashboard = () => {
     </div>
 
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <KPICard title="Receita Mês Líquida" value={formatBRL(stats.receitaMensal)} change={`+ ${formatBRL(stats.totalSalarios)} FAT`} changeType="positive" icon={DollarSign} color="success" />
-      <KPICard title="Metas Fechadas" value={`${stats.metasFechadas}/${stats.totalMetas}`} change="Registradas" changeType="positive" icon={Target} color="primary" />
-      <KPICard title="Metas Ativas" value={stats.metasAtivas} change="Painel de controle" changeType="neutral" icon={Activity} color="warning" />
-      <KPICard title="Contas Operadas" value={stats.contasProcessadas} change="Volume total" changeType="neutral" icon={Users} color="primary" />
+      <KPICard title="Receita Mês Líquida" value={formatBRL(stats.receitaMensal)} change={`+ ${formatBRL(stats.totalSalarios)} FAT`} changeType="positive" icon={DollarSign} color="success" tooltip="Lucro bruto somado ao faturamento (salários) de toda a operação." />
+      <KPICard title="Metas Fechadas" value={`${stats.metasFechadas}/${stats.totalMetas}`} change="Registradas" changeType="positive" icon={Target} color="primary" tooltip="Metas concluídas com sucesso do total criado." />
+      <KPICard title="Metas Ativas" value={stats.metasAtivas} change="Painel de controle" changeType="neutral" icon={Activity} color="warning" tooltip="Metas atualmente em andamento aguardando o fechamento dos operadores." />
+      <KPICard title="Contas Operadas" value={stats.contasProcessadas} change="Volume total" changeType="neutral" icon={Users} color="primary" tooltip="O volume total de contas produzidas em toda a operação." />
     </div>
 
     {/* Modernized Charts */}
@@ -249,24 +340,29 @@ const Dashboard = () => {
         <ResponsiveContainer width="100%" height={280}>
           <AreaChart data={barData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <defs>
-              <linearGradient id="colorProducao" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="colorLucro" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
                 <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
               </linearGradient>
-              <linearGradient id="colorMeta" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0.1} />
-                <stop offset="95%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0} />
-              </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
             <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} />
             <Tooltip 
-              contentStyle={{ background: "rgba(10, 10, 10, 0.8)", backdropFilter: "blur(12px)", border: "1px solid hsl(var(--primary)/0.2)", borderRadius: 12, color: "hsl(var(--foreground))" }} 
-              itemStyle={{ color: "hsl(var(--foreground))" }}
+              content={({ active, payload, label }) => {
+                if (active && payload && payload.length) {
+                  return (
+                    <div className="bg-background/95 backdrop-blur-md border border-primary/20 p-3 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)]">
+                      <p className="text-foreground font-bold mb-2">{label}</p>
+                      <p className="text-sm font-medium text-muted-foreground">Contas criadas: <span className="text-foreground font-bold">{payload[0].payload.contas}</span></p>
+                      <p className="text-sm font-medium text-primary mt-1">Lucro contabilizado: <span className="font-extrabold">{formatBRL(payload[0].payload.lucro)}</span></p>
+                    </div>
+                  );
+                }
+                return null;
+              }}
             />
-            <Area type="monotone" dataKey="meta" stroke="hsl(var(--muted-foreground))" strokeDasharray="5 5" fillOpacity={1} fill="url(#colorMeta)" />
-            <Area type="monotone" dataKey="producao" stroke="hsl(var(--primary))" strokeWidth={3} fillOpacity={1} fill="url(#colorProducao)" />
+            <Area type="monotone" dataKey="lucro" stroke="hsl(var(--primary))" strokeWidth={3} fillOpacity={1} fill="url(#colorLucro)" />
           </AreaChart>
         </ResponsiveContainer>
       </div>
