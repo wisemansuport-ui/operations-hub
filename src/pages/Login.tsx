@@ -45,8 +45,8 @@ const Login = () => {
       }
       
       const ref = searchParams.get('ref');
-      // Assume the very first user is ADMIN, others are OPERADOR unless specified
-      const role = users.length === 0 ? 'ADMIN' : 'OPERADOR';
+      // Assume the very first user is ADMIN, but if there's a ref (invite), they are ALWAYS an OPERADOR.
+      const role = (users.length === 0 && !ref) ? 'ADMIN' : 'OPERADOR';
       
       const newUser = {
         username,
@@ -95,7 +95,7 @@ const Login = () => {
 
         if (!existingUser) {
            const ref = searchParams.get('ref');
-           const role = users.length === 0 ? 'ADMIN' : 'OPERADOR';
+           const role = (users.length === 0 && !ref) ? 'ADMIN' : 'OPERADOR';
            
            existingUser = {
              username: usernameFromGoogle,
