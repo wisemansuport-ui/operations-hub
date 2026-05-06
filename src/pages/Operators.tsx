@@ -97,7 +97,7 @@ const Operators = () => {
 
   const handleCopyLink = () => {
     const activeAdmin = user?.username || 'admin';
-    const inviteLink = `https://nytzer.com/register?ref=${activeAdmin}`;
+    const inviteLink = `${window.location.origin}/login?ref=${activeAdmin}`;
     navigator.clipboard.writeText(inviteLink);
     toast.success("Link único gerado e copiado para a área de transferência!");
   };
