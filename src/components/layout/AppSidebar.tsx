@@ -16,7 +16,6 @@ export const AppSidebar = () => {
     { path: "/", label: "Dashboard", icon: LayoutDashboard, roles: ['ADMIN', 'OPERADOR'] },
     { path: "/me", label: "Extrato", icon: Wallet, roles: ['OPERADOR'] },
     { path: "/operators", label: "Operadores", icon: Users, roles: ['ADMIN'] },
-    { path: "/production", label: "Tarefas", icon: CalendarDays, roles: ['ADMIN', 'OPERADOR'] },
     { path: "/tasks", label: "Planilhas", icon: ChartNoAxesCombined, roles: ['ADMIN', 'OPERADOR'] },
     { path: "/networks", label: "Redes", icon: Globe, roles: ['ADMIN'] },
     { path: "/pix", label: "PIX", icon: CreditCard, roles: ['ADMIN', 'OPERADOR'] },

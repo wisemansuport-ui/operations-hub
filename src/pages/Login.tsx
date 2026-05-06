@@ -62,7 +62,7 @@ const Login = () => {
       setGlobalRole(role);
       
       toast.success('Conta criada com sucesso!');
-      navigate('/production');
+      navigate('/');
     } else {
       const user = users.find(u => u.username === username);
       if (!user) {
@@ -79,7 +79,7 @@ const Login = () => {
       setGlobalRole(user.role || 'OPERADOR');
       
       toast.success('Bem-vindo de volta, ' + username + '!');
-      navigate('/production');
+      navigate('/');
     }
   };
 
@@ -115,7 +115,7 @@ const Login = () => {
 
         setUserData({ ...existingUser, token: Math.random().toString(36).substring(2, 10), method: 'Google SSO' });
         setGlobalRole(existingUser.role || 'OPERADOR');
-        navigate('/production');
+        navigate('/');
       } catch (err) {
         toast.error('Erro ao obter dados da conta Google');
       }
