@@ -3,6 +3,7 @@ import { Wallet, Target, Activity, CheckCircle2, History, Filter, Download } fro
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import { DataTable, Column } from "@/components/spreadsheet/DataTable";
 import { useLocalStorage } from "../hooks/useLocalStorage";
+import { useFirestoreData } from "../hooks/useFirestoreData";
 import { OperationMeta } from "./Tasks";
 
 const columns: Column[] = [
@@ -18,7 +19,7 @@ export default function OperatorExtract() {
   const [timeFilter, setTimeFilter] = useState<'HOJE' | 'SEMANA' | 'MES'>('HOJE');
   const [platformFilter, setPlatformFilter] = useState<string>('TODAS');
   const [networkFilter, setNetworkFilter] = useState<string>('TODAS');
-  const [metas] = useLocalStorage<OperationMeta[]>('nytzer-metas', []);
+  const { metas } = useFirestoreData();
   const [user] = useLocalStorage<any>('nytzer-user', null);
   const operatorName = user?.username || 'Operador Central';
 

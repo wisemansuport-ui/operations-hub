@@ -3,6 +3,7 @@ import { DollarSign, Target, Activity, Users, CalendarDays, ListTodo, ShieldChec
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from "recharts";
 import { Link } from "react-router-dom";
 import { useLocalStorage } from "../hooks/useLocalStorage";
+import { useFirestoreData } from "../hooks/useFirestoreData";
 import { OperationMeta } from "./Tasks";
 import { useMemo } from "react";
 
@@ -30,9 +31,8 @@ const formatBRL = (val: number) => `R$ ${val.toFixed(2).replace('.', ',')}`;
 const Dashboard = () => {
   const [role] = useLocalStorage<'ADMIN' | 'OPERADOR'>('nytzer-role', 'ADMIN');
   const [user] = useLocalStorage<any>('nytzer-user', null);
-  const [users] = useLocalStorage<any[]>('nytzer-users', []);
+  const { metas, users } = useFirestoreData();
   const operatorName = user?.username || 'Operador Central';
-  const [metas] = useLocalStorage<OperationMeta[]>('nytzer-metas', []);
   const allowedLinks = quickLinks.filter(link => link.roles.includes(role));  
   
   const stats = useMemo(() => {

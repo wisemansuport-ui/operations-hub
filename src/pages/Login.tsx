@@ -4,6 +4,8 @@ import { useGoogleLogin } from '@react-oauth/google';
 import { ArrowRight, ShieldCheck, Mail, Eye, EyeOff, User, Lock, Monitor, Smartphone } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { toast } from 'sonner';
+import { db } from '../lib/firebase';
+import { collection, getDocs, addDoc, query, where } from 'firebase/firestore';
 
 const Login = () => {
   const [searchParams] = useSearchParams();
@@ -15,7 +17,6 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   
   const [, setUserData] = useLocalStorage<any>('nytzer-user', null);
-  const [users, setUsers] = useLocalStorage<any[]>('nytzer-users', []);
   const [, setGlobalRole] = useLocalStorage<'ADMIN' | 'OPERADOR'>('nytzer-role', 'OPERADOR');
   const navigate = useNavigate();
 
@@ -27,59 +28,72 @@ const Login = () => {
     }
   }, [searchParams]);
 
-  const handleAuth = (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username || !password) {
       toast.error('Preencha os dados de acesso');
       return;
     }
 
-    if (!isLogin) {
-      if (password !== confirmPassword) {
-        toast.error('As senhas não coincidem');
-        return;
+    try {
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where("username", "==", username));
+      const querySnapshot = await getDocs(q);
+
+      if (!isLogin) {
+        if (password !== confirmPassword) {
+          toast.error('As senhas não coincidem');
+          return;
+        }
+        if (!querySnapshot.empty) {
+          toast.error('Usuário já existe. Faça login.');
+          return;
+        }
+      
+        const ref = searchParams.get('ref');
+        // Conta quantos usuários existem para ver se é o primeiro (ADMIN)
+        const allUsersSnapshot = await getDocs(usersRef);
+        const role = (allUsersSnapshot.empty && !ref) ? 'ADMIN' : 'OPERADOR';
+        
+        const newUser = {
+          username,
+          password,
+          role, 
+          affiliatedTo: ref || null,
+          token: Math.random().toString(36).substring(2, 10),
+          createdAt: new Date().toISOString()
+        };
+        
+        await addDoc(usersRef, newUser);
+        setUserData(newUser);
+        setGlobalRole(role);
+        
+        toast.success('Conta criada com sucesso!');
+        navigate('/');
+      } else {
+        if (querySnapshot.empty) {
+          toast.error('Usuário não encontrado');
+          return;
+        }
+        
+        const userDoc = querySnapshot.docs[0];
+        const user = userDoc.data();
+
+        if (user.password !== password) {
+          toast.error('Senha incorreta');
+          return;
+        }
+        
+        const sessionUser = { ...user, id: userDoc.id, token: Math.random().toString(36).substring(2, 10) };
+        setUserData(sessionUser);
+        setGlobalRole(user.role || 'OPERADOR');
+        
+        toast.success('Bem-vindo de volta, ' + username + '!');
+        navigate('/');
       }
-      if (users.find(u => u.username === username)) {
-        toast.error('Usuário já existe. Faça login.');
-        return;
-      }
-      
-      const ref = searchParams.get('ref');
-      // Assume the very first user is ADMIN, but if there's a ref (invite), they are ALWAYS an OPERADOR.
-      const role = (users.length === 0 && !ref) ? 'ADMIN' : 'OPERADOR';
-      
-      const newUser = {
-        username,
-        password,
-        role, 
-        affiliatedTo: ref || null,
-        token: Math.random().toString(36).substring(2, 10),
-        createdAt: new Date().toISOString()
-      };
-      
-      setUsers([...users, newUser]);
-      setUserData(newUser);
-      setGlobalRole(role);
-      
-      toast.success('Conta criada com sucesso!');
-      navigate('/');
-    } else {
-      const user = users.find(u => u.username === username);
-      if (!user) {
-        toast.error('Usuário não encontrado');
-        return;
-      }
-      if (user.password !== password) {
-        toast.error('Senha incorreta');
-        return;
-      }
-      
-      const sessionUser = { ...user, token: Math.random().toString(36).substring(2, 10) };
-      setUserData(sessionUser);
-      setGlobalRole(user.role || 'OPERADOR');
-      
-      toast.success('Bem-vindo de volta, ' + username + '!');
-      navigate('/');
+    } catch (error) {
+      console.error("Erro na autenticação:", error);
+      toast.error("Ocorreu um erro ao conectar com o banco de dados.");
     }
   };
 
@@ -91,11 +105,17 @@ const Login = () => {
         }).then(res => res.json());
 
         const usernameFromGoogle = userInfo.email.split('@')[0];
-        let existingUser = users.find(u => u.username === usernameFromGoogle);
+        
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where("username", "==", usernameFromGoogle));
+        const querySnapshot = await getDocs(q);
 
-        if (!existingUser) {
+        let existingUser: any;
+
+        if (querySnapshot.empty) {
            const ref = searchParams.get('ref');
-           const role = (users.length === 0 && !ref) ? 'ADMIN' : 'OPERADOR';
+           const allUsersSnapshot = await getDocs(usersRef);
+           const role = (allUsersSnapshot.empty && !ref) ? 'ADMIN' : 'OPERADOR';
            
            existingUser = {
              username: usernameFromGoogle,
@@ -107,9 +127,12 @@ const Login = () => {
              method: 'Google SSO'
            };
            
-           setUsers(prev => [...prev, existingUser]);
+           const docRef = await addDoc(usersRef, existingUser);
+           existingUser.id = docRef.id;
            toast.success('Conta criada via Google com sucesso!');
         } else {
+           const userDoc = querySnapshot.docs[0];
+           existingUser = { ...userDoc.data(), id: userDoc.id };
            toast.success('Bem-vindo de volta, ' + usernameFromGoogle + '!');
         }
 
@@ -117,6 +140,7 @@ const Login = () => {
         setGlobalRole(existingUser.role || 'OPERADOR');
         navigate('/');
       } catch (err) {
+        console.error("Erro no Google Login:", err);
         toast.error('Erro ao obter dados da conta Google');
       }
     },

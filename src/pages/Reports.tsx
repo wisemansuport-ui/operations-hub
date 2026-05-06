@@ -2,12 +2,12 @@ import { KPICard } from "@/components/dashboard/KPICard";
 import { TrendingUp, CheckCircle, AlertTriangle, Clock, Users, Trophy } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 
-import { useLocalStorage } from "../hooks/useLocalStorage";
+import { useFirestoreData } from "../hooks/useFirestoreData";
 import { OperationMeta } from "./Tasks";
 import { useMemo } from "react";
 
 const Reports = () => {
-  const [metas] = useLocalStorage<OperationMeta[]>('nytzer-metas', []);
+  const { metas } = useFirestoreData();
 
   const { operatorPerformance, kpis, monthlyData } = useMemo(() => {
     const now = new Date();

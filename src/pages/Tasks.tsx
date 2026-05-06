@@ -2,7 +2,10 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Target, Plus, X, Search, ArrowUpRight, ArrowLeft, AlertTriangle, CheckSquare, Trash2, RotateCcw, BarChart2, Edit2 } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useFirestoreData } from '../hooks/useFirestoreData';
 import { pushNotify, requestNotificationPermission } from '../lib/notifications';
+import { db } from '../lib/firebase';
+import { collection, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 
 export interface Remessa {
   id: string;
@@ -533,11 +536,14 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
 
 // --- MAIN Component ---
 const Tasks = () => {
-  const [metas, setMetas] = useLocalStorage<OperationMeta[]>('nytzer-metas', []);
+  const { metas, users } = useFirestoreData();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Minha operacao');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedMetaId, setSelectedMetaId] = useState<string | null>(null);
+
+  const [user] = useLocalStorage<any>('nytzer-user', null);
+  const [role] = useLocalStorage<'ADMIN' | 'OPERADOR'>('nytzer-role', 'ADMIN');
 
   useEffect(() => {
     requestNotificationPermission();
@@ -551,24 +557,22 @@ const Tasks = () => {
   const [totalApv, setTotalApv] = useState<number | ''>('');
   const [modelo, setModelo] = useState<'Depositante' | 'Recarga'>('Depositante');
   const [isAdminMeta, setIsAdminMeta] = useState(false);
-  const [user] = useLocalStorage<any>('nytzer-user', null);
-  const [role] = useLocalStorage<'ADMIN' | 'OPERADOR'>('nytzer-role', 'ADMIN');
-  const [users] = useLocalStorage<any[]>('nytzer-users', []);
 
-  const handleCreate = (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     const activeOperator = user?.username || 'Operador Desconhecido';
     if (!plataforma || rede === 'Selecione' || !titulo || !contas || !activeOperator) return;
-    const newMeta: OperationMeta = {
-      id: Date.now().toString(),
+    const newMeta = {
       plataforma, rede, titulo, contas: Number(contas), modelo, operador: activeOperator,
-      totalApv: totalApv ? Number(totalApv) : undefined,
+      totalApv: totalApv ? Number(totalApv) : null,
       createdAt: new Date().toISOString(),
       status: 'ativa',
       remessas: [],
       isAdminMeta: role === 'ADMIN' ? isAdminMeta : false
     };
-    setMetas([newMeta, ...metas]);
+    
+    await addDoc(collection(db, 'metas'), newMeta);
+    
     setIsAdminMeta(false);
     setIsModalOpen(false);
 
@@ -581,17 +585,20 @@ const Tasks = () => {
     setPlataforma(''); setRede('Selecione'); setTitulo(''); setContas(''); setTotalApv('');
   };
 
-  const onUpdateMeta = (updatedMeta: OperationMeta) => {
-    setMetas(metas.map(m => m.id === updatedMeta.id ? updatedMeta : m));
+  const onUpdateMeta = async (updatedMeta: OperationMeta) => {
+    const docRef = doc(db, 'metas', updatedMeta.id);
+    const metaToUpdate = { ...updatedMeta };
+    delete (metaToUpdate as any).id; // Remove id when updating to avoid overwriting doc ID
+    await updateDoc(docRef, metaToUpdate as any);
   };
-  const onTrashMeta = (id: string) => {
-    setMetas(metas.map(m => m.id === id ? { ...m, status: 'lixeira' } : m));
+  const onTrashMeta = async (id: string) => {
+    await updateDoc(doc(db, 'metas', id), { status: 'lixeira' });
   };
-  const onRestoreMeta = (id: string) => {
-    setMetas(metas.map(m => m.id === id ? { ...m, status: 'ativa' } : m));
+  const onRestoreMeta = async (id: string) => {
+    await updateDoc(doc(db, 'metas', id), { status: 'ativa' });
   };
-  const onPermDelete = (id: string) => {
-    setMetas(metas.filter(m => m.id !== id));
+  const onPermDelete = async (id: string) => {
+    await deleteDoc(doc(db, 'metas', id));
   };
 
   const activeOperator = user?.username || 'Operador Desconhecido';

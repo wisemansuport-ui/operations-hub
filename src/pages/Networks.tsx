@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Radio, Star } from "lucide-react";
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useFirestoreData } from '../hooks/useFirestoreData';
 import { OperationMeta } from './Tasks';
 
 interface NetworkData {
@@ -47,7 +48,7 @@ const CircularProgress = ({ score, color }: { score: number, color: string }) =>
 };
 
 const Networks = () => {
-  const [metas] = useLocalStorage<OperationMeta[]>('nytzer-metas', []);
+  const { metas } = useFirestoreData();
 
   const networkData = useMemo(() => {
     const redesMap: Record<string, { lucro: number, contas: number, metas: number, acertos: number }> = {};

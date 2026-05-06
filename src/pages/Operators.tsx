@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Users, Link as LinkIcon, Star, TrendingUp, TrendingDown, Copy, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { useLocalStorage } from "../hooks/useLocalStorage";
+import { useFirestoreData } from "../hooks/useFirestoreData";
 import { OperationMeta } from "./Tasks";
 
 interface OperatorData {
@@ -22,9 +23,8 @@ interface OperatorData {
 
 const Operators = () => {
   const [activeTab, setActiveTab] = useState('Ranking');
-  const [metas] = useLocalStorage<OperationMeta[]>('nytzer-metas', []);
+  const { metas, users } = useFirestoreData();
   const [user] = useLocalStorage<any>('nytzer-user', null);
-  const [users] = useLocalStorage<any[]>('nytzer-users', []);
   const activeOperator = user?.username || 'admin';
 
   const { operatorData, folhaTotal, totalMetas, totalContas, totalLucroEquipe } = useMemo(() => {
