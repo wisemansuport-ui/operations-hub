@@ -125,7 +125,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
       status: rStatus,
       notas: rNotas,
       data: new Date().toISOString(),
-      apv: rApv ? Number(rApv) : undefined
+      apv: rApv ? Number(rApv) : null
     };
     
     onUpdateMeta({ ...meta, remessas: [newR, ...remessas] });
@@ -177,7 +177,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
     const updatedRemessas = remessas.map(r => {
       if (r.id === editingRemessaId) {
         return {
-          ...r, titulo: eTitulo, tipo: eTipo, saldoIni: Number(eSaldoIni || 0), contas: numTotal, contasNormais: numNormais, contasBaixas: numBaixas, deposito: Number(eDeposito), saque: Number(eSaque), status: eStatus, notas: eNotas, apv: eApv ? Number(eApv) : undefined,
+          ...r, titulo: eTitulo, tipo: eTipo, saldoIni: Number(eSaldoIni || 0), contas: numTotal, contasNormais: numNormais, contasBaixas: numBaixas, deposito: Number(eDeposito), saque: Number(eSaque), status: eStatus, notas: eNotas, apv: eApv ? Number(eApv) : null,
         };
       }
       return r;
