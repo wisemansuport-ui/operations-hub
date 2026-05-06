@@ -159,12 +159,23 @@ export const TopBar = () => {
             <p className="text-sm font-medium text-foreground leading-tight truncate max-w-[120px]">{user?.username || 'Usuário'}</p>
             <p className="text-[11px] text-muted-foreground leading-tight">{user?.role || 'Operador'}</p>
           </div>
-          <button 
-             onClick={handleLogout}
-             className="hidden group-hover:flex absolute right-0 top-10 whitespace-nowrap items-center gap-2 px-4 py-2 bg-popover border border-border rounded-lg shadow-lg text-xs font-bold text-destructive hover:bg-destructive/10 transition-colors animate-fade-in"
-          >
-             <LogOut className="w-3.5 h-3.5" /> Sair da conta
-          </button>
+          {/* User Menu Dropdown */}
+          <div className="absolute right-0 top-full pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 min-w-[160px]">
+             <div className="bg-[#0A0A0B]/95 backdrop-blur-xl border border-border/60 rounded-xl shadow-2xl p-1.5 flex flex-col transform origin-top-right transition-transform group-hover:scale-100 scale-95">
+               <div className="px-3 py-2 mb-1 border-b border-border/50 sm:hidden">
+                 <p className="text-sm font-bold text-foreground truncate">{user?.username || 'Usuário'}</p>
+                 <p className="text-[11px] text-muted-foreground">{user?.role || 'Operador'}</p>
+               </div>
+               
+               <button 
+                  onClick={handleLogout}
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-semibold text-destructive hover:bg-destructive/10 hover:text-red-400 transition-colors w-full"
+               >
+                  <LogOut className="w-4 h-4" /> 
+                  Sair da Conta
+               </button>
+             </div>
+          </div>
         </div>
       </div>
     </div>

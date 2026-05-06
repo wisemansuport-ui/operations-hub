@@ -37,8 +37,9 @@ export const AppSidebar = () => {
         }`}
       >
         <div className="flex items-center gap-2.5 px-4 h-14 border-b border-sidebar-border shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
-            <Zap className="w-4 h-4 text-primary-foreground" />
+          <div className="relative w-8 h-8 flex items-center justify-center shrink-0 group">
+            <div className="absolute inset-0 bg-gradient-to-tr from-yellow-500 to-amber-300 rounded-lg blur-[6px] opacity-60 group-hover:opacity-100 transition-opacity duration-500 animate-pulse" />
+            <Zap className="w-6 h-6 text-yellow-400 relative z-10 drop-shadow-[0_0_10px_rgba(250,204,21,0.8)]" fill="currentColor" />
           </div>
           {!collapsed && (
             <span className="font-bold text-foreground text-base tracking-tight">
