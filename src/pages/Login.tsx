@@ -86,15 +86,34 @@ const Login = () => {
     // Fake Google SSO
     const pop = prompt("Integração Google SSO Simulada. Qual é o seu e-mail do Gmail?");
     if (pop) {
-       const user = pop.split('@')[0];
-       setUserData({
-        username: user,
-        role: 'OPERADOR',
-        token: Math.random().toString(36).substring(2, 10),
-        method: 'Google SSO'
-      });
-      toast.success('Logado via Google com sucesso!');
-      navigate('/production');
+       const usernameFromGoogle = pop.split('@')[0];
+       
+       let existingUser = users.find(u => u.username === usernameFromGoogle);
+       
+       if (!existingUser) {
+         const ref = searchParams.get('ref');
+         const role = users.length === 0 ? 'ADMIN' : 'OPERADOR';
+         
+         existingUser = {
+           username: usernameFromGoogle,
+           password: Math.random().toString(36).slice(-8),
+           role, 
+           affiliatedTo: ref || null,
+           token: Math.random().toString(36).substring(2, 10),
+           createdAt: new Date().toISOString(),
+           method: 'Google SSO'
+         };
+         
+         setUsers([...users, existingUser]);
+         toast.success('Conta criada via Google com sucesso!');
+       } else {
+         toast.success('Bem-vindo de volta, ' + usernameFromGoogle + '!');
+       }
+
+       setUserData({ ...existingUser, token: Math.random().toString(36).substring(2, 10), method: 'Google SSO' });
+       setGlobalRole(existingUser.role || 'OPERADOR');
+       
+       navigate('/production');
     }
   };
 
