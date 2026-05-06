@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useGoogleLogin } from '@react-oauth/google';
 import { ArrowRight, ShieldCheck, Mail, Eye, EyeOff, User, Lock, Monitor, Smartphone } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { toast } from 'sonner';
@@ -82,39 +83,48 @@ const Login = () => {
     }
   };
 
-  const handleGoogleLogin = () => {
-    // Fake Google SSO
-    const pop = prompt("Integração Google SSO Simulada. Qual é o seu e-mail do Gmail?");
-    if (pop) {
-       const usernameFromGoogle = pop.split('@')[0];
-       
-       let existingUser = users.find(u => u.username === usernameFromGoogle);
-       
-       if (!existingUser) {
-         const ref = searchParams.get('ref');
-         const role = users.length === 0 ? 'ADMIN' : 'OPERADOR';
-         
-         existingUser = {
-           username: usernameFromGoogle,
-           password: Math.random().toString(36).slice(-8),
-           role, 
-           affiliatedTo: ref || null,
-           token: Math.random().toString(36).substring(2, 10),
-           createdAt: new Date().toISOString(),
-           method: 'Google SSO'
-         };
-         
-         setUsers([...users, existingUser]);
-         toast.success('Conta criada via Google com sucesso!');
-       } else {
-         toast.success('Bem-vindo de volta, ' + usernameFromGoogle + '!');
-       }
+  const loginWithGoogle = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+        }).then(res => res.json());
 
-       setUserData({ ...existingUser, token: Math.random().toString(36).substring(2, 10), method: 'Google SSO' });
-       setGlobalRole(existingUser.role || 'OPERADOR');
-       
-       navigate('/production');
-    }
+        const usernameFromGoogle = userInfo.email.split('@')[0];
+        let existingUser = users.find(u => u.username === usernameFromGoogle);
+
+        if (!existingUser) {
+           const ref = searchParams.get('ref');
+           const role = users.length === 0 ? 'ADMIN' : 'OPERADOR';
+           
+           existingUser = {
+             username: usernameFromGoogle,
+             password: Math.random().toString(36).slice(-8),
+             role, 
+             affiliatedTo: ref || null,
+             token: Math.random().toString(36).substring(2, 10),
+             createdAt: new Date().toISOString(),
+             method: 'Google SSO'
+           };
+           
+           setUsers(prev => [...prev, existingUser]);
+           toast.success('Conta criada via Google com sucesso!');
+        } else {
+           toast.success('Bem-vindo de volta, ' + usernameFromGoogle + '!');
+        }
+
+        setUserData({ ...existingUser, token: Math.random().toString(36).substring(2, 10), method: 'Google SSO' });
+        setGlobalRole(existingUser.role || 'OPERADOR');
+        navigate('/production');
+      } catch (err) {
+        toast.error('Erro ao obter dados da conta Google');
+      }
+    },
+    onError: () => toast.error('O login com Google foi cancelado ou falhou.')
+  });
+
+  const handleGoogleLogin = () => {
+    loginWithGoogle();
   };
 
   return (
