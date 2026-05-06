@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Target, Plus, X, Search, ArrowUpRight, ArrowLeft, AlertTriangle, CheckSquare, Trash2, RotateCcw, BarChart2, Edit2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useFirestoreData } from '../hooks/useFirestoreData';
 import { pushNotify, requestNotificationPermission } from '../lib/notifications';
@@ -101,7 +102,15 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
     const numBaixas = Number(rContasBaixas || 0);
     const numTotal = numNormais + numBaixas;
     
-    if (!rDeposito || !rSaque || numTotal === 0) return;
+    if (!rDeposito || !rSaque) {
+      toast.error('Preencha os campos obrigatórios de Depósito e Saque.');
+      return;
+    }
+    
+    if (rTipo === 'Remessa' && numTotal === 0) {
+      toast.error('Para o tipo Remessa, você deve informar a quantidade de contas.');
+      return;
+    }
 
     const newR: Remessa = {
       id: Date.now().toString(),
@@ -394,7 +403,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
              </div>
           </div>
 
-          <button type="submit" disabled={!rDeposito || !rSaque || (!rContasNormais && !rContasBaixas)} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-extrabold py-3 rounded-xl flex items-center justify-center gap-2 transition-transform hover:scale-[1.01] shadow-[0_10px_30px_hsl(var(--primary)/0.2)] disabled:opacity-50 disabled:hover:scale-100 mt-2">
+          <button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-extrabold py-3 rounded-xl flex items-center justify-center gap-2 transition-transform hover:scale-[1.01] shadow-[0_10px_30px_hsl(var(--primary)/0.2)] mt-2">
              <ArrowUpRight className="w-5 h-5" /> Registrar remessa
           </button>
         </form>
