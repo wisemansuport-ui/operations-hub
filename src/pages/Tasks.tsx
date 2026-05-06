@@ -595,10 +595,19 @@ const Tasks = () => {
   };
 
   const onUpdateMeta = async (updatedMeta: OperationMeta) => {
-    const docRef = doc(db, 'metas', updatedMeta.id);
-    const metaToUpdate = { ...updatedMeta };
-    delete (metaToUpdate as any).id; // Remove id when updating to avoid overwriting doc ID
-    await updateDoc(docRef, metaToUpdate as any);
+    try {
+      const docRef = doc(db, 'metas', updatedMeta.id);
+      const metaToUpdate = { ...updatedMeta };
+      delete (metaToUpdate as any).id; // Remove id when updating to avoid overwriting doc ID
+      await updateDoc(docRef, metaToUpdate as any);
+    } catch (error: any) {
+      console.error("Erro ao atualizar meta:", error);
+      if (error.code === 'permission-denied') {
+        toast.error("Erro: Sem permissão para salvar no banco de dados. Verifique as regras do Firestore.");
+      } else {
+        toast.error("Erro ao salvar no banco de dados.");
+      }
+    }
   };
   const onTrashMeta = async (id: string) => {
     await updateDoc(doc(db, 'metas', id), { status: 'lixeira' });
