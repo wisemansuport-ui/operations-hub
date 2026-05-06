@@ -98,7 +98,7 @@ const Dashboard = () => {
       const pagOp = Number(meta.pagamentoOperador) || 0;
       if (isFechada) {
         totalSalarios += sal;
-        if (!meta.isAdminMeta) {
+        if (!meta.isAdminMeta && meta.modelo === 'Recarga') {
           autoSalarioMeta += pagOp;
         }
       }
@@ -109,7 +109,7 @@ const Dashboard = () => {
         const dateStr = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
         if (!chartDataByDate[dateStr]) chartDataByDate[dateStr] = { name: dateStr, contas: 0, lucro: 0, lucroOperador: 0 };
         chartDataByDate[dateStr].contas += metaContas;
-        chartDataByDate[dateStr].lucro += (metaLucro + sal);
+        chartDataByDate[dateStr].lucro += (metaLucro + sal - autoSalarioMeta);
         if (!meta.isAdminMeta) {
           chartDataByDate[dateStr].lucroOperador += autoSalarioMeta;
         }
@@ -118,7 +118,7 @@ const Dashboard = () => {
       // Track by Network (Rede)
       if (isFechada && meta.rede && meta.rede !== 'Selecione') {
         if (!redesMap[meta.rede]) redesMap[meta.rede] = { lucro: 0, contas: 0, metas: 0, acertos: 0 };
-        redesMap[meta.rede].lucro += (metaLucro + sal);
+        redesMap[meta.rede].lucro += (metaLucro + sal - autoSalarioMeta);
         redesMap[meta.rede].contas += metaContas;
         redesMap[meta.rede].metas += 1;
         if (metaLucro + sal > 0) redesMap[meta.rede].acertos += 1;
@@ -126,7 +126,7 @@ const Dashboard = () => {
     }
 
     const lucroBruto = totalSacado - totalDepositado;
-    const receitaMensal = lucroBruto + totalSalarios;
+    const receitaMensal = lucroBruto + totalSalarios - totalAutoSalarios;
     const medioporMeta = metasFechadas > 0 ? receitaMensal / metasFechadas : 0;
     const medioporConta = contasProcessadas > 0 ? receitaMensal / contasProcessadas : 0;
 
