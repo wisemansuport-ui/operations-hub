@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Zap, Mail, Eye, EyeOff, User, Lock, Monitor, Smartphone } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Mail, Eye, EyeOff, User, Lock, Monitor, Smartphone } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { toast } from 'sonner';
 
@@ -126,9 +126,8 @@ const Login = () => {
       {/* Header outside card */}
       <div className="mb-6 text-center z-10 flex flex-col items-center">
         <h1 className="text-3xl font-black tracking-tighter text-foreground flex items-center gap-2">
-          <div className="relative w-8 h-8 flex items-center justify-center shrink-0 group">
-            <div className="absolute inset-0 bg-gradient-to-tr from-yellow-500 to-amber-300 rounded-lg blur-[6px] opacity-60 group-hover:opacity-100 transition-opacity duration-500 animate-pulse" />
-            <Zap className="w-6 h-6 text-yellow-400 relative z-10 drop-shadow-[0_0_10px_rgba(250,204,21,0.8)]" fill="currentColor" />
+          <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center border border-primary/50 shadow-[0_0_15px_hsl(var(--primary)/0.3)]">
+            <ShieldCheck className="w-5 h-5 text-primary" />
           </div>
           NYTZER<span className="text-primary">VISION</span>
         </h1>
