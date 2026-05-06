@@ -27,7 +27,8 @@ export const TopBar = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const formatTime = (d: Date) => {
+  const formatTime = (ts: string | Date) => {
+    const d = typeof ts === 'string' ? new Date(ts) : ts;
     const mins = Math.floor((Date.now() - d.getTime()) / 60000);
     if (mins < 1) return "agora";
     if (mins < 60) return `${mins}m atrás`;

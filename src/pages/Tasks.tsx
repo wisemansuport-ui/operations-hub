@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useFirestoreData } from '../hooks/useFirestoreData';
 import { pushNotify, requestNotificationPermission } from '../lib/notifications';
+import { useNotifications } from '../contexts/NotificationContext';
 import { db } from '../lib/firebase';
 import { collection, addDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 
@@ -44,7 +45,7 @@ export interface OperationMeta {
 const redes = ['Selecione', 'WE', 'W1', 'VOY', '91', 'DZ', 'A8', 'OKOK', 'ANJO', 'XW', 'EK', 'DY', '777', '888', 'WP', 'BRA', 'GAME', 'ALFA', 'KK', 'MK'];
 
 // --- SUBCOMPONENT: Meta Dashboard (Inside a Meta) ---
-const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onBack: () => void, onUpdateMeta: (m: OperationMeta) => void }) => {
+const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification }: { meta: OperationMeta, onBack: () => void, onUpdateMeta: (m: OperationMeta) => void, addNotification: (n: any) => void }) => {
   const [isFinishing, setIsFinishing] = useState(false);
   const [rTitulo, setRTitulo] = useState(String((meta.remessas?.length || 0) + 1));
   const [rTipo, setRTipo] = useState('Remessa');
@@ -136,6 +137,12 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
       `Remessa Registrada 📊`,
       `[${meta.titulo}] Resultado ${resValue >= 0 ? '+' : ''}R$ ${resValue.toFixed(2)} - Deposito: R$ ${newR.deposito} / Saque: R$ ${newR.saque}`
     );
+    addNotification({
+      title: `Remessa Registrada 📊`,
+      message: `[${meta.plataforma}] Operador registrou: Lucro/Prej. R$ ${resValue.toFixed(2)}`,
+      type: resValue >= 0 ? 'success' : 'error',
+      targetRole: 'ADMIN'
+    });
     setRTitulo(String(remessas.length + 2));
     setRSaldoIni('');
     setRContasNormais('');
@@ -546,6 +553,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta }: { meta: OperationMeta, onB
 // --- MAIN Component ---
 const Tasks = () => {
   const { metas, users } = useFirestoreData();
+  const { addNotification } = useNotifications();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Minha operacao');
   const [currentPage, setCurrentPage] = useState(1);
@@ -590,6 +598,12 @@ const Tasks = () => {
       'Nova Plataforma Iniciada 🚀', 
       `O operador iniciou a meta "${titulo}" (${contas} contas) na plataforma ${plataforma} / ${rede}.`
     );
+    addNotification({
+      title: 'Nova Meta 🚀',
+      message: `${activeOperator} iniciou: ${plataforma} / ${rede}`,
+      type: 'info',
+      targetRole: 'ADMIN'
+    });
 
     setPlataforma(''); setRede('Selecione'); setTitulo(''); setContas(''); setTotalApv('');
   };
@@ -644,7 +658,7 @@ const Tasks = () => {
   // Currently Selected
   const selectedMeta = metas.find(m => m.id === selectedMetaId);
   if (selectedMeta) {
-    return <MetaInterior meta={selectedMeta} onBack={() => setSelectedMetaId(null)} onUpdateMeta={onUpdateMeta} />;
+    return <MetaInterior meta={selectedMeta} onBack={() => setSelectedMetaId(null)} onUpdateMeta={onUpdateMeta} addNotification={addNotification} />;
   }
 
   // Choose list to render
