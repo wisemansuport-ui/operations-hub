@@ -5,7 +5,7 @@ import { ArrowRight, ShieldCheck, Mail, Eye, EyeOff, User, Lock, Monitor, Smartp
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { toast } from 'sonner';
 import { db } from '../lib/firebase';
-import { collection, getDocs, addDoc, query, where } from 'firebase/firestore';
+import { collection, getDocs, addDoc, query, where, limit } from 'firebase/firestore';
 
 const Login = () => {
   const [searchParams] = useSearchParams();
@@ -51,8 +51,9 @@ const Login = () => {
         }
       
         const ref = searchParams.get('ref');
-        // Conta quantos usuários existem para ver se é o primeiro (ADMIN)
-        const allUsersSnapshot = await getDocs(usersRef);
+        // Verifica se é o primeiro usuário do sistema (ADMIN)
+        const qFirst = query(usersRef, limit(1));
+        const allUsersSnapshot = await getDocs(qFirst);
         const role = (allUsersSnapshot.empty && !ref) ? 'ADMIN' : 'OPERADOR';
         
         const newUser = {
@@ -91,9 +92,15 @@ const Login = () => {
         toast.success('Bem-vindo de volta, ' + username + '!');
         navigate('/');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro na autenticação:", error);
-      toast.error("Ocorreu um erro ao conectar com o banco de dados.");
+      if (error.code === 'permission-denied') {
+        toast.error("O banco de dados está bloqueado. Libere as regras no Firebase.");
+      } else if (error.code === 'not-found') {
+         toast.error("O banco de dados Firestore não foi criado no projeto.");
+      } else {
+        toast.error("Ocorreu um erro ao conectar com o banco de dados.");
+      }
     }
   };
 
@@ -114,7 +121,8 @@ const Login = () => {
 
         if (querySnapshot.empty) {
            const ref = searchParams.get('ref');
-           const allUsersSnapshot = await getDocs(usersRef);
+           const qFirst = query(usersRef, limit(1));
+           const allUsersSnapshot = await getDocs(qFirst);
            const role = (allUsersSnapshot.empty && !ref) ? 'ADMIN' : 'OPERADOR';
            
            existingUser = {
