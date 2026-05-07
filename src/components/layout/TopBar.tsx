@@ -103,24 +103,18 @@ export const TopBar = () => {
                         return;
                       }
 
-                      // This must be synchronous from a user gesture
-                      OneSignal.Slidedown.promptPush().then(() => {
-                        if (Notification.permission === "granted") {
-                          new Notification("✅ NytzerVision Alertas Ativados!", {
-                            body: "Você vai receber alertas de remessas e operações.",
-                            icon: "/favicon.ico"
-                          });
+                      // Use Native request instead of Slidedown for iOS PWA support
+                      OneSignal.Notifications.requestPermission().then((isSubscribed) => {
+                        if (isSubscribed || Notification.permission === "granted") {
+                          alert("✅ Alertas ativados e vinculados ao seu usuário!");
                         } else {
-                          alert("Permissão negada. Ative nas configurações do seu navegador.");
+                          alert("Permissão negada. Ative nas configurações do seu aparelho.");
                         }
                       }).catch((e) => {
                          console.error("OneSignal prompt erro:", e);
-                         // Fallback in case OneSignal prompt fails
                          Notification.requestPermission().then((result) => {
                            if (result === "granted") {
-                             new Notification("✅ Alertas Ativados (Apenas Local)", {
-                               body: "Você vai receber alertas apenas quando estiver com o app aberto.",
-                             });
+                             alert("✅ Alertas Ativados (Apenas Local)");
                            }
                          });
                       });
