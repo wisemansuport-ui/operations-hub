@@ -35,7 +35,6 @@ const Operators = () => {
      let tmpTotalLucroEquipe = 0;
 
      // Pré-preenche o mapa com todos os operadores afiliados (mesmo os que não têm metas ainda)
-     opMap[activeOperator] = { id: activeOperator, name: activeOperator, deps: 0, metas: 0, totalProfit: 0, normais: 0, baixas: 0, salary: 0 };
      users.forEach(u => {
         if (u.affiliatedTo === activeOperator) {
            opMap[u.username] = { id: u.username, name: u.username, deps: 0, metas: 0, totalProfit: 0, normais: 0, baixas: 0, salary: 0 };
@@ -45,9 +44,7 @@ const Operators = () => {
      metas.forEach(meta => {
         if (meta.status !== 'fechada' || meta.isAdminMeta) return;
         
-        const isAffiliated = (users.find(u => u.username === meta.operador)?.affiliatedTo === activeOperator) ||
-                             (meta.operador === activeOperator) ||
-                             (!meta.operador && activeOperator === 'wiseman');
+        const isAffiliated = (users.find(u => u.username === meta.operador)?.affiliatedTo === activeOperator);
                              
         if (!isAffiliated) return;
         
