@@ -6,6 +6,7 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { LogOut, UserCog } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import OneSignal from "react-onesignal";
+import { toast } from "sonner";
 
 export const TopBar = () => {
   const { theme, toggleTheme } = useTheme();
@@ -77,49 +78,63 @@ export const TopBar = () => {
                 <div className="flex flex-col gap-1">
                   <span className="text-sm font-semibold text-foreground">Notificações</span>
                   <button 
-                    onClick={() => {
+                    onClick={async () => {
                       const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
                       const isPWA = window.matchMedia("(display-mode: standalone)").matches || (window.navigator as any).standalone === true;
 
-                      // iOS Safari: only works as installed PWA
+                      // iOS Safari: must be installed as PWA for push to work
                       if (isIOS && !isPWA) {
-                        alert("📲 Para ativar alertas no iPhone:\n\n1. Toque em Compartilhar ↗\n2. Toque em \"Adicionar à Tela de Início\"\n3. Abra o app pelo ícone criado\n4. Volte aqui e clique em Ativar Alertas");
+                        toast.info("📲 Adicione à Tela de Início", {
+                          description: "No Safari: toque em Compartilhar ↗ → 'Adicionar à Tela de Início' → abra pelo ícone e tente novamente.",
+                          duration: 8000,
+                        });
                         return;
                       }
 
-                      // Standard Web Push (Chrome, Firefox, PWA no iOS 16.4+)
                       if (!("Notification" in window)) {
-                        alert("Seu navegador não suporta notificações push.");
+                        toast.error("Navegador não suporta notificações push.");
                         return;
                       }
 
                       if (Notification.permission === "granted") {
-                        alert("✅ Alertas já estão ativos neste dispositivo!");
+                        toast.success("✅ Alertas já estão ativos neste dispositivo!");
                         return;
                       }
 
                       if (Notification.permission === "denied") {
-                        alert("❌ Notificações bloqueadas. Vá em Configurações do navegador → Notificações e permita este site.");
+                        toast.error("❌ Notificações bloqueadas. Vá em Configurações → Safari → Notificações e permita este site.");
                         return;
                       }
 
-                      // Use Native request instead of Slidedown for iOS PWA support
-                      OneSignal.Notifications.requestPermission().then((isSubscribed) => {
-                        if (isSubscribed || Notification.permission === "granted") {
-                          alert("✅ Alertas ativados e vinculados ao seu usuário!");
+                      // Request permission via OneSignal native API
+                      toast.loading("Aguardando sua permissão...", { id: "push-request" });
+
+                      try {
+                        const granted = await OneSignal.Notifications.requestPermission();
+                        toast.dismiss("push-request");
+                        if (granted) {
+                          toast.success("✅ Alertas ativados! Você receberá notificações em tempo real.", { duration: 5000 });
                         } else {
-                          alert("Permissão negada. Ative nas configurações do seu aparelho.");
+                          toast.warning("Permissão negada. Ative nas configurações do aparelho.");
                         }
-                      }).catch((e) => {
-                         console.error("OneSignal prompt erro:", e);
-                         Notification.requestPermission().then((result) => {
-                           if (result === "granted") {
-                             alert("✅ Alertas Ativados (Apenas Local)");
-                           }
-                         });
-                      });
+                      } catch (e) {
+                        console.error("OneSignal requestPermission error:", e);
+                        // Fallback to browser native
+                        try {
+                          const result = await Notification.requestPermission();
+                          toast.dismiss("push-request");
+                          if (result === "granted") {
+                            toast.success("✅ Alertas ativados no navegador!");
+                          } else {
+                            toast.error("Permissão negada. Verifique as configurações do Safari.");
+                          }
+                        } catch (e2) {
+                          toast.dismiss("push-request");
+                          toast.error("Não foi possível ativar. Tente via Safari → Configurações → Notificações.");
+                        }
+                      }
                     }} 
-                    className="text-[10px] font-bold text-primary flex items-center gap-1 hover:underline"
+                    className="text-[10px] font-bold text-primary flex items-center gap-1 hover:underline active:opacity-70 touch-manipulation"
                   >
                     🔔 Ativar Alertas no Dispositivo
                   </button>
