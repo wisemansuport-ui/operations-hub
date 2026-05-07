@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { LogOut, UserCog } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import OneSignal from "react-onesignal";
 
 export const TopBar = () => {
   const { theme, toggleTheme } = useTheme();
@@ -103,8 +104,8 @@ export const TopBar = () => {
                       }
 
                       // This must be synchronous from a user gesture
-                      Notification.requestPermission().then((result) => {
-                        if (result === "granted") {
+                      OneSignal.Slidedown.promptPush().then(() => {
+                        if (Notification.permission === "granted") {
                           new Notification("✅ NytzerVision Alertas Ativados!", {
                             body: "Você vai receber alertas de remessas e operações.",
                             icon: "/favicon.ico"
@@ -112,6 +113,16 @@ export const TopBar = () => {
                         } else {
                           alert("Permissão negada. Ative nas configurações do seu navegador.");
                         }
+                      }).catch((e) => {
+                         console.error("OneSignal prompt erro:", e);
+                         // Fallback in case OneSignal prompt fails
+                         Notification.requestPermission().then((result) => {
+                           if (result === "granted") {
+                             new Notification("✅ Alertas Ativados (Apenas Local)", {
+                               body: "Você vai receber alertas apenas quando estiver com o app aberto.",
+                             });
+                           }
+                         });
                       });
                     }} 
                     className="text-[10px] font-bold text-primary flex items-center gap-1 hover:underline"
