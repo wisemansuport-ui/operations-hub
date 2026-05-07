@@ -36,7 +36,7 @@ const App = () => {
 
   useEffect(() => {
     OneSignal.init({
-      appId: "25bd74d4-9b56-4021-bbb4-3260a00197f4",
+      appId: "25bd7404-9856-4021-bbb4-3260a00197f4",
       allowLocalhostAsSecureOrigin: true,
       notifyButton: {
         enable: false,
