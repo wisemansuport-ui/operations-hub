@@ -48,13 +48,27 @@ const CircularProgress = ({ score, color }: { score: number, color: string }) =>
 };
 
 const Networks = () => {
-  const { metas } = useFirestoreData();
+  const { metas, users } = useFirestoreData();
+  const [user] = useLocalStorage<any>('nytzer-user', null);
+  const activeOperator = user?.username || 'admin';
+  const role = user?.role || 'ADMIN';
 
   const networkData = useMemo(() => {
     const redesMap: Record<string, { lucro: number, contas: number, metas: number, acertos: number }> = {};
     
     metas.forEach(meta => {
       if (meta.status === 'lixeira' || !meta.rede || meta.rede === 'Selecione') return;
+      
+      let isVisible = false;
+      if (role === 'ADMIN') {
+        isVisible = meta.operador === activeOperator || 
+                    (users.find(u => u.username === meta.operador)?.affiliatedTo === activeOperator) ||
+                    (!meta.operador && activeOperator === 'wiseman');
+      } else {
+        isVisible = meta.operador === activeOperator;
+      }
+      
+      if (!isVisible) return;
       
       let metaLucro = 0;
       let metaContas = 0;
