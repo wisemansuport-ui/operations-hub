@@ -51,10 +51,8 @@ const Login = () => {
         }
       
         const ref = searchParams.get('ref');
-        // Verifica se é o primeiro usuário do sistema (ADMIN)
-        const qFirst = query(usersRef, limit(1));
-        const allUsersSnapshot = await getDocs(qFirst);
-        const role = (allUsersSnapshot.empty && !ref) ? 'ADMIN' : 'OPERADOR';
+        // Qualquer conta sem link de indicação (ref) vira ADMIN, com link vira OPERADOR
+        const role = !ref ? 'ADMIN' : 'OPERADOR';
         
         const newUser = {
           username,
@@ -121,9 +119,8 @@ const Login = () => {
 
         if (querySnapshot.empty) {
            const ref = searchParams.get('ref');
-           const qFirst = query(usersRef, limit(1));
-           const allUsersSnapshot = await getDocs(qFirst);
-           const role = (allUsersSnapshot.empty && !ref) ? 'ADMIN' : 'OPERADOR';
+           // Qualquer conta sem link de indicação (ref) vira ADMIN, com link vira OPERADOR
+           const role = !ref ? 'ADMIN' : 'OPERADOR';
            
            existingUser = {
              username: usernameFromGoogle,
