@@ -775,8 +775,73 @@ const Tasks = () => {
       )}
 
       {displayList.length === 0 ? (
-        <div className="mt-6 glass-card flex flex-col items-center justify-center p-12 rounded-2xl border border-dashed border-border/60 text-center">
-           <p className="text-base font-bold text-muted-foreground">{emptyMsg}</p>
+        <div className="mt-6 relative overflow-hidden rounded-3xl border border-border/40 bg-gradient-to-br from-card/60 via-card/30 to-transparent backdrop-blur-2xl">
+          <div className="absolute -top-32 -right-32 w-80 h-80 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
+          <div
+            className="absolute inset-0 opacity-[0.04] pointer-events-none"
+            style={{
+              backgroundImage:
+                'linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)',
+              backgroundSize: '32px 32px',
+            }}
+          />
+          <div className="relative flex flex-col items-center justify-center text-center px-8 py-20">
+            <div className="relative mb-7">
+              <div className="absolute inset-0 bg-primary/30 blur-2xl rounded-3xl" />
+              <div className="relative w-20 h-20 rounded-3xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent border border-primary/30 flex items-center justify-center">
+                <BarChart2 className="w-9 h-9 text-primary" strokeWidth={1.75} />
+              </div>
+              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-primary shadow-[0_0_12px_hsl(var(--primary))] animate-pulse" />
+            </div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/20 bg-primary/5 mb-5">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">
+                {activeTab === 'Lixeira' ? 'Tudo limpo' : activeTab === 'Metas & Fechamento' ? 'Aguardando fechamentos' : 'Pronto para começar'}
+              </span>
+            </div>
+            <h3 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight max-w-xl">
+              {activeTab === 'Lixeira'
+                ? 'Lixeira limpa'
+                : activeTab === 'Metas & Fechamento'
+                ? 'Nenhuma meta finalizada ainda'
+                : activeTab === 'Visao geral'
+                ? 'Sem operações registradas'
+                : 'Crie sua primeira meta de operação'}
+            </h3>
+            <p className="text-sm text-muted-foreground mt-3 max-w-md leading-relaxed">
+              {activeTab === 'Lixeira'
+                ? 'Itens removidos aparecem aqui. Você pode restaurá-los a qualquer momento.'
+                : activeTab === 'Metas & Fechamento'
+                ? 'Quando você fechar uma operação, ela ficará disponível neste painel para análise.'
+                : 'Acompanhe seu desempenho com gestão automatizada do hub, métricas em tempo real e fechamento inteligente.'}
+            </p>
+            {activeTab === 'Minha operacao' && (
+              <>
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="mt-8 inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-xl font-bold transition-all hover:-translate-y-0.5 shadow-[0_8px_30px_-8px_hsl(var(--primary)/0.6)]"
+                >
+                  <Plus className="w-4 h-4" /> Criar nova meta
+                </button>
+                <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-2xl">
+                  {[
+                    { label: 'Tempo real', desc: 'Sincronização instantânea' },
+                    { label: 'Automação', desc: 'Cálculos e fechamentos' },
+                    { label: 'Inteligência', desc: 'Insights por rede' },
+                  ].map((f) => (
+                    <div
+                      key={f.label}
+                      className="rounded-xl border border-border/40 bg-card/40 backdrop-blur-md px-4 py-3 text-left hover:border-primary/30 transition-colors"
+                    >
+                      <p className="text-[10px] font-bold text-primary uppercase tracking-widest">{f.label}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{f.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       ) : (
         <div className="mt-4 space-y-3">
