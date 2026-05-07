@@ -796,6 +796,11 @@ const Tasks = () => {
                       <p className="font-extrabold text-foreground text-base truncate group-hover:text-primary transition-colors">{meta.plataforma}</p>
                       <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest bg-muted/40 text-muted-foreground border border-border/50">{meta.rede !== 'Selecione' ? meta.rede : 'Geral'}</span>
                       <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest bg-muted/40 text-muted-foreground border border-border/50">{meta.modelo}</span>
+                      {role === 'ADMIN' && meta.operador && !meta.isAdminMeta && (
+                        <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest bg-primary/10 text-primary border border-primary/30 ml-1">
+                          OP: {meta.operador}
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-3 flex-wrap">
                       <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
