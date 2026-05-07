@@ -20,7 +20,6 @@ export const AppSidebar = () => {
     { path: "/tasks", label: "Planilhas", icon: ChartNoAxesCombined, roles: ['ADMIN', 'OPERADOR'] },
     { path: "/networks", label: "Redes", icon: Globe, roles: ['ADMIN'] },
     { path: "/pix", label: "PIX", icon: CreditCard, roles: ['ADMIN', 'OPERADOR'] },
-    { path: "/quality", label: "Qualidade", icon: ShieldCheck, roles: ['ADMIN'] },
     { path: "/reports", label: "Relatórios", icon: BarChart3, roles: ['ADMIN'] },
     { path: "/tutorial", label: "Tutorial", icon: PlayCircle, roles: ['ADMIN', 'OPERADOR'] },
   ].filter(item => item.roles.includes(role));
