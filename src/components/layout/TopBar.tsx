@@ -3,7 +3,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { useState, useRef, useEffect } from "react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { LogOut } from "lucide-react";
+import { LogOut, UserCog } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export const TopBar = () => {
@@ -12,6 +12,7 @@ export const TopBar = () => {
   const [showNotifs, setShowNotifs] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const [user, setUser] = useLocalStorage<any>('nytzer-user', null);
+  const [role, setRole] = useLocalStorage<'ADMIN' | 'OPERADOR'>('nytzer-role', 'ADMIN');
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -167,6 +168,16 @@ export const TopBar = () => {
                  <p className="text-sm font-bold text-foreground truncate">{user?.username || 'Usuário'}</p>
                  <p className="text-[11px] text-muted-foreground">{user?.role || 'Operador'}</p>
                </div>
+
+               {user?.role === 'ADMIN' && (
+                 <button 
+                    onClick={() => setRole(role === 'ADMIN' ? 'OPERADOR' : 'ADMIN')}
+                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-semibold text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors w-full mb-1"
+                 >
+                    <UserCog className="w-4 h-4" /> 
+                    Visão: {role}
+                 </button>
+               )}
                
                <button 
                   onClick={handleLogout}

@@ -15,16 +15,25 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
     }
   });
 
-  // Listen for changes in other tabs
+  // Listen for changes in other tabs and same tab
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === key && e.newValue) {
         setStoredValue(JSON.parse(e.newValue));
       }
     };
+    const handleCustomChange = (e: CustomEvent) => {
+      if (e.detail.key === key) {
+        setStoredValue(e.detail.value);
+      }
+    };
 
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('local-storage', handleCustomChange as EventListener);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('local-storage', handleCustomChange as EventListener);
+    };
   }, [key]);
 
   const setValue = (value: T | ((val: T) => T)) => {
@@ -33,6 +42,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
       setStoredValue(valueToStore);
       if (typeof window !== "undefined") {
         window.localStorage.setItem(key, JSON.stringify(valueToStore));
+        window.dispatchEvent(new CustomEvent('local-storage', { detail: { key, value: valueToStore } }));
       }
     } catch (error) {
       console.warn(`Error setting localStorage key "${key}":`, error);

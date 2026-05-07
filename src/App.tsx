@@ -26,12 +26,14 @@ const queryClient = new QueryClient();
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const [user] = useLocalStorage<any>('nytzer-user', null);
-  const isDevelopment = false; // Set to true to bypass login visually if needed
+  const isDevelopment = false;
   if (!user && !isDevelopment) return <Navigate to="/login" replace />;
   return <AppLayout>{children}</AppLayout>;
 };
 
 const App = () => {
+  const [user] = useLocalStorage<any>('nytzer-user', null);
+
   useEffect(() => {
     OneSignal.init({
       appId: "25bd74d4-9b56-4021-bbb4-3260a00197f4",
@@ -39,8 +41,23 @@ const App = () => {
       notifyButton: {
         enable: false,
       },
+    }).then(() => {
+      if (user?.username) {
+        OneSignal.login(user.username).catch(e => console.warn("OneSignal login error:", e));
+      }
     }).catch(e => console.error("OneSignal init error:", e));
   }, []);
+
+  useEffect(() => {
+    if (user?.username) {
+      // Small delay to ensure init is done
+      setTimeout(() => {
+        OneSignal.login(user.username).catch(e => console.warn("OneSignal login error:", e));
+      }, 1000);
+    } else {
+      OneSignal.logout().catch(e => console.warn("OneSignal logout error:", e));
+    }
+  }, [user?.username]);
 
   return (
     <QueryClientProvider client={queryClient}>

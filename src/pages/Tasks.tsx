@@ -45,7 +45,12 @@ export interface OperationMeta {
 const redes = ['Selecione', 'WE', 'W1', 'VOY', '91', 'DZ', 'A8', 'OKOK', 'ANJO', 'XW', 'EK', 'DY', '777', '888', 'WP', 'BRA', 'GAME', 'ALFA', 'KK', 'MK'];
 
 // --- SUBCOMPONENT: Meta Dashboard (Inside a Meta) ---
-const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification }: { meta: OperationMeta, onBack: () => void, onUpdateMeta: (m: OperationMeta) => void, addNotification: (n: any) => void }) => {
+const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, activeOperator }: { meta: OperationMeta, onBack: () => void, onUpdateMeta: (m: OperationMeta) => void, addNotification: (n: any) => void, users: any[], activeOperator: string }) => {
+  const targetAdmins = useMemo(() => {
+    const me = users.find(u => u.username === activeOperator);
+    if (me?.affiliatedTo) return [me.affiliatedTo];
+    return [];
+  }, [users, activeOperator]);
   const [isFinishing, setIsFinishing] = useState(false);
   const [rTitulo, setRTitulo] = useState(String((meta.remessas?.length || 0) + 1));
   const [rTipo, setRTipo] = useState('Remessa');
@@ -92,7 +97,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification }: { meta: O
     setIsFinishing(true);
     setTimeout(() => {
       onUpdateMeta({ ...meta, status: 'fechada' });
-      pushNotify('🏁 Operação Finalizada', `Meta: ${meta.titulo} fechada!`);
+      pushNotify('🏁 Operação Finalizada', `Meta: ${meta.titulo} fechada!`, targetAdmins);
       setIsFinishing(false);
     }, 1500);
   };
@@ -135,7 +140,8 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification }: { meta: O
     const resValue = newR.saque - newR.deposito;
     pushNotify(
       `Remessa Registrada 📊`,
-      `[${meta.titulo}] Resultado ${resValue >= 0 ? '+' : ''}R$ ${resValue.toFixed(2)} - Deposito: R$ ${newR.deposito} / Saque: R$ ${newR.saque}`
+      `[${meta.titulo}] Resultado ${resValue >= 0 ? '+' : ''}R$ ${resValue.toFixed(2)} - Deposito: R$ ${newR.deposito} / Saque: R$ ${newR.saque}`,
+      targetAdmins
     );
     addNotification({
       title: `Remessa Registrada 📊`,
@@ -190,7 +196,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification }: { meta: O
       return r;
     });
     onUpdateMeta({ ...meta, remessas: updatedRemessas });
-    pushNotify('✏️ Remessa Atualizada', `A remessa foi editada com sucesso.`);
+    pushNotify('✏️ Remessa Atualizada', `A remessa foi editada com sucesso.`, targetAdmins);
     setEditingRemessaId(null);
   };
 
@@ -594,9 +600,13 @@ const Tasks = () => {
     setIsModalOpen(false);
 
     // Notification Hook - Meta Initiated
+    const activeUserObj = users.find(u => u.username === activeOperator);
+    const targetAdmins = activeUserObj?.affiliatedTo ? [activeUserObj.affiliatedTo] : [];
+
     pushNotify(
       'Nova Plataforma Iniciada 🚀', 
-      `O operador iniciou a meta "${titulo}" (${contas} contas) na plataforma ${plataforma} / ${rede}.`
+      `O operador iniciou a meta "${titulo}" (${contas} contas) na plataforma ${plataforma} / ${rede}.`,
+      targetAdmins
     );
     addNotification({
       title: 'Nova Meta 🚀',
@@ -658,7 +668,7 @@ const Tasks = () => {
   // Currently Selected
   const selectedMeta = metas.find(m => m.id === selectedMetaId);
   if (selectedMeta) {
-    return <MetaInterior meta={selectedMeta} onBack={() => setSelectedMetaId(null)} onUpdateMeta={onUpdateMeta} addNotification={addNotification} />;
+    return <MetaInterior meta={selectedMeta} onBack={() => setSelectedMetaId(null)} onUpdateMeta={onUpdateMeta} addNotification={addNotification} users={users} activeOperator={activeOperator} />;
   }
 
   // Choose list to render

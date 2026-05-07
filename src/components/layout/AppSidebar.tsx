@@ -24,8 +24,7 @@ export const AppSidebar = () => {
     { path: "/tutorial", label: "Tutorial", icon: PlayCircle, roles: ['ADMIN', 'OPERADOR'] },
   ].filter(item => item.roles.includes(role));
 
-  // Bottom nav items (mobile) — show only the 5 most important
-  const bottomNavItems = navItems.slice(0, 5);
+  // Removed bottomNavItems restriction to show all items on mobile
 
   return (
     <>
@@ -88,19 +87,18 @@ export const AppSidebar = () => {
         </div>
       </aside>
 
-      {/* ── MOBILE BOTTOM NAV (hidden on desktop) ── */}
       <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 bg-sidebar/95 backdrop-blur-xl border-t border-sidebar-border flex items-center justify-around px-2"
+        className="md:hidden fixed bottom-0 left-0 right-0 bg-sidebar/95 backdrop-blur-xl border-t border-sidebar-border flex items-center justify-start gap-2 px-3 overflow-x-auto hide-scrollbar"
         style={{ zIndex: 200, paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        {bottomNavItems.map(({ path, label, icon: Icon }) => {
+        {navItems.map(({ path, label, icon: Icon }) => {
           const active = location.pathname === path;
           return (
             <Link
               key={path}
               to={path}
-              className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-all ${
-                active ? "text-primary" : "text-sidebar-foreground"
+              className={`flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl transition-all shrink-0 min-w-[70px] ${
+                active ? "text-primary bg-primary/5" : "text-sidebar-foreground"
               }`}
             >
               <Icon className={`w-5 h-5 ${active ? "text-primary" : ""}`} />

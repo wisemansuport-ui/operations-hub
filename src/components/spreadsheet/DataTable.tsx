@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { useLocalStorage } from "../../hooks/useLocalStorage";
+import { useSyncedState } from "../../hooks/useSyncedState";
 import { ArrowUpDown, ArrowUp, ArrowDown, Search, Plus, Trash2 } from "lucide-react";
 
 export interface Column {
@@ -32,7 +32,7 @@ const statusColors: Record<string, string> = {
 };
 
 export const DataTable = ({ columns, data: initialData, onDataChange, title, subtitle, dynamicData }: DataTableProps) => {
-  const [data, setData] = useLocalStorage(`nytzer-table-${title}`, initialData);
+  const [data, setData] = useSyncedState(`nytzer-table-${title}`, initialData, !dynamicData);
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [search, setSearch] = useState("");

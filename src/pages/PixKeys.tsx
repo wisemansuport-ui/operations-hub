@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useSyncedState } from '../hooks/useSyncedState';
 import { CreditCard, RefreshCw, Plus, Upload, Copy, Download, Search, Trash2, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -36,9 +36,8 @@ const PixColorClass: Record<PixType, { text: string, bg: string, ring: string, p
   PHONE: { text: "text-primary", bg: "bg-primary/10", ring: "ring-primary/30", pillbg: "bg-primary/5" },
   INVALIDO: { text: "text-red-500", bg: "bg-red-500/10", ring: "ring-red-500/50", pillbg: "bg-red-950/30" }
 };
-
 export default function PixKeys() {
-  const [keys, setKeys] = useLocalStorage<PixKey[]>('nytzer-pix-keys', []);
+  const [keys, setKeys] = useSyncedState<PixKey[]>('nytzer-pix-keys', []);
   const [inputText, setInputText] = useState('');
   const [bankInput, setBankInput] = useState('');
   const [batchInput, setBatchInput] = useState('');
