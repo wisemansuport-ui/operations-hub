@@ -3,11 +3,15 @@ import { TrendingUp, CheckCircle, AlertTriangle, Clock, Users, Trophy } from "lu
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 
 import { useFirestoreData } from "../hooks/useFirestoreData";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 import { OperationMeta } from "./Tasks";
 import { useMemo } from "react";
 
 const Reports = () => {
-  const { metas } = useFirestoreData();
+  const { metas, users } = useFirestoreData();
+  const [user] = useLocalStorage<any>('nytzer-user', null);
+  const activeOperator = user?.username || 'admin';
+  const role = user?.role || 'ADMIN';
 
   const { operatorPerformance, kpis, monthlyData } = useMemo(() => {
     const now = new Date();
@@ -16,6 +20,15 @@ const Reports = () => {
     const isThisMonth = (d: Date) => d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
 
     const opMap: Record<string, any> = {};
+    
+    if (role === 'ADMIN') {
+      users.forEach(u => {
+        if (u.affiliatedTo === activeOperator) {
+          opMap[u.username] = { name: u.username, dia: 0, semana: 0, mes: 0, total: 0 };
+        }
+      });
+    }
+
     let totais = { previsaoContas: 0, executadas: 0, remessasBoas: 0, remessasRuins: 0 };
     
     // Monthly stats init
@@ -29,6 +42,16 @@ const Reports = () => {
 
     metas.forEach(meta => {
       if (meta.status === 'lixeira') return;
+      
+      let isVisible = false;
+      if (role === 'ADMIN') {
+        isVisible = (users.find(u => u.username === meta.operador)?.affiliatedTo === activeOperator);
+      } else {
+        isVisible = meta.operador === activeOperator;
+      }
+      
+      if (!isVisible) return;
+
       const opName = meta.operador || 'Operador Central';
       if (!opMap[opName]) {
         opMap[opName] = { name: opName, dia: 0, semana: 0, mes: 0, total: 0 };
