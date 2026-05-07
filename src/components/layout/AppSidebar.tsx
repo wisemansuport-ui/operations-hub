@@ -64,7 +64,7 @@ export const AppSidebar = () => {
         </nav>
 
         <div className="mt-auto flex flex-col gap-2 pb-2">
-          {!collapsed && user?.role === 'ADMIN' && (
+          {!collapsed && (user?.role === 'ADMIN' || user?.username?.toUpperCase() === 'NYTZER' || user?.username?.toUpperCase() === 'WISEMAN') && (
             <div
               onClick={() => setRole(role === 'ADMIN' ? 'OPERADOR' : 'ADMIN')}
               className="mx-3 px-3 py-2 rounded-lg bg-black/20 border border-primary/20 text-xs flex justify-between items-center cursor-pointer hover:bg-black/40 transition-colors"
@@ -73,7 +73,7 @@ export const AppSidebar = () => {
               <UserCog className="w-3.5 h-3.5 text-muted-foreground" />
             </div>
           )}
-          {!collapsed && user?.role === 'OPERADOR' && (
+          {!collapsed && user?.role === 'OPERADOR' && user?.username?.toUpperCase() !== 'NYTZER' && user?.username?.toUpperCase() !== 'WISEMAN' && (
             <div className="mx-3 px-3 py-2 rounded-lg bg-black/10 border border-border/10 text-xs flex justify-between items-center opacity-70">
               <span className="font-semibold text-muted-foreground">Visão: <span className="text-muted-foreground">{role}</span></span>
             </div>

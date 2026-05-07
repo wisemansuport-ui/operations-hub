@@ -169,7 +169,7 @@ export const TopBar = () => {
                  <p className="text-[11px] text-muted-foreground">{user?.role || 'Operador'}</p>
                </div>
 
-               {user?.role === 'ADMIN' && (
+               {(user?.role === 'ADMIN' || user?.username?.toUpperCase() === 'NYTZER' || user?.username?.toUpperCase() === 'WISEMAN') && (
                  <button 
                     onClick={() => setRole(role === 'ADMIN' ? 'OPERADOR' : 'ADMIN')}
                     className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-semibold text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors w-full mb-1"
