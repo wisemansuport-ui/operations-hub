@@ -751,15 +751,27 @@ const Tasks = () => {
       </div>
 
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mt-6">
-        <div>
-           <h1 className="text-2xl font-extrabold text-foreground tracking-tight">{activeTab}</h1>
-           <p className="text-sm text-muted-foreground mt-1">Gerenciamento automático do hub.</p>
+        <div className="flex items-center gap-4">
+          <div className="hidden md:block w-1 h-14 rounded-full bg-gradient-to-b from-primary via-primary/50 to-transparent shadow-[0_0_12px_hsl(var(--primary)/0.5)]" />
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="text-[10px] font-bold text-primary uppercase tracking-[0.25em]">NytzerVision</span>
+              <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
+              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">{activeTab}</span>
+            </div>
+            <h1 className="text-3xl font-bold text-foreground tracking-tight">{activeTab}</h1>
+            <p className="text-sm text-muted-foreground mt-1.5">Gerenciamento automático do hub · sincronização em tempo real.</p>
+          </div>
         </div>
-        {activeTab === 'Minha operacao' && (
-          <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2.5 rounded-xl font-bold transition-all hover:scale-105 hover:-translate-y-1 shadow-[0_0_20px_hsl(var(--primary)/0.4)]">
+        {activeTab === 'Minha operacao' && displayList.length > 0 && (
+          <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2.5 rounded-xl font-bold transition-all hover:-translate-y-0.5 shadow-[0_8px_30px_-8px_hsl(var(--primary)/0.6)]">
             <Plus className="w-5 h-5" /> Nova meta
           </button>
         )}
+      </div>
+
+      <div className="relative h-px w-full bg-gradient-to-r from-transparent via-border/60 to-transparent">
+        <div className="absolute left-1/2 -translate-x-1/2 -top-px h-px w-40 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
       </div>
 
       {activeTab === 'Visao geral' && (
