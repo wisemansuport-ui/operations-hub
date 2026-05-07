@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Radio, Star } from "lucide-react";
+import { Radio, TrendingUp, TrendingDown, Minus, Trophy, Activity, Target, DollarSign, Sparkles } from "lucide-react";
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useFirestoreData } from '../hooks/useFirestoreData';
 import { OperationMeta } from './Tasks';
