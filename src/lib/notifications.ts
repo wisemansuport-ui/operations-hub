@@ -16,7 +16,7 @@ const ONESIGNAL_REST_API_KEY = "os_v2_app_ew6xibeykzacdo5ugjqkaamx6rvsmkmmhife7o
 /**
  * Registers this device in OneSignal:
  * - Sets external_id via OneSignal.login(username)
- * - Sets tags: { username, role } for filter-based targeting
+ * - Sets tags: { username, role }
  */
 export const registerDeviceTag = async (username: string, role: string) => {
   try {
@@ -30,45 +30,21 @@ export const registerDeviceTag = async (username: string, role: string) => {
 
 /**
  * Sends push notification via OneSignal REST API.
- *
- * Targeting logic:
- *  - If targetUsers provided → sends ONLY to devices tagged with username IN targetUsers (tag filter)
- *  - If no targetUsers → broadcasts to ALL subscribers (Total Subscriptions)
- *
- * NOTE: DO NOT mix 'filters' with 'include_aliases' — they are mutually exclusive in the OneSignal API.
+ * 
+ * ALWAYS broadcasts to ALL subscribers (Total Subscriptions).
+ * The targetUsers parameter is kept for API compatibility but is logged-only.
+ * This ensures reliable delivery on iOS PWA where tag/external_id binding is unreliable.
  */
 export const pushNotify = async (title: string, body: string, targetUsers?: string[]) => {
-  const hasTargets = targetUsers && targetUsers.length > 0;
-
   try {
-    let payload: Record<string, unknown>;
+    const payload = {
+      app_id: ONESIGNAL_APP_ID,
+      included_segments: ["Total Subscriptions"],
+      headings: { en: title, pt: title },
+      contents: { en: body, pt: body },
+    };
 
-    if (hasTargets) {
-      // Build OR filter for each target username using tags
-      // e.g. [{ field: "tag", key: "username", relation: "=", value: "nytzer" }]
-      const filters: object[] = [];
-      targetUsers!.forEach((u, i) => {
-        if (i > 0) filters.push({ operator: "OR" });
-        filters.push({ field: "tag", key: "username", relation: "=", value: u });
-      });
-
-      payload = {
-        app_id: ONESIGNAL_APP_ID,
-        filters,                          // ← ONLY use filters (not include_aliases)
-        headings: { en: title, pt: title },
-        contents: { en: body, pt: body },
-      };
-      console.log(`[OneSignal] Enviando push para: [${targetUsers.join(', ')}] → "${title}"`);
-    } else {
-      // Broadcast to everyone subscribed
-      payload = {
-        app_id: ONESIGNAL_APP_ID,
-        included_segments: ["Total Subscriptions"],
-        headings: { en: title, pt: title },
-        contents: { en: body, pt: body },
-      };
-      console.log(`[OneSignal] Broadcast para todos: "${title}"`);
-    }
+    console.log(`[OneSignal] 📤 Enviando push broadcast: "${title}"${targetUsers?.length ? ` (contexto: ${targetUsers.join(', ')})` : ''}`);
 
     const res = await fetch("https://onesignal.com/api/v1/notifications", {
       method: "POST",
@@ -83,11 +59,6 @@ export const pushNotify = async (title: string, body: string, targetUsers?: stri
 
     if (res.ok) {
       console.log(`[OneSignal] ✅ Push enviado! ID: ${json.id} | Destinatários: ${json.recipients}`);
-      if (json.recipients === 0) {
-        console.warn(`[OneSignal] ⚠️ ATENÇÃO: 0 destinatários encontrados!`);
-        console.warn(`  → O dispositivo não está inscrito OU a tag "username" não foi registrada.`);
-        console.warn(`  → Solução: Abra o app PWA no celular e clique em "🔔 Ativar Alertas".`);
-      }
     } else {
       console.error(`[OneSignal] ❌ Erro da API (${res.status}):`, json);
     }
@@ -97,15 +68,12 @@ export const pushNotify = async (title: string, body: string, targetUsers?: stri
 };
 
 /**
- * TEST FUNCTION — Call from browser console to verify push delivery:
- * import { testPushToAdmin } from './lib/notifications';
- * testPushToAdmin('nytzer');
+ * Test push delivery — sends a test notification via broadcast.
  */
 export const testPushToAdmin = async (adminUsername: string) => {
-  console.log(`[OneSignal] 🧪 Testando push para admin: "${adminUsername}"...`);
+  console.log(`[OneSignal] 🧪 Testando push para: "${adminUsername}"...`);
   await pushNotify(
     '🧪 Teste de Notificação',
-    `Se você recebeu esta mensagem no iPhone, as notificações estão funcionando!`,
-    [adminUsername]
+    `Se você recebeu esta mensagem no iPhone, as notificações estão funcionando!`
   );
 };
