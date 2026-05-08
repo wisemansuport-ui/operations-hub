@@ -44,6 +44,27 @@ export interface OperationMeta {
 
 const redes = ['Selecione', 'WE', 'W1', 'VOY', '91', 'DZ', 'A8', 'OKOK', 'ANJO', 'XW', 'EK', 'DY', '777', '888', 'WP', 'BRA', 'GAME', 'ALFA', 'KK', 'MK'];
 
+// Extracts the first name from a username or email
+const getFirstName = (username: string): string => {
+  const namePart = username.includes('@') ? username.split('@')[0] : username;
+  const letters = namePart.match(/^[a-záéíóúàèìòùãẽĩõũâêîôûç]+/i)?.[0] || namePart;
+  return letters.charAt(0).toUpperCase() + letters.slice(1).toLowerCase();
+};
+
+// Motivational phrases selected randomly for new meta notifications
+const motivationalPhrases = [
+  'Vamos em busca do resultado! 💪',
+  'Foco total, vamos nessa! 🎯',
+  'Cada conta é um passo para o sucesso! 🚀',
+  'Meta definida, agora é executar! ⚡',
+  'Determinação é a chave do sucesso! 🔑',
+  'Hora de mostrar resultado! 📈',
+  'Time forte, meta clara! 💥',
+  'Vamos superar os limites! 🏆',
+  'Concentração e execução! Bora! 🔥',
+  'O sucesso está na consistência! 🌟',
+];
+
 // --- SUBCOMPONENT: Meta Dashboard (Inside a Meta) ---
 const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, activeOperator }: { meta: OperationMeta, onBack: () => void, onUpdateMeta: (m: OperationMeta) => void, addNotification: (n: any) => void, users: any[], activeOperator: string }) => {
   const targetAdmins = useMemo(() => {
@@ -105,7 +126,16 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
     setIsFinishing(true);
     setTimeout(() => {
       onUpdateMeta({ ...meta, status: 'fechada' });
-      pushNotify('🏁 Operação Finalizada', `Meta: ${meta.titulo} fechada!`, targetAdmins);
+      const operatorName = getFirstName(activeOperator);
+      const totalContas = (meta.remessas || []).reduce((acc, r) => acc + r.contas, 0);
+      const totalDep = (meta.remessas || []).reduce((acc, r) => acc + r.deposito, 0);
+      const totalSaq = (meta.remessas || []).reduce((acc, r) => acc + r.saque, 0);
+      const resultado = totalSaq - totalDep;
+      pushNotify(
+        '🏁 Meta Finalizada',
+        `O operador ${operatorName} finalizou a meta "${meta.titulo}" na plataforma ${meta.plataforma} com L/P: ${resultado >= 0 ? '+' : ''}R$ ${resultado.toFixed(2)}`,
+        targetAdmins
+      );
       setIsFinishing(false);
     }, 1500);
   };
@@ -144,11 +174,12 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
     
     onUpdateMeta({ ...meta, remessas: [newR, ...remessas] });
 
-    // Notification Hook - Remessa Finished
+    // Notification Hook - Remessa Registered
     const resValue = newR.saque - newR.deposito;
+    const operatorName = getFirstName(activeOperator);
     pushNotify(
       `Remessa Registrada 📊`,
-      `[${meta.titulo}] Resultado ${resValue >= 0 ? '+' : ''}R$ ${resValue.toFixed(2)} - Deposito: R$ ${newR.deposito} / Saque: R$ ${newR.saque}`,
+      `O operador ${operatorName} finalizou uma remessa de ${numTotal} conta${numTotal !== 1 ? 's' : ''} na plataforma ${meta.plataforma} com L/P: ${resValue >= 0 ? '+' : ''}R$ ${resValue.toFixed(2)}`,
       targetAdmins
     );
     addNotification({
@@ -623,9 +654,11 @@ const Tasks = () => {
         .map(u => u.username);
     }
 
+    const creatorName = getFirstName(activeOperator);
+    const phrase = motivationalPhrases[Math.floor(Math.random() * motivationalPhrases.length)];
     pushNotify(
-      'Nova Plataforma Iniciada 🚀', 
-      `O operador iniciou a meta "${titulo}" (${contas} contas) na plataforma ${plataforma} / ${rede}.`,
+      'Nova Meta Iniciada 🚀',
+      `O operador ${creatorName} iniciou uma nova meta com o objetivo de ${contas} depositantes na plataforma ${plataforma} - ${phrase}`,
       targetAdminsForCreate
     );
     addNotification({
