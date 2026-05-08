@@ -45,8 +45,13 @@ export interface OperationMeta {
 
 const redes = ['Selecione', 'WE', 'W1', 'VOY', '91', 'DZ', 'A8', 'OKOK', 'ANJO', 'XW', 'EK', 'DY', '777', '888', 'WP', 'BRA', 'GAME', 'ALFA', 'KK', 'MK'];
 
-// Extracts the first name from a username or email
-const getFirstName = (username: string): string => {
+// Extracts the first name from a username or email, prioritizing displayName
+const getOperatorName = (username: string, users: any[] = []): string => {
+  if (!username) return 'Admin';
+  const user = users.find(u => u.username === username);
+  if (user?.displayName) {
+    return user.displayName;
+  }
   const namePart = username.includes('@') ? username.split('@')[0] : username;
   const letters = namePart.match(/^[a-záéíóúàèìòùãẽĩõũâêîôûç]+/i)?.[0] || namePart;
   return letters.charAt(0).toUpperCase() + letters.slice(1).toLowerCase();
@@ -136,7 +141,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
     setIsFinishing(true);
     setTimeout(() => {
       onUpdateMeta({ ...meta, status: 'fechada' });
-      const operatorName = getFirstName(activeOperator);
+      const operatorName = getOperatorName(activeOperator, users);
       const totalContas = (meta.remessas || []).reduce((acc, r) => acc + r.contas, 0);
       const totalDep = (meta.remessas || []).reduce((acc, r) => acc + r.deposito, 0);
       const totalSaq = (meta.remessas || []).reduce((acc, r) => acc + r.saque, 0);
@@ -186,7 +191,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
 
     // Notification Hook - Remessa Registered
     const resValue = newR.saque - newR.deposito;
-    const operatorName = getFirstName(activeOperator);
+    const operatorName = getOperatorName(activeOperator, users);
     pushNotify(
       `Remessa Registrada 📊`,
       `O operador ${operatorName} finalizou uma remessa de ${numTotal} conta${numTotal !== 1 ? 's' : ''} na plataforma ${meta.plataforma} com L/P: ${resValue >= 0 ? '+' : ''}R$ ${resValue.toFixed(2)}`,
@@ -1002,7 +1007,7 @@ const Tasks = () => {
         .map(u => u.username);
     }
 
-    const creatorName = getFirstName(activeOperator);
+    const creatorName = getOperatorName(activeOperator, users);
     const phrase = motivationalPhrases[Math.floor(Math.random() * motivationalPhrases.length)];
     pushNotify(
       'Nova Meta Iniciada 🚀',
@@ -1286,7 +1291,7 @@ const Tasks = () => {
                       <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest bg-muted/40 text-muted-foreground border border-border/50">{meta.modelo}</span>
                       {role === 'ADMIN' && meta.operador && !meta.isAdminMeta && (
                         <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest bg-primary/10 text-primary border border-primary/30 ml-1">
-                          OP: {meta.operador}
+                          OP: {getOperatorName(meta.operador, users)}
                         </span>
                       )}
                     </div>

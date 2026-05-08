@@ -83,14 +83,17 @@ const Reports = () => {
     });
 
     const opPerf = Object.values(opMap).map(op => {
-      const avatar = op.name.substring(0, 2).toUpperCase();
+      // Prioritize displayName from user settings
+      const userRecord = users.find(u => u.username === op.name);
+      const displayName = userRecord?.displayName || op.name;
+      const avatar = displayName.substring(0, 2).toUpperCase();
       let status = 'Treinamento';
       if (op.semana > 150) status = 'Em Alta';
       else if (op.semana > 50) status = 'Consistente';
       else if (op.semana > 20) status = 'Estável';
       else if (op.semana > 5) status = 'Atenção';
 
-      return { ...op, avatar, status };
+      return { ...op, name: displayName, avatar, status };
     }).sort((a, b) => b.mes - a.mes);
 
     opPerf.forEach((op, i) => op.rank = i + 1);
