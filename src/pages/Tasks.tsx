@@ -296,9 +296,9 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
                 onChange={e => setLinkValue(e.target.value)}
                 onKeyDown={e => {
                   if (e.key === 'Enter') {
-                    onUpdateMeta({ ...meta, link: linkValue.trim() || undefined });
+                    onUpdateMeta({ ...meta, link: linkValue.trim() || null });
                     setIsEditingLink(false);
-                    toast.success('Link atualizado!');
+                    toast.success(linkValue.trim() ? 'Link atualizado!' : 'Link removido!');
                   }
                   if (e.key === 'Escape') {
                     setLinkValue(meta.link || '');
@@ -310,9 +310,9 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
               />
               <button
                 onClick={() => {
-                  onUpdateMeta({ ...meta, link: linkValue.trim() || undefined });
+                  onUpdateMeta({ ...meta, link: linkValue.trim() || null });
                   setIsEditingLink(false);
-                  toast.success('Link atualizado!');
+                  toast.success(linkValue.trim() ? 'Link atualizado!' : 'Link removido!');
                 }}
                 className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-colors"
                 title="Salvar"
@@ -345,6 +345,17 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
                 title="Editar link"
               >
                 <Edit2 className="w-3 h-3" />
+              </button>
+              <button
+                onClick={() => {
+                  onUpdateMeta({ ...meta, link: null });
+                  setLinkValue('');
+                  toast.success('Link removido!');
+                }}
+                className="p-1 rounded-md bg-muted/20 hover:bg-red-500/10 text-muted-foreground hover:text-red-400 border border-border/30 transition-colors opacity-0 group-hover/link:opacity-100"
+                title="Excluir link"
+              >
+                <Trash2 className="w-3 h-3" />
               </button>
             </div>
           ) : (
