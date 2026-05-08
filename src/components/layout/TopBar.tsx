@@ -96,13 +96,24 @@ export const TopBar = () => {
                         return;
                       }
 
-                      if (Notification.permission === "granted") {
-                        toast.success("✅ Alertas já estão ativos neste dispositivo!");
+                      if (Notification.permission === "denied") {
+                        toast.error("❌ Notificações bloqueadas. Vá em Configurações → Safari → Notificações e permita este site.");
                         return;
                       }
 
-                      if (Notification.permission === "denied") {
-                        toast.error("❌ Notificações bloqueadas. Vá em Configurações → Safari → Notificações e permita este site.");
+                      // If permission already granted: re-link external_id to ensure this device is tied to the logged-in account
+                      if (Notification.permission === "granted") {
+                        try {
+                          if (user?.username) {
+                            await OneSignal.login(user.username);
+                            toast.success(`✅ Dispositivo vinculado à conta "${user.username}"! Notificações ativas.`, { duration: 5000 });
+                          } else {
+                            toast.success("✅ Alertas já estão ativos neste dispositivo!");
+                          }
+                        } catch (e) {
+                          console.warn("OneSignal re-link error:", e);
+                          toast.success("✅ Alertas já estão ativos neste dispositivo!");
+                        }
                         return;
                       }
 
@@ -113,6 +124,10 @@ export const TopBar = () => {
                         const granted = await OneSignal.Notifications.requestPermission();
                         toast.dismiss("push-request");
                         if (granted) {
+                          // Link device to this user's account
+                          if (user?.username) {
+                            await OneSignal.login(user.username).catch(e => console.warn("OneSignal login error:", e));
+                          }
                           toast.success("✅ Alertas ativados! Você receberá notificações em tempo real.", { duration: 5000 });
                         } else {
                           toast.warning("Permissão negada. Ative nas configurações do aparelho.");
@@ -124,6 +139,9 @@ export const TopBar = () => {
                           const result = await Notification.requestPermission();
                           toast.dismiss("push-request");
                           if (result === "granted") {
+                            if (user?.username) {
+                              await OneSignal.login(user.username).catch(err => console.warn("OneSignal login error:", err));
+                            }
                             toast.success("✅ Alertas ativados no navegador!");
                           } else {
                             toast.error("Permissão negada. Verifique as configurações do Safari.");
