@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { Users, Link as LinkIcon, Star, TrendingUp, TrendingDown, Copy, CheckCircle2 } from "lucide-react";
+import { Users, Link as LinkIcon, Star, TrendingUp, TrendingDown, Pencil, Trash2, Check, X } from "lucide-react";
 import { toast } from "sonner";
+import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useFirestoreData } from "../hooks/useFirestoreData";
 import { OperationMeta } from "./Tasks";
@@ -26,6 +28,50 @@ const Operators = () => {
   const { metas, users } = useFirestoreData();
   const [user] = useLocalStorage<any>('nytzer-user', null);
   const activeOperator = user?.username || 'admin';
+
+  // Manage state for rename/delete
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [loadingAction, setLoadingAction] = useState(false);
+
+  // List of operators affiliated to the current admin
+  const affiliatedUsers = useMemo(
+    () => users.filter(u => u.affiliatedTo === activeOperator),
+    [users, activeOperator]
+  );
+
+  const handleStartEdit = (u: any) => {
+    setEditingId(u.id);
+    setEditingName(u.displayName || u.username);
+  };
+
+  const handleSaveName = async (u: any) => {
+    if (!editingName.trim()) return;
+    setLoadingAction(true);
+    try {
+      await updateDoc(doc(db, 'users', u.id), { displayName: editingName.trim() });
+      toast.success(`Nome de "${u.username}" atualizado para "${editingName.trim()}"`);
+      setEditingId(null);
+    } catch (e) {
+      toast.error('Erro ao salvar nome. Tente novamente.');
+    } finally {
+      setLoadingAction(false);
+    }
+  };
+
+  const handleDeleteOperator = async (u: any) => {
+    setLoadingAction(true);
+    try {
+      await deleteDoc(doc(db, 'users', u.id));
+      toast.success(`Operador "${u.displayName || u.username}" removido com sucesso.`);
+      setDeletingId(null);
+    } catch (e) {
+      toast.error('Erro ao excluir operador. Tente novamente.');
+    } finally {
+      setLoadingAction(false);
+    }
+  };
 
   const { operatorData, folhaTotal, totalMetas, totalContas, totalLucroEquipe } = useMemo(() => {
      const opMap: Record<string, any> = {};
@@ -84,14 +130,17 @@ const Operators = () => {
      });
 
      const ranked = Object.values(opMap).map(op => {
-        const initials = op.name.substring(0,2).toUpperCase();
+        // Use displayName if available (admin can rename)
+        const userRecord = users.find((u: any) => u.username === op.id);
+        const displayName = userRecord?.displayName || op.name;
+        const initials = displayName.substring(0,2).toUpperCase();
         const profitPerConta = op.deps > 0 ? (op.totalProfit / op.deps) : 0;
         let badge = 'Em progressão';
         let badgeColor = 'text-emerald-500/70 border-emerald-500/30';
         if (profitPerConta > 2 && op.totalProfit > 100) { badge = 'Top performer'; badgeColor = 'text-primary border-primary'; }
         else if (op.totalProfit < 0) { badge = 'Prejuízo'; badgeColor = 'text-red-500 border-red-500/50'; }
 
-        return { ...op, initials, profitPerConta, badge, badgeColor };
+        return { ...op, name: displayName, initials, profitPerConta, badge, badgeColor };
      }).sort((a,b) => b.totalProfit - a.totalProfit) as OperatorData[];
 
      ranked.forEach((op, i) => op.rank = i + 1);
@@ -319,15 +368,124 @@ const Operators = () => {
         </div>
       )}
 
-      {activeTab !== 'Ranking' && activeTab !== 'Folha de pagamento' && (
+      {activeTab === 'Equipe' && (
         <div className="glass-card p-16 mt-8 text-center rounded-2xl border-border/40 flex flex-col items-center justify-center animate-fade-in">
           <div className="w-16 h-16 rounded-full bg-muted/30 border border-border/50 flex items-center justify-center mb-4">
             <Star className="w-6 h-6 text-muted-foreground opacity-50" />
           </div>
           <h3 className="text-lg font-bold text-foreground">Aba em Desenvolvimento</h3>
           <p className="text-sm text-muted-foreground mt-2 max-w-sm">
-            Os dados para <strong>{activeTab}</strong> serão populados automaticamente após o encerramento do primeiro ciclo mensal de faturamento.
+            Os dados para <strong>{activeTab}</strong> serão populados automaticamente em breve.
           </p>
+        </div>
+      )}
+
+      {activeTab === 'Configurações' && (
+        <div className="animate-fade-in space-y-4">
+          <div className="glass-card p-5 rounded-xl border-border/40">
+            <h3 className="text-sm font-bold text-foreground mb-1">Gerenciar Operadores</h3>
+            <p className="text-xs text-muted-foreground mb-5">Renomeie ou remova operadores da sua equipe.</p>
+
+            <div className="space-y-3">
+              {affiliatedUsers.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-8">Nenhum operador vinculado ainda.</p>
+              )}
+
+              {affiliatedUsers.map(u => {
+                const displayName = u.displayName || u.username;
+                const initials = displayName.substring(0,2).toUpperCase();
+                const isEditing = editingId === u.id;
+                const isConfirmDelete = deletingId === u.id;
+
+                return (
+                  <div key={u.id} className="flex items-center gap-3 bg-muted/10 border border-border/40 rounded-xl px-4 py-3 hover:bg-muted/20 transition-colors">
+                    {/* Avatar */}
+                    <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center font-bold text-primary shrink-0">
+                      {initials}
+                    </div>
+
+                    {/* Name / Edit input */}
+                    <div className="flex-1 min-w-0">
+                      {isEditing ? (
+                        <input
+                          autoFocus
+                          value={editingName}
+                          onChange={e => setEditingName(e.target.value)}
+                          onKeyDown={e => { if (e.key === 'Enter') handleSaveName(u); if (e.key === 'Escape') setEditingId(null); }}
+                          className="w-full bg-background border border-primary/40 rounded-lg px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-primary"
+                          placeholder="Novo nome..."
+                        />
+                      ) : (
+                        <div>
+                          <p className="font-bold text-foreground text-sm truncate">{displayName}</p>
+                          <p className="text-[10px] text-muted-foreground truncate">{u.username}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      {isEditing ? (
+                        <>
+                          <button
+                            onClick={() => handleSaveName(u)}
+                            disabled={loadingAction}
+                            className="p-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-colors"
+                            title="Salvar"
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setEditingId(null)}
+                            className="p-2 rounded-lg bg-muted/20 hover:bg-muted/40 text-muted-foreground border border-border/40 transition-colors"
+                            title="Cancelar"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </>
+                      ) : isConfirmDelete ? (
+                        <>
+                          <span className="text-xs text-red-400 font-semibold mr-1">Confirmar?</span>
+                          <button
+                            onClick={() => handleDeleteOperator(u)}
+                            disabled={loadingAction}
+                            className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 transition-colors"
+                            title="Confirmar exclusão"
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setDeletingId(null)}
+                            className="p-2 rounded-lg bg-muted/20 hover:bg-muted/40 text-muted-foreground border border-border/40 transition-colors"
+                            title="Cancelar"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => handleStartEdit(u)}
+                            className="p-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 transition-colors"
+                            title="Renomear operador"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setDeletingId(u.id)}
+                            className="p-2 rounded-lg bg-red-500/5 hover:bg-red-500/15 text-red-400 border border-red-500/20 transition-colors"
+                            title="Excluir operador"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       )}
     </div>
