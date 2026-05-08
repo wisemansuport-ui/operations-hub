@@ -57,6 +57,23 @@ const getOperatorName = (username: string, users: any[] = []): string => {
   return letters.charAt(0).toUpperCase() + letters.slice(1).toLowerCase();
 };
 
+// Parses Brazilian formatted numbers (e.g., 4.633 -> 4633, 10,50 -> 10.5)
+const parseBrlNumber = (val: string | number | null | undefined): number | null => {
+  if (val === null || val === undefined || val === '') return null;
+  let str = String(val).trim();
+  if (str.includes('.') && str.includes(',')) {
+    str = str.replace(/\./g, '').replace(',', '.');
+  } else if (str.includes(',')) {
+    str = str.replace(',', '.');
+  } else if (str.includes('.')) {
+    if ((str.match(/\./g) || []).length > 1 || /\.\d{3}$/.test(str)) {
+      str = str.replace(/\./g, '');
+    }
+  }
+  const parsed = Number(str);
+  return isNaN(parsed) ? null : parsed;
+};
+
 // Motivational phrases selected randomly for new meta notifications
 const motivationalPhrases = [
   'Vamos em busca do resultado! 💪',
@@ -184,7 +201,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
       status: rStatus,
       notas: rNotas,
       data: new Date().toISOString(),
-      apv: rApv ? Number(rApv) : null
+      apv: parseBrlNumber(rApv)
     };
     
     onUpdateMeta({ ...meta, remessas: [newR, ...remessas] });
@@ -244,7 +261,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
     const updatedRemessas = remessas.map(r => {
       if (r.id === editingRemessaId) {
         return {
-          ...r, titulo: eTitulo, tipo: eTipo, saldoIni: Number(eSaldoIni || 0), contas: numTotal, contasNormais: numNormais, contasBaixas: numBaixas, deposito: Number(eDeposito), saque: Number(eSaque), status: eStatus, notas: eNotas, apv: eApv ? Number(eApv) : null,
+          ...r, titulo: eTitulo, tipo: eTipo, saldoIni: Number(eSaldoIni || 0), contas: numTotal, contasNormais: numNormais, contasBaixas: numBaixas, deposito: Number(eDeposito), saque: Number(eSaque), status: eStatus, notas: eNotas, apv: parseBrlNumber(eApv),
         };
       }
       return r;
@@ -274,7 +291,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
                setEditRede(meta.rede);
                setEditTitulo(meta.titulo);
                setEditContas(meta.contas);
-               setEditTotalApv(meta.totalApv || '');
+               setEditTotalApv(meta.totalApv ? String(meta.totalApv) : '');
                setEditModelo(meta.modelo);
                setIsEditingMeta(true);
              }}
@@ -400,8 +417,6 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
         const ultRatio = ultimaR ? (ultimaR.saque - ultimaR.deposito) / (ultimaR.contas || 1) : 0;
         const penultRatio = penultimaR ? (penultimaR.saque - penultimaR.deposito) / (penultimaR.contas || 1) : 0;
         
-        // Tendencia: positiva significa MELHORA (ex: de -15 para -10 -> +5 de melhora)
-        // Negativa significa PIORA (ex: de -10 para -15 -> -5 de piora)
         const tendencia = remessas.length >= 2 ? ultRatio - penultRatio : 0;
 
         const frases = {
@@ -464,9 +479,9 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
         
         let contexto = '';
         if (remessas.length >= 2) {
-          if (tendencia > 1) { // Melhora significativa (>R$1/conta)
+          if (tendencia > 1) { 
             contexto = pick(frasesContexto.melhorando);
-          } else if (tendencia < -1) { // Piora significativa (<-R$1/conta)
+          } else if (tendencia < -1) { 
             contexto = pick(frasesContexto.piorando);
           }
         }
@@ -618,7 +633,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
               </div>
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase" title="Apostas Válidas">AP.V</label>
-                <input type="number" value={rApv} onChange={e=>setRApv(e.target.value)} placeholder="0" className="w-full bg-background/50 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner text-foreground" />
+                <input type="text" inputMode="decimal" value={rApv} onChange={e=>setRApv(e.target.value)} placeholder="0" className="w-full bg-background/50 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner text-foreground" />
               </div>
             </div>
             {!meta.isAdminMeta ? (
@@ -760,7 +775,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">AP.V</label>
-                    <input type="number" value={eApv} onChange={e=>setEApv(e.target.value)} className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none" />
+                    <input type="text" inputMode="decimal" value={eApv} onChange={e=>setEApv(e.target.value)} className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none" />
                   </div>
                 </div>
               </div>
@@ -844,7 +859,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
                   rede: editRede,
                   titulo: editTitulo,
                   contas: Number(editContas),
-                  totalApv: editTotalApv ? Number(editTotalApv) : undefined,
+                  totalApv: parseBrlNumber(editTotalApv),
                   modelo: editModelo,
                 });
                 setIsEditingMeta(false);
@@ -876,7 +891,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Total AP.V</label>
-                    <input type="number" value={editTotalApv} onChange={e => setEditTotalApv(e.target.value ? Number(e.target.value) : '')} placeholder="Ex. 20.000" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" min="0" />
+                    <input type="text" inputMode="decimal" value={editTotalApv} onChange={e => setEditTotalApv(e.target.value)} placeholder="Ex. 20.000" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" />
                   </div>
                 </div>
 
@@ -979,7 +994,7 @@ const Tasks = () => {
     if (!plataforma || rede === 'Selecione' || !titulo || !contas || !activeOperator) return;
     const newMeta = {
       plataforma, rede, titulo, contas: Number(contas), modelo, operador: activeOperator,
-      totalApv: totalApv ? Number(totalApv) : null,
+      totalApv: parseBrlNumber(totalApv),
       createdAt: new Date().toISOString(),
       status: 'ativa',
       remessas: [],
@@ -1440,7 +1455,7 @@ const Tasks = () => {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Total AP.V</label>
-                    <input type="number" value={totalApv} onChange={e => setTotalApv(e.target.value ? Number(e.target.value) : '')} placeholder="Ex. 20.000" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" min="0" />
+                    <input type="text" inputMode="decimal" value={totalApv} onChange={e => setTotalApv(e.target.value)} placeholder="Ex. 20.000" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" />
                   </div>
                 </div>
 
