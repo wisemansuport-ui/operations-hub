@@ -1,18 +1,13 @@
-/**
- * Vercel Serverless Function — /api/notify
- *
- * Sends push notifications via OneSignal REST API server-side.
- * This eliminates CORS errors from operator devices and keeps
- * the API key secure in Vercel environment variables.
- *
- * Called by the frontend at POST /api/notify
- */
+export const config = {
+  api: {
+    bodyParser: true,
+  },
+};
 
 const ONESIGNAL_APP_ID = process.env.ONESIGNAL_APP_ID || "25bd7404-9856-4021-bbb4-3260a00197f4";
 const ONESIGNAL_REST_API_KEY = process.env.ONESIGNAL_REST_API_KEY;
 
-module.exports = async function handler(req, res) {
-  // CORS headers
+export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -26,7 +21,7 @@ module.exports = async function handler(req, res) {
   }
 
   if (!ONESIGNAL_REST_API_KEY) {
-    console.error("[notify] ❌ ONESIGNAL_REST_API_KEY env var not set!");
+    console.error("[notify] ONESIGNAL_REST_API_KEY env var is not set!");
     return res.status(500).json({ error: "Server misconfigured: missing API key" });
   }
 
@@ -48,7 +43,7 @@ module.exports = async function handler(req, res) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Basic ${ONESIGNAL_REST_API_KEY}`,
+        Authorization: `Basic ${ONESIGNAL_REST_API_KEY}`,
       },
       body: JSON.stringify(payload),
     });
@@ -56,14 +51,14 @@ module.exports = async function handler(req, res) {
     const json = await onesignalRes.json();
 
     if (onesignalRes.ok) {
-      console.log(`[notify] ✅ Push sent | ID: ${json.id} | Recipients: ${json.recipients} | Op: ${operator || 'unknown'} | Title: "${title}"`);
+      console.log(`[notify] Push sent | ID: ${json.id} | Rec: ${json.recipients} | Op: ${operator}`);
       return res.status(200).json({ success: true, id: json.id, recipients: json.recipients });
     } else {
-      console.error(`[notify] ❌ OneSignal error (${onesignalRes.status}):`, JSON.stringify(json));
-      return res.status(502).json({ error: "OneSignal rejected request", details: json });
+      console.error(`[notify] OneSignal error (${onesignalRes.status}):`, json);
+      return res.status(502).json({ error: "OneSignal error", details: json });
     }
   } catch (err) {
-    console.error("[notify] ❌ Network error reaching OneSignal:", err.message);
-    return res.status(500).json({ error: "Network error", message: err.message });
+    console.error("[notify] Network error:", err.message);
+    return res.status(500).json({ error: err.message });
   }
-};
+}
