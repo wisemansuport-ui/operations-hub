@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Target, Plus, X, Search, ArrowUpRight, ArrowLeft, AlertTriangle, CheckSquare, Trash2, RotateCcw, BarChart2, Edit2, ExternalLink, Link as LinkIcon } from 'lucide-react';
+import { Target, Plus, X, Search, ArrowUpRight, ArrowLeft, AlertTriangle, CheckSquare, Trash2, RotateCcw, BarChart2, Edit2, ExternalLink, Link as LinkIcon, TrendingUp, CheckCircle2, AlertCircle, Wrench, ArrowDownRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useFirestoreData } from '../hooks/useFirestoreData';
@@ -383,58 +383,57 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
 
       {/* BANNER INTELIGENTE DE PERFORMANCE */}
       {remessas.length > 0 && (() => {
-        const custoPor10 = totalCompletedContas > 0 ? (resultadoLiquido / totalCompletedContas) * 10 : 0;
+        const custoPorConta = totalCompletedContas > 0 ? resultadoLiquido / totalCompletedContas : 0;
+        const custoPor10 = custoPorConta * 10;
         const receitaEstimada = totalCompletedContas * 20;
         const lucroReal = receitaEstimada + resultadoLiquido;
+
         const ultimaR = remessas[remessas.length - 1];
+        const penultimaR = remessas[remessas.length - 2];
         const ultResult = ultimaR.saque - ultimaR.deposito;
-        const tendencia = remessas.length >= 2 
-          ? (remessas[remessas.length - 1].saque - remessas[remessas.length - 1].deposito) - (remessas[remessas.length - 2].saque - remessas[remessas.length - 2].deposito)
-          : 0;
+        
+        const ultRatio = ultimaR ? (ultimaR.saque - ultimaR.deposito) / (ultimaR.contas || 1) : 0;
+        const penultRatio = penultimaR ? (penultimaR.saque - penultimaR.deposito) / (penultimaR.contas || 1) : 0;
+        
+        // Tendencia: positiva significa MELHORA (ex: de -15 para -10 -> +5 de melhora)
+        // Negativa significa PIORA (ex: de -10 para -15 -> -5 de piora)
+        const tendencia = remessas.length >= 2 ? ultRatio - penultRatio : 0;
 
         const frases = {
           excelente: [
-            `Resultado positivo! Com ${totalCompletedContas} contas, a operação está gerando lucro direto. Continue nesse padrão! 💪`,
-            `Meta no verde — ${remessasPositivas} de ${remessas.length} remessas positivas. Você está mandando bem!`,
-            `Excelente ritmo! A receita cobre tudo e ainda sobra. Mantenha a qualidade! 🔥`,
-            `Operação saudável com ${acertoPct}% de acerto. Cada conta conta, e você está provando isso.`,
-            `Consistência é a chave e você está entregando. Resultado líquido positivo — parabéns! ✨`,
-            `Performance acima da média. A disciplina nas entregas está refletindo nos números.`,
+            `Lucro consolidado! A receita já cobre as perdas e gera resultado positivo. Continue assim!`,
+            `Meta no verde! Você atingiu o ponto de equilíbrio e agora é só multiplicar o lucro.`,
+            `Performance excepcional! Consistência nas entregas reflete diretamente no seu resultado.`,
+            `Operação saudável e superando expectativas. Mantenha essa energia para fechar com chave de ouro!`,
           ],
           bom: [
-            `Tudo dentro do esperado! O custo de R$ ${Math.abs(custoPor10).toFixed(0)} a cada 10 contas é coberto pela receita. Continue firme! 👊`,
-            `Operação saudável — a receita estimada de R$ ${receitaEstimada.toFixed(0)} cobre o resultado e gera lucro de R$ ${lucroReal.toFixed(0)}. Bom trabalho!`,
-            `Ritmo consistente com ${totalCompletedContas} contas processadas. O resultado está dentro da margem ideal. Siga assim! 💪`,
-            `Prejuízo faz parte da operação — e o seu está controlado. A receita por conta cobre tranquilamente. Continue com foco!`,
-            `${remessasPositivas} remessa(s) no verde de ${remessas.length}. Você está construindo um bom resultado no fechamento.`,
-            `Margem operacional saudável. Cada remessa bem feita te aproxima de um fechamento lucrativo. Bora! 🚀`,
+            `Tudo sob controle! A receita cobre a margem de perda tranquilamente. Continue com esse foco!`,
+            `Desempenho sustentável! As perdas fazem parte, e você está administrando com maestria.`,
+            `Você está no caminho certo! Resultado sólido e de acordo com o plano operacional.`,
+            `O custo por conta está ideal para o nosso modelo. Cada remessa bem feita te leva mais longe!`,
           ],
           atencao: [
-            `O custo está em R$ ${Math.abs(custoPor10).toFixed(0)} a cada 10 contas — um pouco acima do ideal. Mas calma, isso é ajustável! Foque na qualidade das próximas. 💡`,
-            `A receita de R$ ${receitaEstimada.toFixed(0)} ainda ${lucroReal >= 0 ? 'cobre o resultado' : 'está próxima de cobrir'}. Ajuste fino nas contas e o verde vem! 🎯`,
-            `Resultado acumulado de ${formatBRL(resultadoLiquido)} em ${totalCompletedContas} contas. Margem apertada, mas nada que boas remessas não resolvam!`,
-            `O prejuízo por conta está um pouco elevado. Revise os depósitos e foque em entregas mais limpas — você consegue! 💪`,
-            `Acerto em ${acertoPct}% — há espaço pra melhorar. Pequenos ajustes na estratégia fazem grande diferença no fechamento.`,
-            `A operação tem potencial! O custo está acima do ideal mas com foco e disciplina a virada acontece. Confia no processo! 🔄`,
+            `Estamos perto da margem limite, mas perfeitamente reversível! Foque nos requisitos da próxima remessa.`,
+            `O custo aumentou um pouco, nada que você não tire de letra. Ajuste a estratégia e bora pra cima!`,
+            `Atenção aos detalhes agora faz a diferença. Uma boa entrega na próxima vira o jogo!`,
+            `Pequenos ajustes na qualidade das contas farão seu resultado dar um salto. Confio no seu potencial!`,
           ],
           melhoria: [
-            `O custo por conta está alto (R$ ${Math.abs(custoPor10).toFixed(0)}/10 contas). Vale revisar a estratégia de depósito — pequenos ajustes podem fazer toda a diferença! 🔧`,
-            `Resultado de ${formatBRL(resultadoLiquido)} em ${totalCompletedContas} contas. Hora de respirar, analisar os requisitos e voltar mais forte nas próximas.`,
-            `A operação precisa de ajustes, mas isso faz parte do crescimento. Revise as últimas remessas e identifique o padrão. Você evolui a cada meta! 📊`,
-            `O custo operacional está acima do retorno por conta. Considere ajustar o método — a experiência que você ganhou aqui vale ouro para as próximas. 💎`,
-            `Momento de recalibrar. Analise os requisitos da plataforma e a qualidade dos depósitos. Uma boa estratégia muda tudo! 🎯`,
-            `Todo operador passa por momentos assim. O importante é aprender com os dados e ajustar. A próxima meta pode ser completamente diferente! 🌟`,
+            `A margem reduziu, mas você tem o controle! Hora de respirar, recalibrar a estratégia e virar o jogo.`,
+            `Momento de revisão: vamos identificar o que falhou nas últimas para fazer uma próxima entrega brilhante.`,
+            `O prejuízo subiu, mas a experiência fica. Use o aprendizado dessa remessa para dominar a próxima!`,
+            `Todo grande operador sabe quando ajustar a rota. Reveja os depósitos e volte com força total!`,
           ],
         };
 
         const frasesContexto = {
           melhorando: [
-            `A última remessa veio melhor que a anterior${tendencia > 0 ? ' — sinal de evolução!' : '.'} Continue nessa linha! 📈`,
-            `Boa! A última entrega mostrou melhora. O ajuste está funcionando, mantém o foco!`,
+            `Boa! A última remessa teve um desempenho melhor que a anterior. Siga essa tendência!`,
+            `Ajuste feito com sucesso! A qualidade da última entrega subiu.`,
           ],
-          ultimaVerde: [
-            `A última remessa fechou positiva! Excelente sinal de recuperação. Mantenha esse padrão! ✅`,
-            `Remessa anterior no verde — prova de que você sabe entregar quando ajusta a operação. Vamos! 💚`,
+          piorando: [
+            `A última remessa custou mais caro que a anterior. Dê uma pausa e revise os requisitos com calma.`,
+            `Notamos uma queda na margem da última entrega. Não perca o foco, recupere na próxima!`,
           ],
         };
 
@@ -444,49 +443,58 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
         let tipo: 'excelente' | 'bom' | 'atencao' | 'melhoria';
         let titulo: string;
         let badge: string;
-        let emoji: string;
+        let Icon: any;
 
         if (resultadoLiquido >= 0) {
-          tipo = 'excelente'; titulo = 'Operação Lucrativa'; badge = 'Lucro'; emoji = '📈';
+          tipo = 'excelente'; titulo = 'Operação Lucrativa'; badge = 'Lucro Certo'; Icon = TrendingUp;
         } else if (custoPor10 >= -100) {
-          tipo = 'bom'; titulo = 'Dentro da Margem'; badge = 'Saudável'; emoji = '✅';
+          tipo = 'bom'; titulo = 'Saúde Operacional Normal'; badge = 'Controlado'; Icon = CheckCircle2;
         } else if (custoPor10 >= -180) {
-          tipo = 'atencao'; titulo = 'Ajuste Recomendado'; badge = 'Ajustar'; emoji = '💡';
+          tipo = 'atencao'; titulo = 'Ponto de Atenção'; badge = 'Ajustar Rota'; Icon = AlertCircle;
         } else {
-          tipo = 'melhoria'; titulo = 'Oportunidade de Melhoria'; badge = 'Revisar'; emoji = '🔧';
+          tipo = 'melhoria'; titulo = 'Revisão Estratégica'; badge = 'Pausar & Avaliar'; Icon = Wrench;
         }
 
         let frase = pick(frases[tipo]);
         
         let contexto = '';
-        if (remessas.length >= 2 && resultadoLiquido < 0 && ultResult > 0) {
-          contexto = pick(frasesContexto.ultimaVerde);
-        } else if (remessas.length >= 2 && tendencia > 0 && resultadoLiquido < 0) {
-          contexto = pick(frasesContexto.melhorando);
+        if (remessas.length >= 2) {
+          if (tendencia > 1) { // Melhora significativa (>R$1/conta)
+            contexto = pick(frasesContexto.melhorando);
+          } else if (tendencia < -1) { // Piora significativa (<-R$1/conta)
+            contexto = pick(frasesContexto.piorando);
+          }
         }
 
-        const subtitulo = `Líquido: ${formatBRL(resultadoLiquido)} · ${totalCompletedContas} contas · ${remessas.length} remessas · ${acertoPct}% acerto`;
+        const subtitulo = `Resultado Líquido: ${formatBRL(resultadoLiquido)} · ${totalCompletedContas} contas processadas`;
 
-        const cores: Record<string, { bg: string; border: string; text: string; badgeBg: string; badgeBorder: string }> = {
-          excelente: { bg: 'bg-emerald-950/40', border: 'border-emerald-900/50', text: 'text-emerald-400', badgeBg: 'bg-emerald-950', badgeBorder: 'border-emerald-900' },
-          bom: { bg: 'bg-sky-950/40', border: 'border-sky-900/50', text: 'text-sky-400', badgeBg: 'bg-sky-950', badgeBorder: 'border-sky-900' },
-          atencao: { bg: 'bg-amber-950/30', border: 'border-amber-900/40', text: 'text-amber-400', badgeBg: 'bg-amber-950', badgeBorder: 'border-amber-900' },
-          melhoria: { bg: 'bg-orange-950/30', border: 'border-orange-900/40', text: 'text-orange-400', badgeBg: 'bg-orange-950', badgeBorder: 'border-orange-900' },
+        const cores: Record<string, { bg: string; border: string; text: string; badgeBg: string; badgeBorder: string; iconBg: string; iconColor: string }> = {
+          excelente: { bg: 'bg-emerald-950/20', border: 'border-emerald-900/40', text: 'text-emerald-300', badgeBg: 'bg-emerald-950', badgeBorder: 'border-emerald-800', iconBg: 'bg-emerald-900/50', iconColor: 'text-emerald-400' },
+          bom: { bg: 'bg-indigo-950/20', border: 'border-indigo-900/40', text: 'text-indigo-300', badgeBg: 'bg-indigo-950', badgeBorder: 'border-indigo-800', iconBg: 'bg-indigo-900/50', iconColor: 'text-indigo-400' },
+          atencao: { bg: 'bg-amber-950/20', border: 'border-amber-900/40', text: 'text-amber-300', badgeBg: 'bg-amber-950', badgeBorder: 'border-amber-800', iconBg: 'bg-amber-900/50', iconColor: 'text-amber-400' },
+          melhoria: { bg: 'bg-rose-950/20', border: 'border-rose-900/40', text: 'text-rose-300', badgeBg: 'bg-rose-950', badgeBorder: 'border-rose-800', iconBg: 'bg-rose-900/50', iconColor: 'text-rose-400' },
         };
         const c = cores[tipo];
 
         return (
-          <div className={`${c.bg} border ${c.border} rounded-xl p-4 flex items-start gap-4 animate-fade-in`}>
-            <div className={`w-10 h-10 rounded-xl ${c.bg} border ${c.border} flex items-center justify-center shrink-0`}>
-              <span className="text-lg">{emoji}</span>
+          <div className={`${c.bg} border ${c.border} rounded-xl p-5 flex items-start gap-4 animate-fade-in shadow-sm`}>
+            <div className={`w-12 h-12 rounded-full ${c.iconBg} border ${c.badgeBorder} flex items-center justify-center shrink-0 shadow-inner`}>
+              <Icon className={`w-6 h-6 ${c.iconColor}`} />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className={`text-sm font-bold ${c.text}`}>{titulo}</h3>
-              <p className={`text-xs ${c.text}/80 mt-1 leading-relaxed`}>{frase}</p>
-              {contexto && <p className={`text-xs ${c.text}/60 mt-1 italic`}>{contexto}</p>}
-              <p className={`text-[10px] ${c.text}/40 mt-2 font-mono`}>{subtitulo}</p>
+              <h3 className={`text-sm font-black ${c.iconColor} tracking-wide uppercase`}>{titulo}</h3>
+              <p className={`text-[13px] ${c.text} opacity-90 mt-1.5 leading-relaxed font-medium`}>{frase}</p>
+              {contexto && (
+                <div className={`mt-2 flex items-center gap-1.5 text-xs ${c.iconColor} opacity-80 font-medium`}>
+                  {tendencia > 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
+                  <span>{contexto}</span>
+                </div>
+              )}
+              <div className="mt-3 flex items-center gap-2">
+                <div className={`px-2 py-0.5 ${c.badgeBg} border ${c.badgeBorder} ${c.iconColor} text-[9px] font-bold uppercase tracking-wider rounded`}>{badge}</div>
+                <span className={`text-[10px] ${c.text} opacity-50 font-mono tracking-tight`}>{subtitulo}</span>
+              </div>
             </div>
-            <div className={`px-3 py-1.5 ${c.badgeBg} border ${c.badgeBorder} ${c.text} text-[10px] font-bold uppercase tracking-widest rounded shrink-0`}>{badge}</div>
           </div>
         );
       })()}
