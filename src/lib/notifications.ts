@@ -10,13 +10,10 @@ export const requestNotificationPermission = async () => {
   return false;
 };
 
-const ONESIGNAL_APP_ID = "25bd7404-9856-4021-bbb4-3260a00197f4";
-const ONESIGNAL_REST_API_KEY = "os_v2_app_ew6xibeykzacdo5ugjqkaamx6sbpbenbmkyeq35ogx2pid2llyp6brihirc4btwpymribjnwteyszwwaggqu7eknn3hu5ujp7kfnr5a";
-
 /**
- * Registers this device in OneSignal:
- * - Sets external_id via OneSignal.login(username)
- * - Sets tags: { username, role }
+ * Registers this device in OneSignal with username and role tags.
+ * Called on login, registration and app open to ensure the device
+ * is always properly identified.
  */
 export const registerDeviceTag = async (username: string, role: string) => {
   try {
@@ -29,51 +26,53 @@ export const registerDeviceTag = async (username: string, role: string) => {
 };
 
 /**
- * Sends push notification via OneSignal REST API.
- * 
- * ALWAYS broadcasts to ALL subscribers (Total Subscriptions).
- * The targetUsers parameter is kept for API compatibility but is logged-only.
- * This ensures reliable delivery on iOS PWA where tag/external_id binding is unreliable.
+ * Sends a push notification via the /api/notify Vercel serverless function.
+ *
+ * This avoids CORS issues (the API key lives server-side) and ensures
+ * the notification fires correctly from ANY device — operator phone,
+ * desktop, tablet — regardless of browser restrictions.
+ *
+ * The notification is always broadcast to "Total Subscriptions" so
+ * every subscriber (including the admin iPhone PWA) receives it.
  */
-export const pushNotify = async (title: string, body: string, targetUsers?: string[]) => {
+export const pushNotify = async (
+  title: string,
+  body: string,
+  operator?: string | string[]
+) => {
+  const operatorLabel = Array.isArray(operator)
+    ? operator.join(', ')
+    : (operator || 'desconhecido');
+
+  console.log(`[Push] 📤 Enviando: "${title}" | Operador: ${operatorLabel}`);
+
   try {
-    const payload = {
-      app_id: ONESIGNAL_APP_ID,
-      included_segments: ["Total Subscriptions"],
-      headings: { en: title, pt: title },
-      contents: { en: body, pt: body },
-    };
-
-    console.log(`[OneSignal] 📤 Enviando push broadcast: "${title}"${targetUsers?.length ? ` (contexto: ${targetUsers.join(', ')})` : ''}`);
-
-    const res = await fetch("https://onesignal.com/api/v1/notifications", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Basic ${ONESIGNAL_REST_API_KEY}`,
-      },
-      body: JSON.stringify(payload),
+    const res = await fetch('/api/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, body, operator: operatorLabel }),
     });
 
     const json = await res.json();
 
     if (res.ok) {
-      console.log(`[OneSignal] ✅ Push enviado! ID: ${json.id} | Destinatários: ${json.recipients}`);
+      console.log(`[Push] ✅ Enviado! ID: ${json.id} | Destinatários: ${json.recipients}`);
     } else {
-      console.error(`[OneSignal] ❌ Erro da API (${res.status}):`, json);
+      console.error(`[Push] ❌ Erro da API (${res.status}):`, json);
     }
   } catch (error) {
-    console.error("[OneSignal] ❌ Falha no Push:", error);
+    console.error("[Push] ❌ Falha ao chamar /api/notify:", error);
   }
 };
 
 /**
- * Test push delivery — sends a test notification via broadcast.
+ * Test push — sends a test notification broadcast to verify the pipeline.
  */
 export const testPushToAdmin = async (adminUsername: string) => {
-  console.log(`[OneSignal] 🧪 Testando push para: "${adminUsername}"...`);
+  console.log(`[Push] 🧪 Enviando push de teste para: "${adminUsername}"...`);
   await pushNotify(
     '🧪 Teste de Notificação',
-    `Se você recebeu esta mensagem no iPhone, as notificações estão funcionando!`
+    `Se você recebeu esta mensagem no iPhone, as notificações estão funcionando! ✅`,
+    adminUsername
   );
 };
