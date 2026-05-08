@@ -41,19 +41,28 @@ const App = () => {
       allowLocalhostAsSecureOrigin: true,
       notifyButton: { enable: false },
     }).then(() => {
+      // Tag device immediately after init if user is logged in
       if (user?.username) {
-        // Register device with username + role tags for reliable push targeting
         registerDeviceTag(user.username, user.role || 'OPERADOR');
       }
+
+      // Also listen for when the user grants permission (subscription created/changed)
+      // This ensures tagging happens even if permission was granted before login
+      OneSignal.User.PushSubscription.addEventListener('change', (event: any) => {
+        if (event?.current?.isSubscribed && user?.username) {
+          console.log('[OneSignal] Subscription changed — re-tagging device...');
+          registerDeviceTag(user.username, user.role || 'OPERADOR');
+        }
+      });
     }).catch(e => console.error("OneSignal init error:", e));
   }, []);
 
   useEffect(() => {
     if (user?.username) {
-      // Re-register tags whenever the logged-in user changes
+      // Re-register tags on login or account change (with delay to ensure init is done)
       setTimeout(() => {
         registerDeviceTag(user.username, user.role || 'OPERADOR');
-      }, 1500);
+      }, 2000);
     } else {
       OneSignal.logout().catch(e => console.warn("OneSignal logout error:", e));
     }
