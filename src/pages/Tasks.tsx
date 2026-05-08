@@ -48,12 +48,16 @@ const redes = ['Selecione', 'WE', 'W1', 'VOY', '91', 'DZ', 'A8', 'OKOK', 'ANJO',
 const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, activeOperator }: { meta: OperationMeta, onBack: () => void, onUpdateMeta: (m: OperationMeta) => void, addNotification: (n: any) => void, users: any[], activeOperator: string }) => {
   const targetAdmins = useMemo(() => {
     const me = users.find(u => u.username === activeOperator);
-    // If operator has affiliatedTo set, send to that specific admin
+    // If operator has affiliatedTo, notify that specific admin
     if (me?.affiliatedTo) return [me.affiliatedTo];
-    // Fallback: if the operator is not the master admin themselves, notify wiseman
-    if (activeOperator !== 'wiseman') return ['wiseman'];
-    // If it's the admin themselves acting, send to all subscribers
-    return [];
+    // If this is an ADMIN acting (role='ADMIN'), notify all other ADMINs (or send to all subscriptions)
+    // If it's an OPERADOR without affiliatedTo (shouldn't happen but fallback), notify all ADMINs
+    if (me?.role === 'ADMIN') return []; // admin acting on own metas → broadcast to all
+    // OPERADOR without affiliatedTo: notify all ADMIN accounts
+    const allAdmins = users
+      .filter(u => u.role === 'ADMIN' && !u.affiliatedTo)
+      .map(u => u.username);
+    return allAdmins;
   }, [users, activeOperator]);
   const [isFinishing, setIsFinishing] = useState(false);
   const [rTitulo, setRTitulo] = useState(String((meta.remessas?.length || 0) + 1));
@@ -605,12 +609,24 @@ const Tasks = () => {
 
     // Notification Hook - Meta Initiated
     const activeUserObj = users.find(u => u.username === activeOperator);
-    const targetAdmins = activeUserObj?.affiliatedTo ? [activeUserObj.affiliatedTo] : [];
+    let targetAdminsForCreate: string[];
+    if (activeUserObj?.affiliatedTo) {
+      // Operator linked to a specific admin
+      targetAdminsForCreate = [activeUserObj.affiliatedTo];
+    } else if (activeUserObj?.role === 'ADMIN') {
+      // Admin creating a meta → broadcast to all subscribers
+      targetAdminsForCreate = [];
+    } else {
+      // Operator without affiliatedTo: notify all ADMIN accounts dynamically
+      targetAdminsForCreate = users
+        .filter(u => u.role === 'ADMIN' && !u.affiliatedTo)
+        .map(u => u.username);
+    }
 
     pushNotify(
       'Nova Plataforma Iniciada 🚀', 
       `O operador iniciou a meta "${titulo}" (${contas} contas) na plataforma ${plataforma} / ${rede}.`,
-      targetAdmins
+      targetAdminsForCreate
     );
     addNotification({
       title: 'Nova Meta 🚀',
