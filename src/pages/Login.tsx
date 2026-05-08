@@ -6,6 +6,7 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 import { toast } from 'sonner';
 import { db } from '../lib/firebase';
 import { collection, getDocs, addDoc, query, where, limit } from 'firebase/firestore';
+import { registerDeviceTag } from '../lib/notifications';
 
 const Login = () => {
   const [searchParams] = useSearchParams();
@@ -66,7 +67,8 @@ const Login = () => {
         await addDoc(usersRef, newUser);
         setUserData(newUser);
         setGlobalRole(role);
-        
+        // Tag this device in OneSignal immediately after account creation
+        registerDeviceTag(username, role).catch(console.warn);
         toast.success('Conta criada com sucesso!');
         navigate('/');
       } else {
@@ -86,7 +88,8 @@ const Login = () => {
         const sessionUser = { ...user, id: userDoc.id, token: Math.random().toString(36).substring(2, 10) };
         setUserData(sessionUser);
         setGlobalRole(user.role || 'OPERADOR');
-        
+        // Tag this device in OneSignal immediately after login
+        registerDeviceTag(username, user.role || 'OPERADOR').catch(console.warn);
         toast.success('Bem-vindo de volta, ' + username + '!');
         navigate('/');
       }
@@ -143,6 +146,8 @@ const Login = () => {
 
         setUserData({ ...existingUser, token: Math.random().toString(36).substring(2, 10), method: 'Google SSO' });
         setGlobalRole(existingUser.role || 'OPERADOR');
+        // Tag this device in OneSignal immediately after Google login
+        registerDeviceTag(existingUser.username, existingUser.role || 'OPERADOR').catch(console.warn);
         navigate('/');
       } catch (err) {
         console.error("Erro no Google Login:", err);
