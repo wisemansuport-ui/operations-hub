@@ -1,27 +1,33 @@
 /**
  * Vercel Serverless Function — /api/notify
- * 
- * Receives notification requests from the frontend and forwards them
- * to the OneSignal REST API server-side, avoiding all CORS issues
- * and keeping the API key secure.
+ *
+ * Sends push notifications via OneSignal REST API server-side.
+ * This eliminates CORS errors from operator devices and keeps
+ * the API key secure in Vercel environment variables.
+ *
+ * Called by the frontend at POST /api/notify
  */
 
-const ONESIGNAL_APP_ID = "25bd7404-9856-4021-bbb4-3260a00197f4";
-const ONESIGNAL_REST_API_KEY = "os_v2_app_ew6xibeykzacdo5ugjqkaamx6sbpbenbmkyeq35ogx2pid2llyp6brihirc4btwpymribjnwteyszwwaggqu7eknn3hu5ujp7kfnr5a";
+const ONESIGNAL_APP_ID = process.env.ONESIGNAL_APP_ID || "25bd7404-9856-4021-bbb4-3260a00197f4";
+const ONESIGNAL_REST_API_KEY = process.env.ONESIGNAL_REST_API_KEY;
 
-export default async function handler(req, res) {
-  // Allow CORS from our own domain
+module.exports = async function handler(req, res) {
+  // CORS headers
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  // Handle preflight
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
 
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  if (!ONESIGNAL_REST_API_KEY) {
+    console.error("[notify] ❌ ONESIGNAL_REST_API_KEY env var not set!");
+    return res.status(500).json({ error: "Server misconfigured: missing API key" });
   }
 
   const { title, body, operator } = req.body || {};
@@ -50,14 +56,14 @@ export default async function handler(req, res) {
     const json = await onesignalRes.json();
 
     if (onesignalRes.ok) {
-      console.log(`[notify] ✅ Push sent | ID: ${json.id} | Recipients: ${json.recipients} | Operator: ${operator || 'unknown'}`);
+      console.log(`[notify] ✅ Push sent | ID: ${json.id} | Recipients: ${json.recipients} | Op: ${operator || 'unknown'} | Title: "${title}"`);
       return res.status(200).json({ success: true, id: json.id, recipients: json.recipients });
     } else {
-      console.error(`[notify] ❌ OneSignal error (${onesignalRes.status}):`, json);
-      return res.status(onesignalRes.status).json({ error: json });
+      console.error(`[notify] ❌ OneSignal error (${onesignalRes.status}):`, JSON.stringify(json));
+      return res.status(502).json({ error: "OneSignal rejected request", details: json });
     }
   } catch (err) {
-    console.error("[notify] ❌ Fetch failed:", err);
-    return res.status(500).json({ error: "Failed to reach OneSignal" });
+    console.error("[notify] ❌ Network error reaching OneSignal:", err.message);
+    return res.status(500).json({ error: "Network error", message: err.message });
   }
-}
+};
