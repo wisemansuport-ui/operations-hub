@@ -133,7 +133,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
       const resultado = totalSaq - totalDep;
       pushNotify(
         '🏁 Meta Finalizada',
-        `O operador ${operatorName} finalizou a meta "${meta.titulo}" na plataforma ${meta.plataforma} com L/P: ${resultado >= 0 ? '+' : ''}R$ ${resultado.toFixed(2)}`,
+        `O operador ${operatorName} finalizou a meta na plataforma ${meta.plataforma} com ${totalContas} conta${totalContas !== 1 ? 's' : ''} e o resultado total foi: ${resultado >= 0 ? '+' : ''}R$ ${resultado.toFixed(2)}`,
         targetAdmins
       );
       setIsFinishing(false);
