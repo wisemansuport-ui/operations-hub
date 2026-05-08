@@ -84,6 +84,13 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
   const [isFinishing, setIsFinishing] = useState(false);
   const [isEditingLink, setIsEditingLink] = useState(false);
   const [linkValue, setLinkValue] = useState(meta.link || '');
+  const [isEditingMeta, setIsEditingMeta] = useState(false);
+  const [editPlataforma, setEditPlataforma] = useState(meta.plataforma);
+  const [editRede, setEditRede] = useState(meta.rede);
+  const [editTitulo, setEditTitulo] = useState(meta.titulo);
+  const [editContas, setEditContas] = useState<number | ''>(meta.contas);
+  const [editTotalApv, setEditTotalApv] = useState<number | ''>(meta.totalApv || '');
+  const [editModelo, setEditModelo] = useState(meta.modelo);
   const [rTitulo, setRTitulo] = useState(String((meta.remessas?.length || 0) + 1));
   const [rTipo, setRTipo] = useState('Remessa');
   const [rSaldoIni, setRSaldoIni] = useState('');
@@ -256,6 +263,21 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
            <span className={`px-2 py-0.5 mt-1 rounded text-[10px] font-bold uppercase tracking-widest border ${meta.status === 'fechada' ? 'border-primary/50 text-primary bg-primary/10' : 'border-red-900/50 text-red-500 bg-red-950/30'}`}>
              {meta.status || 'ativa'}
            </span>
+           <button
+             onClick={() => {
+               setEditPlataforma(meta.plataforma);
+               setEditRede(meta.rede);
+               setEditTitulo(meta.titulo);
+               setEditContas(meta.contas);
+               setEditTotalApv(meta.totalApv || '');
+               setEditModelo(meta.modelo);
+               setIsEditingMeta(true);
+             }}
+             className="p-1.5 rounded-lg bg-muted/20 hover:bg-primary/10 text-muted-foreground hover:text-primary border border-border/30 hover:border-primary/30 transition-all hover:scale-110"
+             title="Editar configurações da meta"
+           >
+             <Edit2 className="w-3.5 h-3.5" />
+           </button>
         </div>
         <p className="text-xs text-muted-foreground">
           <strong className="text-foreground/80">Requisitos:</strong> {meta.titulo} · {isRecarga ? `R$ ${meta.contas} recarga` : `${meta.contas} contas`} · {remessas.length} remessas · {acertoPct}% de acerto
@@ -648,6 +670,136 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
                 Salvar Alterações
               </button>
             </form>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* MODAL EDITAR META */}
+      {isEditingMeta && createPortal(
+        <div
+          className="fixed inset-0 flex items-stretch md:items-center md:justify-center bg-background/70 backdrop-blur-xl md:p-6"
+          style={{ zIndex: 99999 }}
+          onClick={(e) => { if (e.target === e.currentTarget) setIsEditingMeta(false); }}
+        >
+          <div
+            className="relative flex flex-col w-full md:max-w-xl md:rounded-2xl md:border md:border-border/60 bg-card md:shadow-2xl md:shadow-primary/5 overflow-hidden"
+            style={{ maxHeight: '100dvh' }}
+          >
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+            <div className="pointer-events-none absolute -top-24 -right-24 w-64 h-64 rounded-full bg-primary/10 blur-3xl" />
+
+            <div
+              className="relative flex items-center justify-between px-6 py-5 border-b border-border/50 shrink-0"
+              style={{ paddingTop: `max(env(safe-area-inset-top), 20px)` }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                  <Edit2 className="w-4 h-4 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-foreground tracking-tight">Editar Configurações</h2>
+                  <p className="text-[11px] text-muted-foreground">Altere os parâmetros desta meta</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsEditingMeta(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto">
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                if (!editPlataforma || editRede === 'Selecione' || !editTitulo || !editContas) return;
+                onUpdateMeta({
+                  ...meta,
+                  plataforma: editPlataforma,
+                  rede: editRede,
+                  titulo: editTitulo,
+                  contas: Number(editContas),
+                  totalApv: editTotalApv ? Number(editTotalApv) : undefined,
+                  modelo: editModelo,
+                });
+                setIsEditingMeta(false);
+                toast.success('Configurações da meta atualizadas!');
+              }} className="p-6 space-y-5">
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Plataforma *</label>
+                    <input type="text" value={editPlataforma} onChange={e => setEditPlataforma(e.target.value)} className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" required />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Rede *</label>
+                    <select value={editRede} onChange={e => setEditRede(e.target.value)} className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" required>
+                      {redes.map(r => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Requisitos *</label>
+                  <input type="text" value={editTitulo} onChange={e => setEditTitulo(e.target.value)} placeholder="Ex. Media 80 3,5x" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" required />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">{editModelo === 'Recarga' ? 'Valor da Recarga (R$) *' : 'Contas *'}</label>
+                    <input type="number" value={editContas} onChange={e => setEditContas(e.target.value ? Number(e.target.value) : '')} className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 font-semibold transition-colors" min="1" required />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Total AP.V</label>
+                    <input type="number" value={editTotalApv} onChange={e => setEditTotalApv(e.target.value ? Number(e.target.value) : '')} placeholder="Ex. 20.000" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" min="0" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Seleção Rápida</label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {(editModelo === 'Recarga' ? [2500, 5000, 7000, 10000] : [20, 30, 50, 60]).map(val => (
+                      <button key={val} type="button" onClick={() => setEditContas(val)}
+                        className={`h-10 rounded-lg text-sm font-semibold border transition-all ${
+                          editContas === val
+                            ? 'bg-primary/15 border-primary/60 text-primary shadow-[0_0_0_3px_hsl(var(--primary)/0.08)]'
+                            : 'bg-muted/20 border-border/40 text-muted-foreground hover:text-foreground hover:border-border'
+                        }`}
+                      >{val}</button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Modelo da Meta</label>
+                  <div className="grid grid-cols-2 gap-2 p-1 bg-muted/30 border border-border/40 rounded-xl">
+                    {(['Depositante', 'Recarga'] as const).map(mod => (
+                      <button key={mod} type="button" onClick={() => setEditModelo(mod)}
+                        className={`h-10 rounded-lg text-sm font-semibold transition-all ${
+                          editModelo === mod
+                            ? 'bg-background text-foreground shadow-sm border border-border/60'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >{mod}</button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={!editPlataforma || editRede === 'Selecione' || !editTitulo || !editContas}
+                    className="w-full h-12 bg-primary text-primary-foreground font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 text-sm tracking-tight"
+                  >
+                    <CheckSquare className="w-4 h-4" /> Salvar Alterações
+                  </button>
+                </div>
+
+                <div className="md:hidden" style={{ height: `calc(env(safe-area-inset-bottom) + 16px)` }} />
+              </form>
+            </div>
           </div>
         </div>,
         document.body
