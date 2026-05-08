@@ -381,16 +381,123 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
         </div>
       </div>
 
-      {resultadoLiquido < 0 && (
-         <div className="bg-amber-950/40 border border-amber-900/50 rounded-xl p-4 flex items-center gap-4 animate-fade-in">
-           <AlertTriangle className="w-6 h-6 text-amber-500 flex-shrink-0" />
-           <div>
-             <h3 className="text-sm font-bold text-amber-500">Meta em prejuízo — fique atento</h3>
-             <p className="text-xs text-amber-500/70">Resultado acumulado negativo: {formatBRL(resultadoLiquido)}</p>
-           </div>
-           <div className="ml-auto px-3 py-1 bg-amber-950 border border-amber-900 text-amber-500 text-[10px] font-bold uppercase tracking-widest rounded shadow-inner">Atenção</div>
-         </div>
-      )}
+      {/* BANNER INTELIGENTE DE PERFORMANCE */}
+      {remessas.length > 0 && (() => {
+        const totalContasNormais = remessas.reduce((acc, r) => acc + (r.contasNormais || 0), 0);
+        const prejuPorConta = totalContasNormais > 0 ? resultadoBruto / totalContasNormais : 0;
+        const prejuPor10 = prejuPorConta * 10;
+        const ultimaRemessa = remessas[remessas.length - 1];
+        const ultimoResult = ultimaRemessa ? ultimaRemessa.saque - ultimaRemessa.deposito : 0;
+        const ultimasContasN = ultimaRemessa?.contasNormais || 0;
+        const ultimoPrejuPor10 = ultimasContasN > 0 ? (ultimoResult / ultimasContasN) * 10 : 0;
+
+        // Frases por categoria
+        const frasesExcelente = [
+          '🔥 Operação lucrativa! Você está no caminho certo, continue assim!',
+          '💰 Resultado positivo! Sua consistência está gerando frutos!',
+          '🚀 Excelente performance! Os números falam por si!',
+          '⚡ Meta no verde! Mantenha esse ritmo e os resultados vão se multiplicar!',
+          '🏆 Produção impecável! Cada conta está contribuindo pro resultado!',
+          '💎 Operação rentável! Você está jogando no nível profissional!',
+          '🎯 Precisão cirúrgica! Os resultados estão acima do esperado!',
+          '✨ Surreal! O lucro está consolidando remessa após remessa!',
+        ];
+        const frasesAceitavel = [
+          '📊 Prejuízo dentro da margem aceitável. Siga com foco e consistência!',
+          '💪 Números controlados. Continue operando com disciplina que o resultado vem!',
+          '🎯 Margem ok! Mantenha a qualidade das contas e o lucro aparece!',
+          '📈 Dentro do esperado. Cada remessa te aproxima do breakeven!',
+          '⚙️ Operação estável. Continue nesse ritmo que a virada tá próxima!',
+          '🔧 Perda dentro do aceitável. Ajuste fino e o verde chega!',
+          '📉 Prejuízo leve — faz parte do jogo. Foco nas próximas!',
+          '🧠 Cabeça fria! A margem tá controlada, o resultado final compensa!',
+        ];
+        const frasesAtencao = [
+          '⚠️ Prejuízo acima do ideal. Revise a qualidade das contas!',
+          '🔴 Atenção! O custo por conta está alto. Hora de ajustar a estratégia!',
+          '📉 Margem crítica! Avalie se vale pausar e recalibrar a operação.',
+          '⛔ Perda elevada por conta. Confira os requisitos antes de prosseguir!',
+          '🚨 Zona de alerta! Revise deposito vs. saque por remessa!',
+          '🔻 Performance abaixo do esperado. Considere trocar o padrão das contas!',
+          '❗ Cuidado! Nesse ritmo a meta não gera lucro. Reavalie!',
+          '🛑 Prejuízo significativo. Analise se a plataforma está rendendo!',
+        ];
+        const frasesUltimaPositiva = [
+          '🌟 Última remessa no positivo! Excelente recuperação!',
+          '💚 Remessa anterior lucrativa! O ajuste deu resultado!',
+          '🔥 Boa! A última entrega veio no verde. Mantenha esse padrão!',
+          '✅ Última remessa positiva! Sinal de melhoria na operação!',
+        ];
+        const frasesUltimaRuim = [
+          '📌 Última remessa com perda alta. Revise antes de registrar a próxima.',
+          '⚡ A última remessa pesou. Ajuste a qualidade antes de continuar.',
+          '🔍 Última entrega com resultado ruim. Analise o que mudou.',
+        ];
+
+        const pick = (arr: string[]) => arr[Math.floor(Math.abs(resultadoBruto * 137 + remessas.length * 7) % arr.length)];
+
+        let tipo: 'excelente' | 'aceitavel' | 'atencao' | 'critico';
+        let titulo: string;
+        let subtitulo: string;
+        let frase: string;
+        let badge: string;
+
+        if (resultadoBruto >= 0) {
+          tipo = 'excelente';
+          titulo = 'Operação Lucrativa';
+          frase = pick(frasesExcelente);
+          subtitulo = `Resultado: +${formatBRL(resultadoBruto)} · Média: +R$ ${Math.abs(prejuPor10).toFixed(0)} a cada 10 contas`;
+          badge = 'Lucro';
+        } else if (prejuPor10 >= -100) {
+          tipo = 'aceitavel';
+          titulo = 'Margem Controlada';
+          frase = pick(frasesAceitavel);
+          subtitulo = `Prejuízo médio: R$ ${Math.abs(prejuPor10).toFixed(0)} a cada 10 contas · Aceitável: até R$ 100`;
+          badge = 'Normal';
+        } else if (prejuPor10 >= -180) {
+          tipo = 'atencao';
+          titulo = 'Atenção Necessária';
+          frase = pick(frasesAtencao);
+          subtitulo = `Prejuízo médio: R$ ${Math.abs(prejuPor10).toFixed(0)} a cada 10 contas · Limite: R$ 180`;
+          badge = 'Atenção';
+        } else {
+          tipo = 'critico';
+          titulo = 'Remessa Crítica — Sem Margem de Lucro';
+          frase = pick(frasesAtencao);
+          subtitulo = `Prejuízo médio: R$ ${Math.abs(prejuPor10).toFixed(0)} a cada 10 contas · Acima do limite de R$ 180`;
+          badge = 'Crítico';
+        }
+
+        // Se última remessa foi positiva em contexto negativo, trocar frase
+        if (resultadoBruto < 0 && ultimoResult > 0) {
+          frase = pick(frasesUltimaPositiva);
+        }
+        // Se última remessa foi muito ruim (>-18/conta)
+        if (ultimasContasN > 0 && ultimoPrejuPor10 < -180) {
+          frase = pick(frasesUltimaRuim);
+        }
+
+        const cores = {
+          excelente: { bg: 'bg-emerald-950/40', border: 'border-emerald-900/50', text: 'text-emerald-400', badgeBg: 'bg-emerald-950', badgeBorder: 'border-emerald-900', badgeText: 'text-emerald-400' },
+          aceitavel: { bg: 'bg-blue-950/40', border: 'border-blue-900/50', text: 'text-blue-400', badgeBg: 'bg-blue-950', badgeBorder: 'border-blue-900', badgeText: 'text-blue-400' },
+          atencao: { bg: 'bg-amber-950/40', border: 'border-amber-900/50', text: 'text-amber-500', badgeBg: 'bg-amber-950', badgeBorder: 'border-amber-900', badgeText: 'text-amber-500' },
+          critico: { bg: 'bg-red-950/40', border: 'border-red-900/50', text: 'text-red-400', badgeBg: 'bg-red-950', badgeBorder: 'border-red-900', badgeText: 'text-red-400' },
+        };
+        const c = cores[tipo];
+        const icones = { excelente: '🏆', aceitavel: '📊', atencao: '⚠️', critico: '🚨' };
+
+        return (
+          <div className={`${c.bg} border ${c.border} rounded-xl p-4 flex items-start gap-4 animate-fade-in`}>
+            <span className="text-2xl flex-shrink-0 mt-0.5">{icones[tipo]}</span>
+            <div className="flex-1 min-w-0">
+              <h3 className={`text-sm font-bold ${c.text}`}>{titulo}</h3>
+              <p className={`text-xs ${c.text} opacity-80 mt-1`}>{frase}</p>
+              <p className={`text-[10px] ${c.text} opacity-50 mt-1.5`}>{subtitulo}</p>
+            </div>
+            <div className={`ml-auto px-3 py-1 ${c.badgeBg} border ${c.badgeBorder} ${c.badgeText} text-[10px] font-bold uppercase tracking-widest rounded shadow-inner shrink-0`}>{badge}</div>
+          </div>
+        );
+      })()}
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3">
         <div className="glass-card flex flex-col justify-center p-4 rounded-xl border-border/40">
