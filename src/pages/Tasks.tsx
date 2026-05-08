@@ -164,8 +164,8 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
       const totalSaq = (meta.remessas || []).reduce((acc, r) => acc + r.saque, 0);
       const resultado = totalSaq - totalDep;
       pushNotify(
-        '🏁 Meta Finalizada',
-        `O operador ${operatorName} finalizou a meta na plataforma ${meta.plataforma} com ${totalContas} conta${totalContas !== 1 ? 's' : ''} e o resultado total foi: ${resultado >= 0 ? '+' : ''}R$ ${resultado.toFixed(2)}`,
+        `🏁 ${operatorName} • ${meta.plataforma}`,
+        `Meta finalizada com ${totalContas} contas | L/P: ${resultado >= 0 ? '+' : ''}R$ ${resultado.toFixed(2)}`,
         targetAdmins
       );
       setIsFinishing(false);
@@ -210,8 +210,8 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
     const resValue = newR.saque - newR.deposito;
     const operatorName = getOperatorName(activeOperator, users);
     pushNotify(
-      `Remessa Registrada 📊`,
-      `O operador ${operatorName} finalizou uma remessa de ${numTotal} conta${numTotal !== 1 ? 's' : ''} na plataforma ${meta.plataforma} com L/P: ${resValue >= 0 ? '+' : ''}R$ ${resValue.toFixed(2)}`,
+      `📊 ${operatorName} • ${meta.plataforma}`,
+      `${numTotal} contas registradas | L/P: ${resValue >= 0 ? '+' : ''}R$ ${resValue.toFixed(2)}`,
       targetAdmins
     );
     addNotification({
@@ -267,7 +267,8 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
       return r;
     });
     onUpdateMeta({ ...meta, remessas: updatedRemessas });
-    pushNotify('✏️ Remessa Atualizada', `A remessa foi editada com sucesso.`, targetAdmins);
+    const operatorName = getOperatorName(activeOperator, users);
+    pushNotify(`✏️ ${operatorName} • Atualização`, `A remessa em ${meta.plataforma} foi editada.`, targetAdmins);
     setEditingRemessaId(null);
   };
 
@@ -1025,8 +1026,8 @@ const Tasks = () => {
     const creatorName = getOperatorName(activeOperator, users);
     const phrase = motivationalPhrases[Math.floor(Math.random() * motivationalPhrases.length)];
     pushNotify(
-      'Nova Meta Iniciada 🚀',
-      `O operador ${creatorName} iniciou uma nova meta com o objetivo de ${contas} depositantes na plataforma ${plataforma} - ${phrase}`,
+      `🚀 ${creatorName} • ${plataforma}`,
+      `Meta de ${contas} contas iniciada! ${phrase}`,
       targetAdminsForCreate
     );
     addNotification({
