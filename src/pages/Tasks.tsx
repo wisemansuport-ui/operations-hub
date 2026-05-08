@@ -305,7 +305,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
                     setIsEditingLink(false);
                   }
                 }}
-                placeholder="Cole o link (requisitos, apostas válidas, contas...)"
+                placeholder="Cole aqui o link da plataforma"
                 className="flex-1 bg-background/50 border border-primary/40 rounded-lg px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-primary placeholder:text-muted-foreground/50"
               />
               <button
