@@ -36,6 +36,10 @@ export default async function handler(req, res) {
     included_segments: ["Total Subscriptions"],
     headings: { en: title, pt: title },
     contents: { en: body, pt: body },
+    chrome_web_icon: "https://www.nytzervision.com/icon-512.png",
+    adm_large_icon: "https://www.nytzervision.com/icon-512.png",
+    adm_small_icon: "https://www.nytzervision.com/icon-512.png",
+    ios_attachments: { id1: "https://www.nytzervision.com/icon-512.png" }
   };
 
   try {
