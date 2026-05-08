@@ -383,118 +383,111 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
 
       {/* BANNER INTELIGENTE DE PERFORMANCE */}
       {remessas.length > 0 && (() => {
-        const totalContasNormais = remessas.reduce((acc, r) => acc + (r.contasNormais || 0), 0);
-        const prejuPorConta = totalContasNormais > 0 ? resultadoBruto / totalContasNormais : 0;
-        const prejuPor10 = prejuPorConta * 10;
-        const ultimaRemessa = remessas[remessas.length - 1];
-        const ultimoResult = ultimaRemessa ? ultimaRemessa.saque - ultimaRemessa.deposito : 0;
-        const ultimasContasN = ultimaRemessa?.contasNormais || 0;
-        const ultimoPrejuPor10 = ultimasContasN > 0 ? (ultimoResult / ultimasContasN) * 10 : 0;
+        // Métricas sincronizadas com os KPIs
+        const custoPor10 = totalCompletedContas > 0 ? (resultadoLiquido / totalCompletedContas) * 10 : 0;
+        const ultimaR = remessas[remessas.length - 1];
+        const ultResult = ultimaR.saque - ultimaR.deposito;
+        const ultContas = ultimaR.contas || 1;
+        const ultPor10 = (ultResult / ultContas) * 10;
+        const tendencia = remessas.length >= 2 
+          ? (remessas[remessas.length - 1].saque - remessas[remessas.length - 1].deposito) - (remessas[remessas.length - 2].saque - remessas[remessas.length - 2].deposito)
+          : 0;
 
-        // Frases por categoria
-        const frasesExcelente = [
-          '🔥 Operação lucrativa! Você está no caminho certo, continue assim!',
-          '💰 Resultado positivo! Sua consistência está gerando frutos!',
-          '🚀 Excelente performance! Os números falam por si!',
-          '⚡ Meta no verde! Mantenha esse ritmo e os resultados vão se multiplicar!',
-          '🏆 Produção impecável! Cada conta está contribuindo pro resultado!',
-          '💎 Operação rentável! Você está jogando no nível profissional!',
-          '🎯 Precisão cirúrgica! Os resultados estão acima do esperado!',
-          '✨ Surreal! O lucro está consolidando remessa após remessa!',
-        ];
-        const frasesAceitavel = [
-          '📊 Prejuízo dentro da margem aceitável. Siga com foco e consistência!',
-          '💪 Números controlados. Continue operando com disciplina que o resultado vem!',
-          '🎯 Margem ok! Mantenha a qualidade das contas e o lucro aparece!',
-          '📈 Dentro do esperado. Cada remessa te aproxima do breakeven!',
-          '⚙️ Operação estável. Continue nesse ritmo que a virada tá próxima!',
-          '🔧 Perda dentro do aceitável. Ajuste fino e o verde chega!',
-          '📉 Prejuízo leve — faz parte do jogo. Foco nas próximas!',
-          '🧠 Cabeça fria! A margem tá controlada, o resultado final compensa!',
-        ];
-        const frasesAtencao = [
-          '⚠️ Prejuízo acima do ideal. Revise a qualidade das contas!',
-          '🔴 Atenção! O custo por conta está alto. Hora de ajustar a estratégia!',
-          '📉 Margem crítica! Avalie se vale pausar e recalibrar a operação.',
-          '⛔ Perda elevada por conta. Confira os requisitos antes de prosseguir!',
-          '🚨 Zona de alerta! Revise deposito vs. saque por remessa!',
-          '🔻 Performance abaixo do esperado. Considere trocar o padrão das contas!',
-          '❗ Cuidado! Nesse ritmo a meta não gera lucro. Reavalie!',
-          '🛑 Prejuízo significativo. Analise se a plataforma está rendendo!',
-        ];
-        const frasesUltimaPositiva = [
-          '🌟 Última remessa no positivo! Excelente recuperação!',
-          '💚 Remessa anterior lucrativa! O ajuste deu resultado!',
-          '🔥 Boa! A última entrega veio no verde. Mantenha esse padrão!',
-          '✅ Última remessa positiva! Sinal de melhoria na operação!',
-        ];
-        const frasesUltimaRuim = [
-          '📌 Última remessa com perda alta. Revise antes de registrar a próxima.',
-          '⚡ A última remessa pesou. Ajuste a qualidade antes de continuar.',
-          '🔍 Última entrega com resultado ruim. Analise o que mudou.',
-        ];
+        const frases = {
+          lucro: [
+            `Resultado líquido positivo com ${totalCompletedContas} contas processadas. Operação rentável.`,
+            `Performance acima do esperado. Média de +R$ ${Math.abs(custoPor10).toFixed(0)} a cada 10 contas.`,
+            `Operação sustentável — lucro consolidado em ${remessas.length} remessa(s). Continue no padrão.`,
+            `Meta no verde. Eficiência de ${acertoPct}% de acerto com retorno consistente.`,
+            `Produção de alta qualidade. ${remessasPositivas} de ${remessas.length} remessas lucrativas.`,
+            `Excelente gestão operacional. O resultado líquido reflete disciplina nas entregas.`,
+          ],
+          controlado: [
+            `Prejuízo médio de R$ ${Math.abs(custoPor10).toFixed(0)}/10 contas — dentro da margem operacional de R$ 100.`,
+            `Resultado líquido: ${formatBRL(resultadoLiquido)} em ${totalCompletedContas} contas. Margem aceitável, mantenha a consistência.`,
+            `Custo operacional controlado. ${remessasPositivas} remessa(s) positiva(s) de ${remessas.length} — foco na qualidade.`,
+            `Performance estável. O prejuízo por conta está dentro do esperado para gerar retorno no fechamento.`,
+            `Operação dentro dos parâmetros. Continue com disciplina que o breakeven está próximo.`,
+            `Margem operacional saudável. Cada remessa bem executada aproxima o resultado do verde.`,
+          ],
+          alerta: [
+            `Custo médio de R$ ${Math.abs(custoPor10).toFixed(0)}/10 contas — acima do ideal de R$ 100. Revise a qualidade das entregas.`,
+            `Resultado líquido: ${formatBRL(resultadoLiquido)} com ${totalCompletedContas} contas. A margem está se estreitando.`,
+            `O prejuízo por conta compromete a rentabilidade. Avalie os requisitos e padrão de depósito.`,
+            `Performance abaixo do esperado. Considere recalibrar a operação antes de prosseguir.`,
+            `Atenção ao custo operacional. Nesse ritmo, o fechamento não cobrirá o investimento.`,
+            `Taxa de acerto em ${acertoPct}% com custo elevado. Priorize remessas de maior qualidade.`,
+          ],
+          critico: [
+            `Prejuízo de R$ ${Math.abs(custoPor10).toFixed(0)}/10 contas — acima do limite de R$ 180. Operação sem margem de lucro.`,
+            `Resultado líquido: ${formatBRL(resultadoLiquido)} em ${totalCompletedContas} contas. Nenhuma margem para recuperação nesse padrão.`,
+            `Operação inviável no ritmo atual. O custo por conta excede qualquer possibilidade de retorno.`,
+            `Performance crítica. Recomendação: pausar, analisar os requisitos e reavaliar a estratégia.`,
+            `Cada nova remessa agrava o prejuízo. Revise plataforma, contas e método antes de continuar.`,
+            `O custo operacional ultrapassou todos os limites aceitáveis. Intervenção necessária.`,
+          ],
+        };
 
-        const pick = (arr: string[]) => arr[Math.floor(Math.abs(resultadoBruto * 137 + remessas.length * 7) % arr.length)];
+        const frasesContexto = {
+          recuperando: [
+            `Última remessa apresentou melhora${tendencia > 0 ? ' — tendência de recuperação detectada' : ''}. Ajuste surtindo efeito.`,
+            `Sinal positivo: a última entrega veio no verde. Mantenha o padrão atual.`,
+          ],
+          piorando: [
+            `Última remessa com custo de R$ ${Math.abs(ultPor10).toFixed(0)}/10 contas — abaixo do padrão. Revise antes da próxima.`,
+            `Queda de performance detectada na última entrega. Analise o que mudou na operação.`,
+          ],
+        };
 
-        let tipo: 'excelente' | 'aceitavel' | 'atencao' | 'critico';
+        const seed = Math.floor(Math.abs(resultadoLiquido * 31 + totalCompletedContas * 13 + remessas.length * 7));
+        const pick = (arr: string[]) => arr[seed % arr.length];
+
+        let tipo: 'lucro' | 'controlado' | 'alerta' | 'critico';
         let titulo: string;
-        let subtitulo: string;
-        let frase: string;
         let badge: string;
 
-        if (resultadoBruto >= 0) {
-          tipo = 'excelente';
-          titulo = 'Operação Lucrativa';
-          frase = pick(frasesExcelente);
-          subtitulo = `Resultado: +${formatBRL(resultadoBruto)} · Média: +R$ ${Math.abs(prejuPor10).toFixed(0)} a cada 10 contas`;
-          badge = 'Lucro';
-        } else if (prejuPor10 >= -100) {
-          tipo = 'aceitavel';
-          titulo = 'Margem Controlada';
-          frase = pick(frasesAceitavel);
-          subtitulo = `Prejuízo médio: R$ ${Math.abs(prejuPor10).toFixed(0)} a cada 10 contas · Aceitável: até R$ 100`;
-          badge = 'Normal';
-        } else if (prejuPor10 >= -180) {
-          tipo = 'atencao';
-          titulo = 'Atenção Necessária';
-          frase = pick(frasesAtencao);
-          subtitulo = `Prejuízo médio: R$ ${Math.abs(prejuPor10).toFixed(0)} a cada 10 contas · Limite: R$ 180`;
-          badge = 'Atenção';
+        if (resultadoLiquido >= 0) {
+          tipo = 'lucro'; titulo = 'Operação Lucrativa'; badge = 'Lucro';
+        } else if (custoPor10 >= -100) {
+          tipo = 'controlado'; titulo = 'Margem Controlada'; badge = 'Normal';
+        } else if (custoPor10 >= -180) {
+          tipo = 'alerta'; titulo = 'Atenção Necessária'; badge = 'Alerta';
         } else {
-          tipo = 'critico';
-          titulo = 'Remessa Crítica — Sem Margem de Lucro';
-          frase = pick(frasesAtencao);
-          subtitulo = `Prejuízo médio: R$ ${Math.abs(prejuPor10).toFixed(0)} a cada 10 contas · Acima do limite de R$ 180`;
-          badge = 'Crítico';
+          tipo = 'critico'; titulo = 'Situação Crítica'; badge = 'Crítico';
         }
 
-        // Se última remessa foi positiva em contexto negativo, trocar frase
-        if (resultadoBruto < 0 && ultimoResult > 0) {
-          frase = pick(frasesUltimaPositiva);
-        }
-        // Se última remessa foi muito ruim (>-18/conta)
-        if (ultimasContasN > 0 && ultimoPrejuPor10 < -180) {
-          frase = pick(frasesUltimaRuim);
+        let frase = pick(frases[tipo]);
+        
+        // Contexto da última remessa
+        let contexto = '';
+        if (remessas.length >= 2 && resultadoLiquido < 0 && ultResult > 0) {
+          contexto = pick(frasesContexto.recuperando);
+        } else if (remessas.length >= 2 && ultPor10 < -180) {
+          contexto = pick(frasesContexto.piorando);
         }
 
-        const cores = {
-          excelente: { bg: 'bg-emerald-950/40', border: 'border-emerald-900/50', text: 'text-emerald-400', badgeBg: 'bg-emerald-950', badgeBorder: 'border-emerald-900', badgeText: 'text-emerald-400' },
-          aceitavel: { bg: 'bg-blue-950/40', border: 'border-blue-900/50', text: 'text-blue-400', badgeBg: 'bg-blue-950', badgeBorder: 'border-blue-900', badgeText: 'text-blue-400' },
-          atencao: { bg: 'bg-amber-950/40', border: 'border-amber-900/50', text: 'text-amber-500', badgeBg: 'bg-amber-950', badgeBorder: 'border-amber-900', badgeText: 'text-amber-500' },
-          critico: { bg: 'bg-red-950/40', border: 'border-red-900/50', text: 'text-red-400', badgeBg: 'bg-red-950', badgeBorder: 'border-red-900', badgeText: 'text-red-400' },
+        const subtitulo = `Líquido: ${formatBRL(resultadoLiquido)} · ${totalCompletedContas} contas · ${remessas.length} remessas · ${acertoPct}% acerto`;
+
+        const cores: Record<string, { bg: string; border: string; text: string; badgeBg: string; badgeBorder: string }> = {
+          lucro: { bg: 'bg-emerald-950/40', border: 'border-emerald-900/50', text: 'text-emerald-400', badgeBg: 'bg-emerald-950', badgeBorder: 'border-emerald-900' },
+          controlado: { bg: 'bg-blue-950/40', border: 'border-blue-900/50', text: 'text-blue-400', badgeBg: 'bg-blue-950', badgeBorder: 'border-blue-900' },
+          alerta: { bg: 'bg-amber-950/40', border: 'border-amber-900/50', text: 'text-amber-500', badgeBg: 'bg-amber-950', badgeBorder: 'border-amber-900' },
+          critico: { bg: 'bg-red-950/40', border: 'border-red-900/50', text: 'text-red-400', badgeBg: 'bg-red-950', badgeBorder: 'border-red-900' },
         };
         const c = cores[tipo];
-        const icones = { excelente: '🏆', aceitavel: '📊', atencao: '⚠️', critico: '🚨' };
 
         return (
           <div className={`${c.bg} border ${c.border} rounded-xl p-4 flex items-start gap-4 animate-fade-in`}>
-            <span className="text-2xl flex-shrink-0 mt-0.5">{icones[tipo]}</span>
+            <div className={`w-10 h-10 rounded-xl ${c.bg} border ${c.border} flex items-center justify-center shrink-0`}>
+              <span className="text-lg">{tipo === 'lucro' ? '📈' : tipo === 'controlado' ? '📊' : tipo === 'alerta' ? '⚠️' : '🚨'}</span>
+            </div>
             <div className="flex-1 min-w-0">
               <h3 className={`text-sm font-bold ${c.text}`}>{titulo}</h3>
-              <p className={`text-xs ${c.text} opacity-80 mt-1`}>{frase}</p>
-              <p className={`text-[10px] ${c.text} opacity-50 mt-1.5`}>{subtitulo}</p>
+              <p className={`text-xs ${c.text}/80 mt-1 leading-relaxed`}>{frase}</p>
+              {contexto && <p className={`text-xs ${c.text}/60 mt-1 italic`}>{contexto}</p>}
+              <p className={`text-[10px] ${c.text}/40 mt-2 font-mono`}>{subtitulo}</p>
             </div>
-            <div className={`ml-auto px-3 py-1 ${c.badgeBg} border ${c.badgeBorder} ${c.badgeText} text-[10px] font-bold uppercase tracking-widest rounded shadow-inner shrink-0`}>{badge}</div>
+            <div className={`px-3 py-1.5 ${c.badgeBg} border ${c.badgeBorder} ${c.text} text-[10px] font-bold uppercase tracking-widest rounded shrink-0`}>{badge}</div>
           </div>
         );
       })()}
