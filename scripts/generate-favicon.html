@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Favicon Generator</title>
+  <style>
+    body { background: #222; display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 40px; font-family: sans-serif; color: white; }
+    canvas { border: 1px solid #444; }
+    a { color: #4af; font-size: 18px; }
+  </style>
+</head>
+<body>
+  <h1>NytzerVision Favicon Generator — Grafite Style</h1>
+  <canvas id="canvas" width="512" height="512"></canvas>
+  <button id="download" style="padding:12px 32px; font-size:16px; cursor:pointer; background:#d4af37; border:none; border-radius:8px; font-weight:bold;">⬇ Download PNG 512x512</button>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const W = 512, H = 512;
+
+    // 1. Background: deep piano black with subtle radial gradient for depth
+    const bgGrad = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, W*0.7);
+    bgGrad.addColorStop(0, '#1a1a1a');
+    bgGrad.addColorStop(1, '#080808');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // 2. Draw the lightning bolt — grafite metallic style
+    // Bolt shape: sharp angular zigzag
+    const boltPath = new Path2D();
+    // Define bolt proportionally (centered)
+    const cx = W / 2;
+    const cy = H / 2;
+    const scale = 1.0;
+
+    // Main bolt polygon (sharp angular design)
+    const points = [
+      [cx - 20*scale, cy - 160*scale],   // top-left start
+      [cx + 80*scale, cy - 160*scale],    // top-right
+      [cx + 20*scale, cy - 30*scale],     // inner right notch
+      [cx + 90*scale, cy - 30*scale],     // outer right notch
+      [cx - 30*scale, cy + 170*scale],    // bottom point
+      [cx + 10*scale, cy + 20*scale],     // inner left notch
+      [cx - 60*scale, cy + 20*scale],     // outer left notch
+    ];
+
+    boltPath.moveTo(points[0][0], points[0][1]);
+    for (let i = 1; i < points.length; i++) {
+      boltPath.lineTo(points[i][0], points[i][1]);
+    }
+    boltPath.closePath();
+
+    // 2a. Shadow behind bolt
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.6)';
+    ctx.shadowBlur = 20;
+    ctx.shadowOffsetX = 4;
+    ctx.shadowOffsetY = 6;
+    ctx.fillStyle = '#111';
+    ctx.fill(boltPath);
+    ctx.restore();
+
+    // 2b. Main bolt fill: metallic gradient (grafite/gunmetal)
+    const boltGrad = ctx.createLinearGradient(cx - 60, cy - 160, cx + 90, cy + 170);
+    boltGrad.addColorStop(0, '#c8c8c8');    // bright silver top
+    boltGrad.addColorStop(0.25, '#a0a0a0'); // medium silver
+    boltGrad.addColorStop(0.5, '#787878');  // grafite mid
+    boltGrad.addColorStop(0.75, '#505050'); // dark grafite
+    boltGrad.addColorStop(1, '#383838');    // deep gunmetal bottom
+    ctx.fillStyle = boltGrad;
+    ctx.fill(boltPath);
+
+    // 2c. Top highlight face for 3D faceted look
+    const highlightPath = new Path2D();
+    highlightPath.moveTo(points[0][0], points[0][1]);
+    highlightPath.lineTo(points[1][0], points[1][1]);
+    highlightPath.lineTo(points[2][0], points[2][1]);
+    highlightPath.lineTo(points[6][0], points[6][1]);
+    highlightPath.closePath();
+
+    const hlGrad = ctx.createLinearGradient(cx, cy - 160, cx, cy + 20);
+    hlGrad.addColorStop(0, 'rgba(255,255,255,0.25)');
+    hlGrad.addColorStop(1, 'rgba(255,255,255,0.0)');
+    ctx.fillStyle = hlGrad;
+    ctx.fill(highlightPath);
+
+    // 2d. Bolt edge stroke for definition
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke(boltPath);
+
+    // 3. Glossy diagonal shine (top half — classic iOS style)
+    const glossPath = new Path2D();
+    glossPath.moveTo(0, 0);
+    glossPath.lineTo(W, 0);
+    glossPath.lineTo(W, H * 0.35);
+    glossPath.lineTo(0, H * 0.55);
+    glossPath.closePath();
+
+    const glossGrad = ctx.createLinearGradient(0, 0, 0, H * 0.55);
+    glossGrad.addColorStop(0, 'rgba(255,255,255,0.08)');
+    glossGrad.addColorStop(1, 'rgba(255,255,255,0.0)');
+    ctx.fillStyle = glossGrad;
+    ctx.fill(glossPath);
+
+    // 4. Subtle inner bevel on edges
+    // Top edge highlight
+    const topBevel = ctx.createLinearGradient(0, 0, 0, 6);
+    topBevel.addColorStop(0, 'rgba(255,255,255,0.10)');
+    topBevel.addColorStop(1, 'rgba(255,255,255,0.0)');
+    ctx.fillStyle = topBevel;
+    ctx.fillRect(0, 0, W, 6);
+
+    // Left edge highlight
+    const leftBevel = ctx.createLinearGradient(0, 0, 6, 0);
+    leftBevel.addColorStop(0, 'rgba(255,255,255,0.08)');
+    leftBevel.addColorStop(1, 'rgba(255,255,255,0.0)');
+    ctx.fillStyle = leftBevel;
+    ctx.fillRect(0, 0, 6, H);
+
+    // Bottom edge shadow
+    const botBevel = ctx.createLinearGradient(0, H-6, 0, H);
+    botBevel.addColorStop(0, 'rgba(0,0,0,0.0)');
+    botBevel.addColorStop(1, 'rgba(0,0,0,0.20)');
+    ctx.fillStyle = botBevel;
+    ctx.fillRect(0, H-6, W, 6);
+
+    // Right edge shadow
+    const rightBevel = ctx.createLinearGradient(W-6, 0, W, 0);
+    rightBevel.addColorStop(0, 'rgba(0,0,0,0.0)');
+    rightBevel.addColorStop(1, 'rgba(0,0,0,0.15)');
+    ctx.fillStyle = rightBevel;
+    ctx.fillRect(W-6, 0, 6, H);
+
+    // Download button
+    document.getElementById('download').addEventListener('click', () => {
+      const link = document.createElement('a');
+      link.download = 'nytzer-favicon-512.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
+  </script>
+</body>
+</html>
