@@ -11,7 +11,7 @@ export const requestNotificationPermission = async () => {
 };
 
 const ONESIGNAL_APP_ID = "25bd7404-9856-4021-bbb4-3260a00197f4";
-const ONESIGNAL_REST_API_KEY = "os_v2_app_ew6xibeykzacdo5ugjqkaamx6rvsmkmmhife7ofwi5vrichzrzi5v2sep4hpjjummr2htpbqnykp3jv5yxxoti4wzw7qtka4kvh655y";
+const ONESIGNAL_REST_API_KEY = "os_v2_app_ew6xibeykzacdo5ugjqkaamx6sbpbenbmkyeq35ogx2pid2llyp6brihirc4btwpymribjnwteyszwwaggqu7eknn3hu5ujp7kfnr5a";
 
 /**
  * Registers this device in OneSignal:
