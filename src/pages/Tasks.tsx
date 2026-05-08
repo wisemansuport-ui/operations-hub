@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Target, Plus, X, Search, ArrowUpRight, ArrowLeft, AlertTriangle, CheckSquare, Trash2, RotateCcw, BarChart2, Edit2 } from 'lucide-react';
+import { Target, Plus, X, Search, ArrowUpRight, ArrowLeft, AlertTriangle, CheckSquare, Trash2, RotateCcw, BarChart2, Edit2, ExternalLink, Link as LinkIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useFirestoreData } from '../hooks/useFirestoreData';
@@ -40,6 +40,7 @@ export interface OperationMeta {
   salarioOperador?: number;
   pagamentoOperador?: number;
   isAdminMeta?: boolean;
+  link?: string;
 }
 
 const redes = ['Selecione', 'WE', 'W1', 'VOY', '91', 'DZ', 'A8', 'OKOK', 'ANJO', 'XW', 'EK', 'DY', '777', '888', 'WP', 'BRA', 'GAME', 'ALFA', 'KK', 'MK'];
@@ -81,6 +82,8 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
     return allAdmins;
   }, [users, activeOperator]);
   const [isFinishing, setIsFinishing] = useState(false);
+  const [isEditingLink, setIsEditingLink] = useState(false);
+  const [linkValue, setLinkValue] = useState(meta.link || '');
   const [rTitulo, setRTitulo] = useState(String((meta.remessas?.length || 0) + 1));
   const [rTipo, setRTipo] = useState('Remessa');
   const [rSaldoIni, setRSaldoIni] = useState('');
@@ -258,6 +261,81 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
           <strong className="text-foreground/80">Requisitos:</strong> {meta.titulo} · {isRecarga ? `R$ ${meta.contas} recarga` : `${meta.contas} contas`} · {remessas.length} remessas · {acertoPct}% de acerto
           {meta.totalApv ? ` · AP.V Restante: ${apvRestante}` : ''}
         </p>
+
+        {/* Link de referência — editable */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {isEditingLink ? (
+            <div className="flex items-center gap-2 w-full max-w-xl animate-fade-in">
+              <LinkIcon className="w-4 h-4 text-primary shrink-0" />
+              <input
+                autoFocus
+                type="url"
+                value={linkValue}
+                onChange={e => setLinkValue(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    onUpdateMeta({ ...meta, link: linkValue.trim() || undefined });
+                    setIsEditingLink(false);
+                    toast.success('Link atualizado!');
+                  }
+                  if (e.key === 'Escape') {
+                    setLinkValue(meta.link || '');
+                    setIsEditingLink(false);
+                  }
+                }}
+                placeholder="Cole o link (requisitos, apostas válidas, contas...)"
+                className="flex-1 bg-background/50 border border-primary/40 rounded-lg px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-primary placeholder:text-muted-foreground/50"
+              />
+              <button
+                onClick={() => {
+                  onUpdateMeta({ ...meta, link: linkValue.trim() || undefined });
+                  setIsEditingLink(false);
+                  toast.success('Link atualizado!');
+                }}
+                className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-colors"
+                title="Salvar"
+              >
+                <CheckSquare className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => { setLinkValue(meta.link || ''); setIsEditingLink(false); }}
+                className="p-1.5 rounded-lg bg-muted/20 hover:bg-muted/40 text-muted-foreground border border-border/40 transition-colors"
+                title="Cancelar"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : meta.link ? (
+            <div className="flex items-center gap-2 group/link">
+              <LinkIcon className="w-3.5 h-3.5 text-primary/60" />
+              <a
+                href={meta.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-primary/80 hover:text-primary underline underline-offset-2 decoration-primary/30 hover:decoration-primary/60 transition-colors truncate max-w-[300px]"
+              >
+                {meta.link.replace(/^https?:\/\//, '').substring(0, 50)}{meta.link.length > 55 ? '...' : ''}
+              </a>
+              <ExternalLink className="w-3 h-3 text-primary/40" />
+              <button
+                onClick={() => { setLinkValue(meta.link || ''); setIsEditingLink(true); }}
+                className="p-1 rounded-md bg-muted/20 hover:bg-primary/10 text-muted-foreground hover:text-primary border border-border/30 transition-colors opacity-0 group-hover/link:opacity-100"
+                title="Editar link"
+              >
+                <Edit2 className="w-3 h-3" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setIsEditingLink(true)}
+              className="flex items-center gap-1.5 text-[11px] text-muted-foreground/60 hover:text-primary border border-dashed border-border/30 hover:border-primary/40 px-3 py-1.5 rounded-lg transition-all hover:bg-primary/5"
+            >
+              <LinkIcon className="w-3.5 h-3.5" />
+              Adicionar link
+            </button>
+          )}
+        </div>
+
         <div className="flex items-center gap-2 flex-wrap">
           {meta.status !== 'fechada' && (
             <button 
