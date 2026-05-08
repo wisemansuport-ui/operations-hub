@@ -48,7 +48,11 @@ const redes = ['Selecione', 'WE', 'W1', 'VOY', '91', 'DZ', 'A8', 'OKOK', 'ANJO',
 const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, activeOperator }: { meta: OperationMeta, onBack: () => void, onUpdateMeta: (m: OperationMeta) => void, addNotification: (n: any) => void, users: any[], activeOperator: string }) => {
   const targetAdmins = useMemo(() => {
     const me = users.find(u => u.username === activeOperator);
+    // If operator has affiliatedTo set, send to that specific admin
     if (me?.affiliatedTo) return [me.affiliatedTo];
+    // Fallback: if the operator is not the master admin themselves, notify wiseman
+    if (activeOperator !== 'wiseman') return ['wiseman'];
+    // If it's the admin themselves acting, send to all subscribers
     return [];
   }, [users, activeOperator]);
   const [isFinishing, setIsFinishing] = useState(false);
