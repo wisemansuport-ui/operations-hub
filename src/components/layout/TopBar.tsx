@@ -7,6 +7,7 @@ import { LogOut, UserCog } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import OneSignal from "react-onesignal";
 import { toast } from "sonner";
+import { registerDeviceTag } from "@/lib/notifications";
 
 export const TopBar = () => {
   const { theme, toggleTheme } = useTheme();
@@ -101,17 +102,17 @@ export const TopBar = () => {
                         return;
                       }
 
-                      // If permission already granted: re-link external_id to ensure this device is tied to the logged-in account
+                      // If permission already granted: re-register tags to ensure device is linked to this account
                       if (Notification.permission === "granted") {
                         try {
                           if (user?.username) {
-                            await OneSignal.login(user.username);
+                            await registerDeviceTag(user.username, user.role || 'OPERADOR');
                             toast.success(`✅ Dispositivo vinculado à conta "${user.username}"! Notificações ativas.`, { duration: 5000 });
                           } else {
                             toast.success("✅ Alertas já estão ativos neste dispositivo!");
                           }
                         } catch (e) {
-                          console.warn("OneSignal re-link error:", e);
+                          console.warn("registerDeviceTag error:", e);
                           toast.success("✅ Alertas já estão ativos neste dispositivo!");
                         }
                         return;
@@ -124,9 +125,9 @@ export const TopBar = () => {
                         const granted = await OneSignal.Notifications.requestPermission();
                         toast.dismiss("push-request");
                         if (granted) {
-                          // Link device to this user's account
+                          // Tag device with this user's account for reliable push targeting
                           if (user?.username) {
-                            await OneSignal.login(user.username).catch(e => console.warn("OneSignal login error:", e));
+                            await registerDeviceTag(user.username, user.role || 'OPERADOR');
                           }
                           toast.success("✅ Alertas ativados! Você receberá notificações em tempo real.", { duration: 5000 });
                         } else {
@@ -140,7 +141,7 @@ export const TopBar = () => {
                           toast.dismiss("push-request");
                           if (result === "granted") {
                             if (user?.username) {
-                              await OneSignal.login(user.username).catch(err => console.warn("OneSignal login error:", err));
+                              await registerDeviceTag(user.username, user.role || 'OPERADOR');
                             }
                             toast.success("✅ Alertas ativados no navegador!");
                           } else {

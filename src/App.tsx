@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 import OneSignal from "react-onesignal";
+import { registerDeviceTag } from "@/lib/notifications";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -38,22 +39,21 @@ const App = () => {
     OneSignal.init({
       appId: "25bd7404-9856-4021-bbb4-3260a00197f4",
       allowLocalhostAsSecureOrigin: true,
-      notifyButton: {
-        enable: false,
-      },
+      notifyButton: { enable: false },
     }).then(() => {
       if (user?.username) {
-        OneSignal.login(user.username).catch(e => console.warn("OneSignal login error:", e));
+        // Register device with username + role tags for reliable push targeting
+        registerDeviceTag(user.username, user.role || 'OPERADOR');
       }
     }).catch(e => console.error("OneSignal init error:", e));
   }, []);
 
   useEffect(() => {
     if (user?.username) {
-      // Small delay to ensure init is done
+      // Re-register tags whenever the logged-in user changes
       setTimeout(() => {
-        OneSignal.login(user.username).catch(e => console.warn("OneSignal login error:", e));
-      }, 1000);
+        registerDeviceTag(user.username, user.role || 'OPERADOR');
+      }, 1500);
     } else {
       OneSignal.logout().catch(e => console.warn("OneSignal logout error:", e));
     }
