@@ -1,11 +1,26 @@
 import React, { useState, useMemo } from 'react';
-import { Users, Link as LinkIcon, Pencil, Trash2, Check, X, Crown, Trophy, Medal, Sparkles, TrendingUp, DollarSign, Target, UserCheck, Wallet, ArrowUpRight } from "lucide-react";
+import { Users, Link as LinkIcon, Pencil, Trash2, Check, X, Crown, Trophy, Medal, Sparkles, TrendingUp, DollarSign, Target, UserCheck, Wallet, ArrowUpRight, Calendar as CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useFirestoreData } from "../hooks/useFirestoreData";
 import { OperationMeta } from "./Tasks";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import type { DateRange } from "react-day-picker";
+import { cn } from "@/lib/utils";
+
+type PeriodKey = '7d' | '30d' | 'mes' | 'intervalo' | 'tudo';
+const PERIODS: { key: PeriodKey; label: string }[] = [
+  { key: '7d', label: '7 dias' },
+  { key: '30d', label: '30 dias' },
+  { key: 'mes', label: 'Mês atual' },
+  { key: 'intervalo', label: 'Intervalo' },
+  { key: 'tudo', label: 'Tudo' },
+];
 
 interface OperatorData {
   id: string;
@@ -35,6 +50,43 @@ const Operators = () => {
   const [editingName, setEditingName] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [loadingAction, setLoadingAction] = useState(false);
+
+  const [period, setPeriod] = useState<PeriodKey>('30d');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+
+  const periodBounds = useMemo(() => {
+    const now = new Date();
+    const end = new Date(now); end.setHours(23, 59, 59, 999);
+    if (period === 'tudo') return null;
+    if (period === '7d') {
+      const s = new Date(now); s.setDate(s.getDate() - 6); s.setHours(0, 0, 0, 0);
+      return { start: s, end };
+    }
+    if (period === '30d') {
+      const s = new Date(now); s.setDate(s.getDate() - 29); s.setHours(0, 0, 0, 0);
+      return { start: s, end };
+    }
+    if (period === 'mes') {
+      const s = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+      return { start: s, end };
+    }
+    if (period === 'intervalo' && dateRange?.from) {
+      const s = new Date(dateRange.from); s.setHours(0, 0, 0, 0);
+      const e = new Date(dateRange.to || dateRange.from); e.setHours(23, 59, 59, 999);
+      return { start: s, end: e };
+    }
+    return null;
+  }, [period, dateRange]);
+
+  const periodLabel = useMemo(() => {
+    if (period === 'intervalo' && dateRange?.from) {
+      const f = format(dateRange.from, 'dd MMM', { locale: ptBR });
+      const t = dateRange.to ? format(dateRange.to, 'dd MMM', { locale: ptBR }) : f;
+      return `${f} → ${t}`;
+    }
+    return PERIODS.find(p => p.key === period)?.label || '';
+  }, [period, dateRange]);
+
 
   const affiliatedUsers = useMemo(
     () => users.filter(u => u.affiliatedTo === activeOperator),
@@ -90,6 +142,10 @@ const Operators = () => {
       if (meta.status !== 'fechada' || meta.isAdminMeta) return;
       const isAffiliated = (users.find(u => u.username === meta.operador)?.affiliatedTo === activeOperator);
       if (!isAffiliated) return;
+      if (periodBounds) {
+        const t = new Date(meta.createdAt).getTime();
+        if (isNaN(t) || t < periodBounds.start.getTime() || t > periodBounds.end.getTime()) return;
+      }
 
       const opName = meta.operador || 'Operador Central';
       if (!opMap[opName]) {
@@ -147,7 +203,7 @@ const Operators = () => {
     ranked.forEach((op, i) => op.rank = i + 1);
 
     return { operatorData: ranked, folhaTotal: tmpFolhaTotal, totalMetas: tmpTotalMetasCount, totalContas: tmpTotalContasCount, totalLucroEquipe: tmpTotalLucroEquipe };
-  }, [metas, users, activeOperator]);
+  }, [metas, users, activeOperator, periodBounds]);
 
   const handleCopyLink = () => {
     const activeAdmin = user?.username || 'admin';
@@ -231,6 +287,59 @@ const Operators = () => {
           );
         })}
       </div>
+
+      {activeTab !== 'Configurações' && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 -mt-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex gap-1 p-1.5 rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl">
+              {PERIODS.filter(p => p.key !== 'intervalo').map(p => (
+                <button
+                  key={p.key}
+                  onClick={() => setPeriod(p.key)}
+                  className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                    period === p.key
+                      ? 'bg-foreground/[0.06] text-foreground shadow-[inset_0_0_0_1px_hsl(var(--border))]'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  className={cn(
+                    "inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-xl border transition-all",
+                    period === 'intervalo'
+                      ? 'border-primary/40 bg-primary/10 text-primary'
+                      : 'border-border/40 bg-card/30 text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  <CalendarIcon className="w-3.5 h-3.5" />
+                  {period === 'intervalo' && dateRange?.from ? periodLabel : 'Intervalo personalizado'}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="range"
+                  selected={dateRange}
+                  onSelect={(r) => { setDateRange(r); if (r?.from) setPeriod('intervalo'); }}
+                  numberOfMonths={2}
+                  locale={ptBR}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+            Filtrando por: <span className="text-primary">{periodLabel}</span>
+          </div>
+        </div>
+      )}
 
       {/* RANKING */}
       {activeTab === 'Ranking' && (
@@ -440,18 +549,6 @@ const Operators = () => {
       {/* FOLHA DE PAGAMENTO */}
       {activeTab === 'Folha de pagamento' && (
         <div className="animate-fade-in space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex gap-1 p-1.5 rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl w-fit">
-              {(['Hoje', '7 dias', '30 dias', 'Tudo']).map(f => (
-                <button
-                  key={f}
-                  className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-colors ${f === '30 dias' ? 'bg-foreground/[0.06] text-foreground shadow-[inset_0_0_0_1px_hsl(var(--border))]' : 'text-muted-foreground hover:text-foreground'}`}
-                >
-                  {f}
-                </button>
-              ))}
-            </div>
-          </div>
 
           {/* Hero summary card */}
           <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/10 via-card/40 to-card/20 backdrop-blur-2xl p-8">
