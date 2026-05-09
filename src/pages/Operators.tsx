@@ -1,11 +1,26 @@
 import React, { useState, useMemo } from 'react';
-import { Users, Link as LinkIcon, Pencil, Trash2, Check, X, Crown, Trophy, Medal, Sparkles, TrendingUp, DollarSign, Target, UserCheck, Wallet, ArrowUpRight } from "lucide-react";
+import { Users, Link as LinkIcon, Pencil, Trash2, Check, X, Crown, Trophy, Medal, Sparkles, TrendingUp, DollarSign, Target, UserCheck, Wallet, ArrowUpRight, Calendar as CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useFirestoreData } from "../hooks/useFirestoreData";
 import { OperationMeta } from "./Tasks";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import type { DateRange } from "react-day-picker";
+import { cn } from "@/lib/utils";
+
+type PeriodKey = '7d' | '30d' | 'mes' | 'intervalo' | 'tudo';
+const PERIODS: { key: PeriodKey; label: string }[] = [
+  { key: '7d', label: '7 dias' },
+  { key: '30d', label: '30 dias' },
+  { key: 'mes', label: 'Mês atual' },
+  { key: 'intervalo', label: 'Intervalo' },
+  { key: 'tudo', label: 'Tudo' },
+];
 
 interface OperatorData {
   id: string;
