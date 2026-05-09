@@ -203,7 +203,7 @@ const Operators = () => {
     ranked.forEach((op, i) => op.rank = i + 1);
 
     return { operatorData: ranked, folhaTotal: tmpFolhaTotal, totalMetas: tmpTotalMetasCount, totalContas: tmpTotalContasCount, totalLucroEquipe: tmpTotalLucroEquipe };
-  }, [metas, users, activeOperator]);
+  }, [metas, users, activeOperator, periodBounds]);
 
   const handleCopyLink = () => {
     const activeAdmin = user?.username || 'admin';
