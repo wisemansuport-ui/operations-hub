@@ -51,6 +51,43 @@ const Operators = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [loadingAction, setLoadingAction] = useState(false);
 
+  const [period, setPeriod] = useState<PeriodKey>('30d');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+
+  const periodBounds = useMemo(() => {
+    const now = new Date();
+    const end = new Date(now); end.setHours(23, 59, 59, 999);
+    if (period === 'tudo') return null;
+    if (period === '7d') {
+      const s = new Date(now); s.setDate(s.getDate() - 6); s.setHours(0, 0, 0, 0);
+      return { start: s, end };
+    }
+    if (period === '30d') {
+      const s = new Date(now); s.setDate(s.getDate() - 29); s.setHours(0, 0, 0, 0);
+      return { start: s, end };
+    }
+    if (period === 'mes') {
+      const s = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+      return { start: s, end };
+    }
+    if (period === 'intervalo' && dateRange?.from) {
+      const s = new Date(dateRange.from); s.setHours(0, 0, 0, 0);
+      const e = new Date(dateRange.to || dateRange.from); e.setHours(23, 59, 59, 999);
+      return { start: s, end: e };
+    }
+    return null;
+  }, [period, dateRange]);
+
+  const periodLabel = useMemo(() => {
+    if (period === 'intervalo' && dateRange?.from) {
+      const f = format(dateRange.from, 'dd MMM', { locale: ptBR });
+      const t = dateRange.to ? format(dateRange.to, 'dd MMM', { locale: ptBR }) : f;
+      return `${f} → ${t}`;
+    }
+    return PERIODS.find(p => p.key === period)?.label || '';
+  }, [period, dateRange]);
+
+
   const affiliatedUsers = useMemo(
     () => users.filter(u => u.affiliatedTo === activeOperator),
     [users, activeOperator]
