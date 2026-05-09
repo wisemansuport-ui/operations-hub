@@ -142,6 +142,10 @@ const Operators = () => {
       if (meta.status !== 'fechada' || meta.isAdminMeta) return;
       const isAffiliated = (users.find(u => u.username === meta.operador)?.affiliatedTo === activeOperator);
       if (!isAffiliated) return;
+      if (periodBounds) {
+        const t = new Date(meta.createdAt).getTime();
+        if (isNaN(t) || t < periodBounds.start.getTime() || t > periodBounds.end.getTime()) return;
+      }
 
       const opName = meta.operador || 'Operador Central';
       if (!opMap[opName]) {
