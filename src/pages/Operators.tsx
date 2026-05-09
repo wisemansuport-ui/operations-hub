@@ -549,18 +549,6 @@ const Operators = () => {
       {/* FOLHA DE PAGAMENTO */}
       {activeTab === 'Folha de pagamento' && (
         <div className="animate-fade-in space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex gap-1 p-1.5 rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl w-fit">
-              {(['Hoje', '7 dias', '30 dias', 'Tudo']).map(f => (
-                <button
-                  key={f}
-                  className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-colors ${f === '30 dias' ? 'bg-foreground/[0.06] text-foreground shadow-[inset_0_0_0_1px_hsl(var(--border))]' : 'text-muted-foreground hover:text-foreground'}`}
-                >
-                  {f}
-                </button>
-              ))}
-            </div>
-          </div>
 
           {/* Hero summary card */}
           <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/10 via-card/40 to-card/20 backdrop-blur-2xl p-8">
