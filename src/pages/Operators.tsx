@@ -288,6 +288,59 @@ const Operators = () => {
         })}
       </div>
 
+      {activeTab !== 'Configurações' && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 -mt-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex gap-1 p-1.5 rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl">
+              {PERIODS.filter(p => p.key !== 'intervalo').map(p => (
+                <button
+                  key={p.key}
+                  onClick={() => setPeriod(p.key)}
+                  className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                    period === p.key
+                      ? 'bg-foreground/[0.06] text-foreground shadow-[inset_0_0_0_1px_hsl(var(--border))]'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  className={cn(
+                    "inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-xl border transition-all",
+                    period === 'intervalo'
+                      ? 'border-primary/40 bg-primary/10 text-primary'
+                      : 'border-border/40 bg-card/30 text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  <CalendarIcon className="w-3.5 h-3.5" />
+                  {period === 'intervalo' && dateRange?.from ? periodLabel : 'Intervalo personalizado'}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="range"
+                  selected={dateRange}
+                  onSelect={(r) => { setDateRange(r); if (r?.from) setPeriod('intervalo'); }}
+                  numberOfMonths={2}
+                  locale={ptBR}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+            Filtrando por: <span className="text-primary">{periodLabel}</span>
+          </div>
+        </div>
+      )}
+
       {/* RANKING */}
       {activeTab === 'Ranking' && (
         <div className="space-y-8 animate-fade-in">
