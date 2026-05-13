@@ -651,15 +651,19 @@ const Operators = () => {
                 const paid = payments[op.id];
                 const isPaidUp = op.pendingSalary === 0 && (paid?.paidUntil || op.salary === 0);
                 const isConfirm = confirmPayId === op.id;
+                const isUndoConfirm = confirmUndoId === op.id;
                 const lastPaidLabel = paid?.lastPaidAt ? format(new Date(paid.lastPaidAt), "dd MMM 'às' HH:mm", { locale: ptBR }) : null;
+                const opHistory = history.filter(h => h.operatorId === op.id);
+                const isExpanded = expandedHistory === op.id;
+                const totalPaidAllTime = opHistory.reduce((s, h) => s + (h.amount || 0), 0);
 
                 return (
-                  <div key={op.id} className={`group rounded-xl border transition-all p-4 ${
+                  <div key={op.id} className={`group rounded-xl border transition-all ${
                     isPaidUp
                       ? 'border-success/30 bg-success/[0.03]'
                       : 'border-border/50 bg-card/30 hover:bg-card/50 hover:border-border'
                   }`}>
-                    <div className="flex items-center gap-4 flex-wrap">
+                    <div className="flex items-center gap-4 flex-wrap p-4">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
                         isPaidUp ? 'bg-success/15 border border-success/40 text-success' : 'bg-primary/10 border border-primary/30 text-primary'
                       }`}>
@@ -674,10 +678,16 @@ const Operators = () => {
                               <BadgeCheck className="w-2.5 h-2.5" /> Pago
                             </span>
                           )}
+                          {opHistory.length > 0 && (
+                            <span className="inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded border border-border/50 bg-muted/30 text-muted-foreground">
+                              {opHistory.length} pgto{opHistory.length > 1 ? 's' : ''}
+                            </span>
+                          )}
                         </div>
                         <p className="text-[10px] text-muted-foreground mt-0.5">
                           {op.metas} metas · {op.deps} deps
                           {lastPaidLabel && <span className="ml-2 text-success/80">· último pgto {lastPaidLabel}</span>}
+                          {totalPaidAllTime > 0 && <span className="ml-2">· total pago {formatBRL(totalPaidAllTime)}</span>}
                         </p>
                       </div>
 
@@ -716,16 +726,48 @@ const Operators = () => {
                                 <X className="w-4 h-4" />
                               </button>
                             </>
+                          ) : isUndoConfirm ? (
+                            <>
+                              <span className="text-[10px] font-bold text-warning mr-1">Desfazer último?</span>
+                              <button
+                                onClick={() => handleUndoLastPayment(op)}
+                                disabled={loadingAction}
+                                className="p-2 rounded-lg bg-warning/15 hover:bg-warning/25 text-warning border border-warning/40 transition-colors"
+                                title="Confirmar desfazer"
+                              >
+                                <Check className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => setConfirmUndoId(null)}
+                                className="p-2 rounded-lg bg-muted/20 hover:bg-muted/40 text-muted-foreground border border-border/40 transition-colors"
+                                title="Cancelar"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </>
                           ) : (
                             <>
-                              {paid?.paidUntil && (
+                              {opHistory.length > 0 && (
                                 <button
-                                  onClick={() => handleResetPaid(op)}
-                                  disabled={loadingAction}
-                                  className="p-2 rounded-lg bg-muted/10 hover:bg-muted/30 text-muted-foreground hover:text-foreground border border-border/40 transition-colors"
-                                  title="Resetar histórico"
+                                  onClick={() => setExpandedHistory(isExpanded ? null : op.id)}
+                                  className={`p-2 rounded-lg border transition-colors ${
+                                    isExpanded
+                                      ? 'bg-primary/15 text-primary border-primary/40'
+                                      : 'bg-muted/10 hover:bg-muted/30 text-muted-foreground hover:text-foreground border-border/40'
+                                  }`}
+                                  title="Ver histórico"
                                 >
-                                  <RotateCcw className="w-4 h-4" />
+                                  <History className="w-4 h-4" />
+                                </button>
+                              )}
+                              {opHistory.length > 0 && (
+                                <button
+                                  onClick={() => setConfirmUndoId(op.id)}
+                                  disabled={loadingAction}
+                                  className="p-2 rounded-lg bg-warning/10 hover:bg-warning/20 text-warning border border-warning/30 transition-colors"
+                                  title="Desfazer último pagamento"
+                                >
+                                  <Undo2 className="w-4 h-4" />
                                 </button>
                               )}
                               <button
@@ -746,6 +788,72 @@ const Operators = () => {
                         </div>
                       </div>
                     </div>
+
+                    {isExpanded && opHistory.length > 0 && (
+                      <div className="border-t border-border/40 bg-muted/[0.02] px-4 py-3 animate-fade-in">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+                            <History className="w-3 h-3" /> Histórico de pagamentos
+                          </p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {opHistory.length} registro{opHistory.length > 1 ? 's' : ''} · total {formatBRL(totalPaidAllTime)}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          {opHistory.map((h, idx) => (
+                            <div
+                              key={h.id}
+                              className={`flex items-center gap-3 rounded-lg border px-3 py-2 text-xs ${
+                                idx === 0
+                                  ? 'border-success/30 bg-success/[0.04]'
+                                  : 'border-border/40 bg-card/30'
+                              }`}
+                            >
+                              <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
+                                idx === 0 ? 'bg-success/15 text-success border border-success/30' : 'bg-muted/30 text-muted-foreground border border-border/40'
+                              }`}>
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-bold text-foreground">{formatBRL(h.amount)}</span>
+                                  {idx === 0 && (
+                                    <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border border-success/40 bg-success/10 text-success">
+                                      Mais recente
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-2 flex-wrap">
+                                  <CalendarIcon className="w-2.5 h-2.5" />
+                                  {format(new Date(h.paidAt), "dd MMM yyyy 'às' HH:mm", { locale: ptBR })}
+                                  <span className="opacity-50">·</span>
+                                  <UserIcon className="w-2.5 h-2.5" /> {h.paidBy || '—'}
+                                </p>
+                              </div>
+                              {idx === 0 ? (
+                                <button
+                                  onClick={() => handleUndoLastPayment(op)}
+                                  disabled={loadingAction}
+                                  className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-warning/10 hover:bg-warning/20 text-warning border border-warning/30 text-[10px] font-bold transition-colors"
+                                  title="Desfazer este pagamento"
+                                >
+                                  <Undo2 className="w-3 h-3" /> Desfazer
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleDeleteHistoryEntry(h)}
+                                  disabled={loadingAction}
+                                  className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                                  title="Remover registro"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
