@@ -52,6 +52,17 @@ interface PaymentRecord {
   lastPaidAt?: string;       // ISO
 }
 
+interface PaymentHistoryEntry {
+  id: string;
+  operatorId: string;
+  operatorName: string;
+  amount: number;
+  paidAt: string;            // ISO
+  paidBy: string;
+  previousPaidUntil: string | null;
+  newPaidUntil: string;
+}
+
 const TABS = ['Ranking', 'Equipe', 'Folha de pagamento', 'Configurações'] as const;
 
 const Operators = () => {
