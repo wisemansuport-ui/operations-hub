@@ -330,6 +330,72 @@ export default function OperatorExtract() {
         />
       </div>
 
+      {/* Histórico de Pagamentos Recebidos */}
+      <div className="mt-6 rounded-2xl border border-border/50 bg-card/30 overflow-hidden">
+        <button
+          onClick={() => setShowHistory(s => !s)}
+          className="w-full flex items-center justify-between gap-3 px-5 py-4 hover:bg-muted/[0.04] transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+              <Wallet className="w-4 h-4 text-emerald-500" />
+            </div>
+            <div className="text-left">
+              <h3 className="text-sm font-bold text-foreground tracking-tight">Histórico de pagamentos recebidos</h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                {paymentHistory.length} pagamento{paymentHistory.length !== 1 ? 's' : ''} · total recebido {formatBRL(totalPaidAllTime)}
+              </p>
+            </div>
+          </div>
+          <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${showHistory ? 'rotate-180' : ''}`} />
+        </button>
+
+        {showHistory && (
+          <div className="border-t border-border/40 px-5 py-4 animate-fade-in">
+            {paymentHistory.length === 0 ? (
+              <div className="text-center py-8 text-xs text-muted-foreground">
+                Nenhum pagamento registrado ainda. Quando o administrador marcar um pagamento, ele aparecerá aqui.
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {paymentHistory.map((h, idx) => (
+                  <div
+                    key={h.id}
+                    className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 text-xs ${
+                      idx === 0
+                        ? 'border-emerald-500/30 bg-emerald-500/[0.04]'
+                        : 'border-border/40 bg-card/30'
+                    }`}
+                  >
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                      idx === 0 ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30' : 'bg-muted/30 text-muted-foreground border border-border/40'
+                    }`}>
+                      <CheckCircle2 className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-foreground text-sm">{formatBRL(h.amount)}</span>
+                        {idx === 0 && (
+                          <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border border-emerald-500/40 bg-emerald-500/10 text-emerald-500">
+                            Mais recente
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-2 flex-wrap">
+                        <CalendarIcon className="w-2.5 h-2.5" />
+                        {format(new Date(h.paidAt), "dd MMM yyyy 'às' HH:mm", { locale: ptBR })}
+                        <span className="opacity-50">·</span>
+                        <UserIcon className="w-2.5 h-2.5" /> Registrado por {h.paidBy || '—'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
     </div>
   );
 }
