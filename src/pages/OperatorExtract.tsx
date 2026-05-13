@@ -1,10 +1,27 @@
-import React, { useState, useMemo } from 'react';
-import { Wallet, Target, Activity, CheckCircle2, History, Filter, Download } from "lucide-react";
+import React, { useState, useMemo, useEffect } from 'react';
+import { Wallet, Target, Activity, CheckCircle2, History, Filter, Download, Calendar as CalendarIcon, User as UserIcon, ChevronDown } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import { DataTable, Column } from "@/components/spreadsheet/DataTable";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useFirestoreData } from "../hooks/useFirestoreData";
 import { OperationMeta } from "./Tasks";
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+interface PaymentHistoryEntry {
+  id: string;
+  operatorId: string;
+  operatorName: string;
+  amount: number;
+  paidAt: string;
+  paidBy: string;
+  previousPaidUntil: string | null;
+  newPaidUntil: string;
+}
+
+const formatBRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
 const columns: Column[] = [
   { key: "data", label: "Data" },
