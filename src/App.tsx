@@ -40,8 +40,8 @@ const App = () => {
     OneSignal.init({
       appId: "25bd7404-9856-4021-bbb4-3260a00197f4",
       allowLocalhostAsSecureOrigin: true,
-      notifyButton: { enable: false },
-    }).then(() => {
+      notifyButton: { enable: false } as any,
+    } as any).then(() => {
       // Tag device immediately after init if user is logged in
       if (user?.username) {
         registerDeviceTag(user.username, user.role || 'OPERADOR');
@@ -90,6 +90,7 @@ const App = () => {
                   <Route path="/operators" element={<PrivateRoute><Operators /></PrivateRoute>} />
                   <Route path="/me" element={<PrivateRoute><OperatorExtract /></PrivateRoute>} />
                   <Route path="/tutorial" element={<PrivateRoute><Tutorial /></PrivateRoute>} />
+                  <Route path="/costs" element={<PrivateRoute><Costs /></PrivateRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
             </BrowserRouter>

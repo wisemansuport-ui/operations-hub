@@ -111,7 +111,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
   const [editRede, setEditRede] = useState(meta.rede);
   const [editTitulo, setEditTitulo] = useState(meta.titulo);
   const [editContas, setEditContas] = useState<number | ''>(meta.contas);
-  const [editTotalApv, setEditTotalApv] = useState<number | ''>(meta.totalApv || '');
+  const [editTotalApv, setEditTotalApv] = useState<number | string>(meta.totalApv || '');
   const [editModelo, setEditModelo] = useState(meta.modelo);
   const [rTitulo, setRTitulo] = useState(String((meta.remessas?.length || 0) + 1));
   const [rTipo, setRTipo] = useState('Remessa');
@@ -985,7 +985,7 @@ const Tasks = () => {
   const [rede, setRede] = useState('Selecione');
   const [titulo, setTitulo] = useState('');
   const [contas, setContas] = useState<number | ''>('');
-  const [totalApv, setTotalApv] = useState<number | ''>('');
+  const [totalApv, setTotalApv] = useState<number | string>('');
   const [modelo, setModelo] = useState<'Depositante' | 'Recarga'>('Depositante');
   const [isAdminMeta, setIsAdminMeta] = useState(false);
 
