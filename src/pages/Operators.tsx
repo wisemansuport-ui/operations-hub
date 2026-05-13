@@ -2,10 +2,11 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   Users, Link as LinkIcon, Pencil, Trash2, Check, X, Crown, Trophy, Medal,
   TrendingUp, DollarSign, Target, UserCheck, Wallet, ArrowUpRight,
-  Calendar as CalendarIcon, CheckCircle2, RotateCcw, Search, BadgeCheck
+  Calendar as CalendarIcon, CheckCircle2, RotateCcw, Search, BadgeCheck,
+  History, Undo2, ChevronDown, User as UserIcon
 } from "lucide-react";
 import { toast } from "sonner";
-import { doc, updateDoc, deleteDoc, setDoc, onSnapshot, collection } from 'firebase/firestore';
+import { doc, updateDoc, deleteDoc, setDoc, addDoc, onSnapshot, collection, query, orderBy } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useFirestoreData } from "../hooks/useFirestoreData";
