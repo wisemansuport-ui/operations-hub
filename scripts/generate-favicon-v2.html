@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>NytzerVision — Gerar Favicons</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; }
+    body { background: #1a1a1a; color: #fff; font-family: system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; min-height: 100vh; }
+    h1 { color: #c9a227; margin-bottom: 8px; }
+    p { color: #888; margin-bottom: 24px; }
+    #dropzone { width: 400px; height: 200px; border: 2px dashed #555; border-radius: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; color: #666; font-size: 16px; text-align: center; padding: 20px; }
+    #dropzone:hover, #dropzone.dragover { border-color: #c9a227; color: #c9a227; background: rgba(201,162,39,0.05); }
+    #dropzone img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; }
+    input[type="file"] { display: none; }
+    #output { display: none; margin-top: 32px; text-align: center; }
+    .previews { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin: 20px 0; }
+    .preview-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .preview-item canvas { border: 1px solid #333; border-radius: 8px; background: #000; }
+    .preview-item span { font-size: 12px; color: #888; }
+    button { padding: 14px 36px; font-size: 15px; cursor: pointer; background: #c9a227; border: none; border-radius: 10px; font-weight: 700; color: #000; margin: 8px; transition: background 0.2s; }
+    button:hover { background: #e0b830; }
+    .note { color: #666; font-size: 13px; margin-top: 16px; max-width: 500px; text-align: center; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <h1>⚡ NytzerVision Favicon</h1>
+  <p>Arraste a imagem PNG ou clique para selecionar</p>
+
+  <div id="dropzone" onclick="document.getElementById('fileInput').click()">
+    Solte a imagem aqui<br>ou clique para selecionar
+  </div>
+  <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp">
+
+  <div id="output">
+    <h2 style="color:#c9a227; margin-bottom: 4px;">✅ Pronto!</h2>
+    <p>Todos os tamanhos gerados. Salve na pasta <code style="background:#333;padding:2px 8px;border-radius:4px;">public/</code></p>
+    <div class="previews" id="previews"></div>
+    <div>
+      <button onclick="downloadAll()">⬇ Baixar Todos</button>
+    </div>
+    <div class="note">
+      Após baixar, mova os arquivos para <strong>public/</strong> do projeto, substituindo os existentes.
+    </div>
+  </div>
+
+  <script>
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    let sourceImg = null;
+
+    // Sizes needed
+    const targets = [
+      { size: 512, name: 'icon-512.png',         label: '512×512 (PWA)' },
+      { size: 192, name: 'icon-192.png',          label: '192×192 (PWA)' },
+      { size: 180, name: 'apple-touch-icon.png',  label: '180×180 (iPhone)' },
+      { size: 32,  name: 'favicon.png',           label: '32×32 (Browser)' },
+      { size: 16,  name: 'favicon-16.png',        label: '16×16 (Browser)' },
+    ];
+
+    // Drag/drop
+    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', e => { e.preventDefault(); dropzone.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); });
+    fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+    function handleFile(file) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => { sourceImg = img; generateAll(); };
+        img.src = e.target.result;
+        dropzone.innerHTML = '';
+        const preview = document.createElement('img');
+        preview.src = e.target.result;
+        dropzone.appendChild(preview);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function resizeToCanvas(img, size) {
+      const cv = document.createElement('canvas');
+      cv.width = size;
+      cv.height = size;
+      const ctx = cv.getContext('2d');
+      // High-quality downscale
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, size, size);
+      return cv;
+    }
+
+    function generateAll() {
+      const container = document.getElementById('previews');
+      container.innerHTML = '';
+
+      targets.forEach(t => {
+        const cv = resizeToCanvas(sourceImg, t.size);
+        const displaySize = Math.min(t.size, 128);
+        cv.style.width = displaySize + 'px';
+        cv.style.height = displaySize + 'px';
+
+        const item = document.createElement('div');
+        item.className = 'preview-item';
+        item.appendChild(cv);
+        const label = document.createElement('span');
+        label.textContent = t.label;
+        item.appendChild(label);
+        container.appendChild(item);
+      });
+
+      document.getElementById('output').style.display = 'block';
+    }
+
+    function downloadAll() {
+      targets.forEach((t, i) => {
+        setTimeout(() => {
+          const cv = resizeToCanvas(sourceImg, t.size);
+          const link = document.createElement('a');
+          link.download = t.name;
+          link.href = cv.toDataURL('image/png');
+          link.click();
+        }, i * 350);
+      });
+    }
+  </script>
+</body>
+</html>

@@ -31,7 +31,7 @@ const formatBRL = (val: number) => `R$ ${val.toFixed(2).replace('.', ',')}`;
 const Dashboard = () => {
   const [role] = useLocalStorage<'ADMIN' | 'OPERADOR'>('nytzer-role', 'ADMIN');
   const [user] = useLocalStorage<any>('nytzer-user', null);
-  const { metas, users } = useFirestoreData();
+  const { metas, users, costs } = useFirestoreData();
   const operatorName = user?.username || 'Operador Central';
   const allowedLinks = quickLinks.filter(link => link.roles.includes(role));  
   
@@ -125,8 +125,13 @@ const Dashboard = () => {
       }
     }
 
+    let totalCustos = 0;
+    for (const cost of costs) {
+       totalCustos += Number(cost.valor || 0);
+    }
+
     const lucroBruto = totalSacado - totalDepositado;
-    const receitaMensal = lucroBruto + totalSalarios - totalAutoSalarios;
+    const receitaMensal = lucroBruto + totalSalarios - totalAutoSalarios - totalCustos;
     const medioporMeta = metasFechadas > 0 ? receitaMensal / metasFechadas : 0;
     const medioporConta = contasProcessadas > 0 ? receitaMensal / contasProcessadas : 0;
 
@@ -157,6 +162,7 @@ const Dashboard = () => {
       lucroBruto,
       totalSalarios,
       totalAutoSalarios,
+      totalCustos,
       receitaMensal,
       metasFechadas,
       metasAtivas,
@@ -169,7 +175,7 @@ const Dashboard = () => {
       rankingRedes,
       chartData
     };
-  }, [metas, role, operatorName]);
+  }, [metas, costs, role, operatorName]);
 
   // Dynamic Chart Data
   const barData = stats.chartData;
@@ -429,14 +435,18 @@ const Dashboard = () => {
              </div>
            </div>
 
-           <div className="grid grid-cols-2 gap-4 pt-4 mt-2 border-t border-border/20">
+           <div className="grid grid-cols-3 gap-2 pt-4 mt-2 border-t border-border/20">
              <div className="flex flex-col gap-1">
-               <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Lucro Bruto</span>
-               <span className={`text-2xl font-black drop-shadow-md ${stats.lucroBruto >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>{formatBRL(stats.lucroBruto)}</span>
+               <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">Lucro Bruto</span>
+               <span className={`text-lg font-black drop-shadow-md ${stats.lucroBruto >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>{formatBRL(stats.lucroBruto)}</span>
              </div>
-             <div className="flex flex-col gap-1">
-               <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">SALÁRIO (FAT)</span>
-               <span className="text-2xl font-black text-emerald-400 drop-shadow-md">+ {formatBRL(stats.totalSalarios)}</span>
+             <div className="flex flex-col gap-1 border-l border-border/30 pl-2">
+               <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">FATURAMENTO</span>
+               <span className="text-lg font-black text-emerald-400 drop-shadow-md">+{formatBRL(stats.totalSalarios)}</span>
+             </div>
+             <div className="flex flex-col gap-1 border-l border-border/30 pl-2">
+               <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">CUSTOS OP.</span>
+               <span className="text-lg font-black text-red-500 drop-shadow-md">-{formatBRL(stats.totalCustos)}</span>
              </div>
            </div>
         </div>

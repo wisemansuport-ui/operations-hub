@@ -6,14 +6,16 @@ import { OperationMeta } from '../pages/Tasks';
 export const useFirestoreData = () => {
   const [metas, setMetas] = useState<OperationMeta[]>([]);
   const [users, setUsers] = useState<any[]>([]);
+  const [costs, setCosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let metasLoaded = false;
     let usersLoaded = false;
+    let costsLoaded = false;
 
     const checkLoading = () => {
-      if (metasLoaded && usersLoaded) setLoading(false);
+      if (metasLoaded && usersLoaded && costsLoaded) setLoading(false);
     };
 
     const unsubMetas = onSnapshot(collection(db, 'metas'), (snapshot) => {
@@ -30,11 +32,20 @@ export const useFirestoreData = () => {
       checkLoading();
     });
 
+    const unsubCosts = onSnapshot(collection(db, 'costs'), (snapshot) => {
+      const costsData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      // Sort by date descending
+      setCosts(costsData.sort((a,b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()));
+      costsLoaded = true;
+      checkLoading();
+    });
+
     return () => {
       unsubMetas();
       unsubUsers();
+      unsubCosts();
     };
   }, []);
 
-  return { metas, users, loading };
+  return { metas, users, costs, loading };
 };
