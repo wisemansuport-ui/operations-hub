@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
   Plus, Wallet, TrendingDown, TrendingUp, X, Shield, MessageSquare,
-  Instagram, Bot, Server, DollarSign, Trash2, Calendar as CalendarIcon
+  Camera, Bot, Server, DollarSign, Trash2, Calendar as CalendarIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -27,7 +27,7 @@ interface CostEntry {
 const COST_TYPES: { key: CostType; label: string; icon: any }[] = [
   { key: 'proxy', label: 'Proxy', icon: Shield },
   { key: 'sms', label: 'SMS', icon: MessageSquare },
-  { key: 'instagram', label: 'Postagem Instagram', icon: Instagram },
+  { key: 'instagram', label: 'Postagem Instagram', icon: Camera },
   { key: 'bot', label: 'Bot / Automação', icon: Bot },
   { key: 'vps', label: 'VPS / Servidor', icon: Server },
   { key: 'outros', label: 'Outros', icon: DollarSign },
