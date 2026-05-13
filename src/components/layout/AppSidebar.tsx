@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, CalendarDays, Globe, ShieldCheck,
   BarChart3, ChevronLeft, ChevronRight, Zap, CreditCard, Users, Wallet, UserCog, PlayCircle,
-  ChartNoAxesCombined
+  ChartNoAxesCombined, Receipt
 } from "lucide-react";
 import { useState } from "react";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
@@ -21,6 +21,7 @@ export const AppSidebar = () => {
     { path: "/networks", label: "Redes", icon: Globe, roles: ['ADMIN'] },
     { path: "/pix", label: "PIX", icon: CreditCard, roles: ['ADMIN', 'OPERADOR'] },
     { path: "/reports", label: "Relatórios", icon: BarChart3, roles: ['ADMIN'] },
+    { path: "/costs", label: "Custos", icon: Receipt, roles: ['ADMIN'] },
     { path: "/tutorial", label: "Tutorial", icon: PlayCircle, roles: ['ADMIN', 'OPERADOR'] },
   ].filter(item => item.roles.includes(role));
 

@@ -21,6 +21,7 @@ import Reports from "./pages/Reports";
 import Operators from "./pages/Operators";
 import OperatorExtract from "./pages/OperatorExtract";
 import Tutorial from "./pages/Tutorial";
+import Costs from "./pages/Costs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -88,6 +89,7 @@ const App = () => {
                   <Route path="/operators" element={<PrivateRoute><Operators /></PrivateRoute>} />
                   <Route path="/me" element={<PrivateRoute><OperatorExtract /></PrivateRoute>} />
                   <Route path="/tutorial" element={<PrivateRoute><Tutorial /></PrivateRoute>} />
+                  <Route path="/costs" element={<PrivateRoute><Costs /></PrivateRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
             </BrowserRouter>
