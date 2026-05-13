@@ -5,7 +5,7 @@ import { DataTable, Column } from "@/components/spreadsheet/DataTable";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useFirestoreData } from "../hooks/useFirestoreData";
 import { OperationMeta } from "./Tasks";
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, doc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -42,6 +42,7 @@ export default function OperatorExtract() {
 
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryEntry[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [operatorPayment, setOperatorPayment] = useState<{ paidUntil?: string } | null>(null);
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'operatorPaymentHistory'), snap => {
@@ -50,6 +51,17 @@ export default function OperatorExtract() {
         .filter(h => h.operatorName === operatorName);
       list.sort((a, b) => new Date(b.paidAt).getTime() - new Date(a.paidAt).getTime());
       setPaymentHistory(list);
+    });
+    return () => unsub();
+  }, [operatorName]);
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'operatorPayments', operatorName), snap => {
+      if (snap.exists()) {
+        setOperatorPayment(snap.data() as any);
+      } else {
+        setOperatorPayment(null);
+      }
     });
     return () => unsub();
   }, [operatorName]);
@@ -63,15 +75,17 @@ export default function OperatorExtract() {
     const isThisMonth = (d: Date) => d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
 
     const newStats = {
-      HOJE: { normal: 0, depBaixo: 0, salarioManual: 0 },
-      SEMANA: { normal: 0, depBaixo: 0, salarioManual: 0 },
-      MES: { normal: 0, depBaixo: 0, salarioManual: 0 },
+      HOJE: { normal: 0, depBaixo: 0, salarioManual: 0, pendingNormal: 0, pendingDepBaixo: 0, pendingSalarioManual: 0 },
+      SEMANA: { normal: 0, depBaixo: 0, salarioManual: 0, pendingNormal: 0, pendingDepBaixo: 0, pendingSalarioManual: 0 },
+      MES: { normal: 0, depBaixo: 0, salarioManual: 0, pendingNormal: 0, pendingDepBaixo: 0, pendingSalarioManual: 0 },
     };
 
     const extrato: any[] = [];
     const productionByDate: Record<string, { date: string, normal: number, baixas: number }> = {};
     const platforms = new Set<string>();
     const networks = new Set<string>();
+
+    const paidUntil = operatorPayment?.paidUntil ? new Date(operatorPayment.paidUntil).getTime() : 0;
 
     metas.forEach(meta => {
       if (meta.status === 'lixeira' || meta.operador !== operatorName || meta.isAdminMeta) return;
@@ -86,12 +100,15 @@ export default function OperatorExtract() {
       platforms.add(pName);
       if (rName !== 'N/A') networks.add(rName);
 
+      const metaTime = new Date(meta.createdAt).getTime();
+      const isPending = !paidUntil || metaTime > paidUntil;
+
       // Apply Filters
       const matchPlatform = platformFilter === 'TODAS' || pName === platformFilter;
       const matchNetwork = networkFilter === 'TODAS' || rName === networkFilter;
 
       if (matchPlatform && matchNetwork) {
-        (meta.remessas || []).forEach(r => {
+        (meta.remessas || []).forEach((r: any) => {
           const d = new Date(r.data || meta.createdAt);
           if (d > lastDate) lastDate = d;
 
@@ -101,9 +118,21 @@ export default function OperatorExtract() {
           baixas += rb;
 
           if (meta.modelo !== 'Recarga') {
-            if (isSameDay(d)) { newStats.HOJE.normal += rn; newStats.HOJE.depBaixo += rb; }
-            if (isThisWeek(d)) { newStats.SEMANA.normal += rn; newStats.SEMANA.depBaixo += rb; }
-            if (isThisMonth(d)) { newStats.MES.normal += rn; newStats.MES.depBaixo += rb; }
+            if (isSameDay(d)) { 
+              newStats.HOJE.normal += rn; 
+              newStats.HOJE.depBaixo += rb; 
+              if (isPending) { newStats.HOJE.pendingNormal += rn; newStats.HOJE.pendingDepBaixo += rb; }
+            }
+            if (isThisWeek(d)) { 
+              newStats.SEMANA.normal += rn; 
+              newStats.SEMANA.depBaixo += rb; 
+              if (isPending) { newStats.SEMANA.pendingNormal += rn; newStats.SEMANA.pendingDepBaixo += rb; }
+            }
+            if (isThisMonth(d)) { 
+              newStats.MES.normal += rn; 
+              newStats.MES.depBaixo += rb; 
+              if (isPending) { newStats.MES.pendingNormal += rn; newStats.MES.pendingDepBaixo += rb; }
+            }
           }
         });
 
@@ -118,9 +147,18 @@ export default function OperatorExtract() {
         }
 
         if (manualSalario > 0) {
-          if (isSameDay(lastDate)) newStats.HOJE.salarioManual += manualSalario;
-          if (isThisWeek(lastDate)) newStats.SEMANA.salarioManual += manualSalario;
-          if (isThisMonth(lastDate)) newStats.MES.salarioManual += manualSalario;
+          if (isSameDay(lastDate)) {
+             newStats.HOJE.salarioManual += manualSalario;
+             if (isPending) newStats.HOJE.pendingSalarioManual += manualSalario;
+          }
+          if (isThisWeek(lastDate)) {
+             newStats.SEMANA.salarioManual += manualSalario;
+             if (isPending) newStats.SEMANA.pendingSalarioManual += manualSalario;
+          }
+          if (isThisMonth(lastDate)) {
+             newStats.MES.salarioManual += manualSalario;
+             if (isPending) newStats.MES.pendingSalarioManual += manualSalario;
+          }
         }
 
         extrato.push({
@@ -158,10 +196,10 @@ export default function OperatorExtract() {
       availablePlatforms: Array.from(platforms).sort(),
       availableNetworks: Array.from(networks).sort()
     };
-  }, [metas, operatorName, platformFilter, networkFilter]);
+  }, [metas, operatorName, platformFilter, networkFilter, operatorPayment]);
 
   const currentStats = stats[timeFilter];
-  const lucroTotal = (currentStats.normal * 2) + (currentStats.depBaixo * 1) + (currentStats.salarioManual || 0);
+  const lucroTotal = (currentStats.pendingNormal * 2) + (currentStats.pendingDepBaixo * 1) + (currentStats.pendingSalarioManual || 0);
 
   const exportToCSV = () => {
     if (extratoData.length === 0) return;
