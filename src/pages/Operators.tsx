@@ -173,25 +173,56 @@ const Operators = () => {
   const handleMarkPaid = async (op: OperatorData) => {
     setLoadingAction(true);
     try {
+      const now = new Date().toISOString();
+      const previousPaidUntil = payments[op.id]?.paidUntil || null;
       await setDoc(doc(db, 'operatorPayments', op.id), {
-        paidUntil: new Date().toISOString(),
+        paidUntil: now,
         lastPaidAmount: op.pendingSalary,
-        lastPaidAt: new Date().toISOString(),
+        lastPaidAt: now,
       }, { merge: true });
+      await addDoc(collection(db, 'operatorPaymentHistory'), {
+        operatorId: op.id,
+        operatorName: op.name,
+        amount: op.pendingSalary,
+        paidAt: now,
+        paidBy: activeOperator,
+        previousPaidUntil,
+        newPaidUntil: now,
+      });
       toast.success(`Pagamento de ${op.name} registrado: ${formatBRL(op.pendingSalary)}`);
       setConfirmPayId(null);
     } catch { toast.error('Erro ao registrar pagamento.'); }
     finally { setLoadingAction(false); }
   };
 
-  const handleResetPaid = async (op: OperatorData) => {
+  const handleUndoLastPayment = async (op: OperatorData) => {
     setLoadingAction(true);
     try {
+      const opHistory = history.filter(h => h.operatorId === op.id);
+      if (opHistory.length === 0) {
+        toast.error('Nenhum pagamento para desfazer.');
+        return;
+      }
+      const last = opHistory[0];
+      // Restore previous state
       await setDoc(doc(db, 'operatorPayments', op.id), {
-        paidUntil: null,
+        paidUntil: last.previousPaidUntil ?? null,
+        lastPaidAmount: opHistory[1]?.amount ?? null,
+        lastPaidAt: opHistory[1]?.paidAt ?? null,
       }, { merge: true });
-      toast.success(`Histórico de pagamento de ${op.name} resetado.`);
-    } catch { toast.error('Erro ao resetar pagamento.'); }
+      await deleteDoc(doc(db, 'operatorPaymentHistory', last.id));
+      toast.success(`Último pagamento de ${op.name} desfeito (${formatBRL(last.amount)}).`);
+      setConfirmUndoId(null);
+    } catch { toast.error('Erro ao desfazer pagamento.'); }
+    finally { setLoadingAction(false); }
+  };
+
+  const handleDeleteHistoryEntry = async (entry: PaymentHistoryEntry) => {
+    setLoadingAction(true);
+    try {
+      await deleteDoc(doc(db, 'operatorPaymentHistory', entry.id));
+      toast.success('Registro removido do histórico.');
+    } catch { toast.error('Erro ao remover registro.'); }
     finally { setLoadingAction(false); }
   };
 
