@@ -45,7 +45,7 @@ const Dashboard = () => {
     let contasNormais = 0;
     let contasBaixas = 0;
     const redesMap: Record<string, { lucro: number, contas: number, metas: number, acertos: number }> = {};
-    const chartDataByDate: Record<string, { name: string, contas: number, lucro: number }> = {};
+    const chartDataByDate: Record<string, { name: string, contas: number, lucro: number, lucroOperador: number }> = {};
 
     let metasAtivas = 0;
     let totalMetas = 0;
@@ -197,8 +197,8 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <KPICard title="Saldo Total" value={formatBRL(stats.totalAutoSalarios)} change={`${stats.contasProcessadas} contas operadas`} changeType="positive" icon={DollarSign} color="success" tooltip="O valor total a receber (salário + comissões) baseado na sua produção validada." />
           <KPICard title="Metas Fechadas" value={`${stats.metasFechadas}/${stats.totalMetas}`} change="Registradas" changeType="positive" icon={Target} color="primary" tooltip="Quantidade de metas concluídas em relação ao total atribuído a você." />
-          <KPICard title="Contas (NORMAL)" value={stats.contasNormais} change="R$ 2,00 por conta" changeType="neutral" icon={Activity} color="primary" tooltip="Volume de contas normais validadas (R$ 2,00 por unidade)." />
-          <KPICard title="Contas (BAIXO)" value={stats.contasBaixas} change="R$ 1,00 por conta" changeType="neutral" icon={Users} color="warning" tooltip="Volume de contas com depósito baixo validadas (R$ 1,00 por unidade)." />
+          <KPICard title="Contas (NORMAL)" value={String(stats.contasNormais)} change="R$ 2,00 por conta" changeType="neutral" icon={Activity} color="primary" tooltip="Volume de contas normais validadas (R$ 2,00 por unidade)." />
+          <KPICard title="Contas (BAIXO)" value={String(stats.contasBaixas)} change="R$ 1,00 por conta" changeType="neutral" icon={Users} color="warning" tooltip="Volume de contas com depósito baixo validadas (R$ 1,00 por unidade)." />
         </div>
 
         {/* Proporção Operacional - Simple Chart for Operator */}
@@ -327,8 +327,8 @@ const Dashboard = () => {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <KPICard title="Receita Mês Líquida" value={formatBRL(stats.receitaMensal)} change={`+ ${formatBRL(stats.totalSalarios)} FAT`} changeType="positive" icon={DollarSign} color="success" tooltip="Lucro bruto somado ao faturamento (salários) de toda a operação." />
       <KPICard title="Metas Fechadas" value={`${stats.metasFechadas}/${stats.totalMetas}`} change="Registradas" changeType="positive" icon={Target} color="primary" tooltip="Metas concluídas com sucesso do total criado." />
-      <KPICard title="Metas Ativas" value={stats.metasAtivas} change="Painel de controle" changeType="neutral" icon={Activity} color="warning" tooltip="Metas atualmente em andamento aguardando o fechamento dos operadores." />
-      <KPICard title="Contas Operadas" value={stats.contasProcessadas} change="Volume total" changeType="neutral" icon={Users} color="primary" tooltip="O volume total de contas produzidas em toda a operação." />
+      <KPICard title="Metas Ativas" value={String(stats.metasAtivas)} change="Painel de controle" changeType="neutral" icon={Activity} color="warning" tooltip="Metas atualmente em andamento aguardando o fechamento dos operadores." />
+      <KPICard title="Contas Operadas" value={String(stats.contasProcessadas)} change="Volume total" changeType="neutral" icon={Users} color="primary" tooltip="O volume total de contas produzidas em toda a operação." />
     </div>
 
     {/* Modernized Charts */}
