@@ -82,6 +82,9 @@ const Operators = () => {
   const [search, setSearch] = useState('');
   const [confirmPayId, setConfirmPayId] = useState<string | null>(null);
   const [payments, setPayments] = useState<Record<string, PaymentRecord>>({});
+  const [history, setHistory] = useState<PaymentHistoryEntry[]>([]);
+  const [expandedHistory, setExpandedHistory] = useState<string | null>(null);
+  const [confirmUndoId, setConfirmUndoId] = useState<string | null>(null);
 
   // Subscribe to payment snapshots
   useEffect(() => {
@@ -89,6 +92,16 @@ const Operators = () => {
       const map: Record<string, PaymentRecord> = {};
       snap.docs.forEach(d => { map[d.id] = { id: d.id, ...(d.data() as any) }; });
       setPayments(map);
+    });
+    return () => unsub();
+  }, []);
+
+  // Subscribe to payment history
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'operatorPaymentHistory'), snap => {
+      const list: PaymentHistoryEntry[] = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) }));
+      list.sort((a, b) => new Date(b.paidAt).getTime() - new Date(a.paidAt).getTime());
+      setHistory(list);
     });
     return () => unsub();
   }, []);
