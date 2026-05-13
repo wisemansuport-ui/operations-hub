@@ -40,6 +40,22 @@ export default function OperatorExtract() {
   const [user] = useLocalStorage<any>('nytzer-user', null);
   const operatorName = user?.username || 'Operador Central';
 
+  const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryEntry[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'operatorPaymentHistory'), snap => {
+      const list: PaymentHistoryEntry[] = snap.docs
+        .map(d => ({ id: d.id, ...(d.data() as any) }))
+        .filter(h => h.operatorName === operatorName);
+      list.sort((a, b) => new Date(b.paidAt).getTime() - new Date(a.paidAt).getTime());
+      setPaymentHistory(list);
+    });
+    return () => unsub();
+  }, [operatorName]);
+
+  const totalPaidAllTime = paymentHistory.reduce((s, h) => s + (h.amount || 0), 0);
+
   const { stats, extratoData, chartData, availablePlatforms, availableNetworks } = useMemo(() => {
     const now = new Date();
     const isSameDay = (d: Date) => d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
