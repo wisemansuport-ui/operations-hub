@@ -47,7 +47,7 @@ export default function OperatorExtract() {
     const unsub = onSnapshot(collection(db, 'operatorPaymentHistory'), snap => {
       const list: PaymentHistoryEntry[] = snap.docs
         .map(d => ({ id: d.id, ...(d.data() as any) }))
-        .filter(h => h.operatorName === operatorName);
+        .filter(h => h.operatorId === operatorName);
       list.sort((a, b) => new Date(b.paidAt).getTime() - new Date(a.paidAt).getTime());
       setPaymentHistory(list);
     });
