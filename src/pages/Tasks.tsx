@@ -350,16 +350,15 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
                </div>
              ) : meta.link ? (
                <div className="flex items-center gap-2 group/link">
-                 <LinkIcon className="w-3.5 h-3.5 text-primary/60" />
                  <a
                    href={meta.link}
                    target="_blank"
                    rel="noopener noreferrer"
-                   className="text-xs text-primary/80 hover:text-primary underline underline-offset-2 decoration-primary/30 hover:decoration-primary/60 transition-colors truncate max-w-[300px]"
+                   className="flex items-center gap-1.5 text-[11px] text-primary hover:text-primary-foreground border border-primary/40 bg-primary/10 hover:bg-primary px-3 py-1.5 rounded-lg transition-all font-semibold"
                  >
-                   {meta.link.replace(/^https?:\/\//, '').substring(0, 50)}{meta.link.length > 55 ? '...' : ''}
+                   <ExternalLink className="w-3.5 h-3.5" />
+                   Abrir link
                  </a>
-                 <ExternalLink className="w-3 h-3 text-primary/40" />
                  <button
                    onClick={() => { setLinkValue(meta.link || ''); setIsEditingLink(true); }}
                    className="p-1 rounded-md bg-muted/20 hover:bg-primary/10 text-muted-foreground hover:text-primary border border-border/30 transition-colors opacity-0 group-hover/link:opacity-100"
