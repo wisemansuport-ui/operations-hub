@@ -410,85 +410,85 @@ const Dashboard = () => {
     </div>
 
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Col 1: Core Stats Graph */}
-      <div className="glass-card rounded-2xl p-6 border-primary/10 flex flex-col justify-between">
-        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-[0.15em] mb-4">Fluxo (Entradas vs Saídas)</h3>
-        
-        <div className="space-y-6">
+      {/* Col 1: Fluxo */}
+      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5 flex flex-col justify-between">
+        <h3 className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold mb-5">Fluxo (Entradas vs Saídas)</h3>
+
+        <div className="space-y-5">
            <div>
              <div className="flex justify-between items-end mb-2">
-               <span className="text-sm font-medium text-muted-foreground">Volume Depositado</span>
-               <span className="font-bold text-foreground tracking-tight">{formatBRL(stats.totalDepositado)}</span>
+               <span className="text-sm text-muted-foreground">Volume Depositado</span>
+               <span className="text-sm font-semibold text-foreground tabular-nums">{formatBRL(stats.totalDepositado)}</span>
              </div>
-             <div className="w-full bg-emerald-950/30 rounded-full h-2.5 overflow-hidden">
-               <div className="bg-emerald-400 h-full rounded-full shadow-[0_0_10px_rgba(52,211,153,0.5)] transition-all duration-1000" style={{ width: stats.totalDepositado ? '100%' : '5%' }} />
+             <div className="w-full h-2 rounded-full bg-secondary overflow-hidden">
+               <div className="h-full rounded-full bg-gradient-to-r from-primary/70 to-primary transition-all duration-700" style={{ width: stats.totalDepositado ? '100%' : '5%' }} />
              </div>
            </div>
 
            <div>
              <div className="flex justify-between items-end mb-2">
-               <span className="text-sm font-medium text-muted-foreground">Volume Sacado</span>
-               <span className="font-bold text-foreground tracking-tight">{formatBRL(stats.totalSacado)}</span>
+               <span className="text-sm text-muted-foreground">Volume Sacado</span>
+               <span className="text-sm font-semibold text-foreground tabular-nums">{formatBRL(stats.totalSacado)}</span>
              </div>
-             <div className="w-full bg-primary/10 rounded-full h-2.5 overflow-hidden">
-               <div className="bg-primary h-full rounded-full shadow-[0_0_10px_hsl(var(--primary)/0.5)] transition-all duration-1000" style={{ width: stats.totalSacado > stats.totalDepositado ? '100%' : (stats.totalSacado ? '50%' : '5%') }} />
+             <div className="w-full h-2 rounded-full bg-secondary overflow-hidden">
+               <div className="h-full rounded-full bg-gradient-to-r from-primary/50 to-primary/90 transition-all duration-700" style={{ width: stats.totalSacado > stats.totalDepositado ? '100%' : (stats.totalSacado ? '50%' : '5%') }} />
              </div>
            </div>
 
-           <div className="grid grid-cols-3 gap-2 pt-4 mt-2 border-t border-border/20">
+           <div className="grid grid-cols-3 gap-3 pt-4 mt-1 border-t border-border/60">
              <div className="flex flex-col gap-1">
-               <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">Lucro Bruto</span>
-               <span className={`text-lg font-black drop-shadow-md ${stats.lucroBruto >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>{formatBRL(stats.lucroBruto)}</span>
+               <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest">Lucro Bruto</span>
+               <span className={`text-base font-bold tabular-nums ${stats.lucroBruto >= 0 ? 'text-primary' : 'text-destructive'}`}>{formatBRL(stats.lucroBruto)}</span>
              </div>
-             <div className="flex flex-col gap-1 border-l border-border/30 pl-2">
-               <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">FATURAMENTO</span>
-               <span className="text-lg font-black text-emerald-400 drop-shadow-md">+{formatBRL(stats.totalSalarios)}</span>
+             <div className="flex flex-col gap-1 border-l border-border/60 pl-3">
+               <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest">Faturamento</span>
+               <span className="text-base font-bold text-primary tabular-nums">+{formatBRL(stats.totalSalarios)}</span>
              </div>
-             <div className="flex flex-col gap-1 border-l border-border/30 pl-2">
-               <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">CUSTOS OP.</span>
-               <span className="text-lg font-black text-red-500 drop-shadow-md">-{formatBRL(stats.totalCustos)}</span>
+             <div className="flex flex-col gap-1 border-l border-border/60 pl-3">
+               <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest">Custos op.</span>
+               <span className="text-base font-bold text-destructive tabular-nums">-{formatBRL(stats.totalCustos)}</span>
              </div>
            </div>
         </div>
       </div>
 
       {/* Col 2: Previsão Inteligente */}
-      <div className="glass-card rounded-2xl p-6 border-primary/10">
-        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-[0.15em] mb-6">Previsao Inteligente</h3>
-        <div className="space-y-5">
+      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5">
+        <h3 className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold mb-5">Previsão Inteligente</h3>
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">Lucro medio/meta</span>
-            <span className="text-sm font-bold text-emerald-400">{formatBRL(stats.medioporMeta)}</span>
+            <span className="text-sm text-muted-foreground">Lucro médio/meta</span>
+            <span className="text-sm font-semibold text-foreground tabular-nums">{formatBRL(stats.medioporMeta)}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">Lucro medio/conta</span>
-            <span className="text-sm font-bold text-emerald-400">{formatBRL(stats.medioporConta)}</span>
+            <span className="text-sm text-muted-foreground">Lucro médio/conta</span>
+            <span className="text-sm font-semibold text-foreground tabular-nums">{formatBRL(stats.medioporConta)}</span>
           </div>
-          <div className="flex items-center justify-between border-t border-border/40 pt-5 mt-3">
-            <span className="text-sm font-medium text-muted-foreground">Proximas 50 contas (estimativa)</span>
-            <span className="text-base font-extrabold text-emerald-400">+{formatBRL(stats.medioporConta * 50)}</span>
+          <div className="flex items-center justify-between border-t border-border/60 pt-4 mt-2">
+            <span className="text-sm text-muted-foreground">Próximas 50 contas (estimativa)</span>
+            <span className="text-base font-bold text-primary tabular-nums">+{formatBRL(stats.medioporConta * 50)}</span>
           </div>
         </div>
       </div>
 
       {/* Col 3: Redes Mais Lucrativas */}
-      <div className="glass-card rounded-2xl p-6 border-primary/10 overflow-y-auto max-h-[400px] hide-scrollbar">
-        <h3 className="text-xs font-bold text-foreground uppercase tracking-[0.1em] mb-6">Redes Mais Lucrativas</h3>
-        <div className="space-y-5">
+      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5 overflow-y-auto max-h-[400px] hide-scrollbar">
+        <h3 className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold mb-5">Redes Mais Lucrativas</h3>
+        <div className="divide-y divide-border/60">
            {stats.rankingRedes.length === 0 ? (
              <p className="text-xs text-muted-foreground text-center py-10">Inicie operações para ver o ranking.</p>
            ) : stats.rankingRedes.map((net, i) => (
-             <div key={i} className="flex items-center justify-between border-b border-border/20 pb-4 last:border-0 last:pb-0">
-               <div className="flex items-center gap-4">
-                 <div className="w-11 h-11 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center font-black text-primary text-xs shadow-inner">
+             <div key={i} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+               <div className="flex items-center gap-3">
+                 <div className="w-10 h-10 rounded-lg bg-secondary border border-border flex items-center justify-center font-bold text-foreground/80 text-[11px]">
                    {net.title}
                  </div>
                  <div>
-                    <p className="font-extrabold text-foreground text-[13px] tracking-tight">{net.subtitle}</p>
-                    <p className="text-[10px] font-medium text-muted-foreground mt-1">{net.desc}</p>
+                    <p className="font-semibold text-foreground text-sm tracking-tight">{net.subtitle}</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{net.desc}</p>
                  </div>
                </div>
-               <span className={`font-bold text-sm tracking-tight ${net.lucroRaw >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>{net.val}</span>
+               <span className={`font-semibold text-sm tabular-nums ${net.lucroRaw >= 0 ? 'text-primary' : 'text-destructive'}`}>{net.val}</span>
              </div>
            ))}
         </div>

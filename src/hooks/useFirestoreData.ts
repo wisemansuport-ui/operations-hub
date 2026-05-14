@@ -33,9 +33,9 @@ export const useFirestoreData = () => {
     });
 
     const unsubCosts = onSnapshot(collection(db, 'costs'), (snapshot) => {
-      const costsData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      const costsData = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as any));
       // Sort by date descending
-      setCosts(costsData.sort((a,b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()));
+      setCosts(costsData.sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()));
       costsLoaded = true;
       checkLoading();
     });
