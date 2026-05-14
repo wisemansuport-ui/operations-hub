@@ -130,7 +130,7 @@ export default function PixKeys() {
             <CreditCard className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground tracking-tight">Chaves PIX</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Chaves PIX</h1>
             <p className="text-sm text-muted-foreground mt-1">Gerenciamento inteligente com classificação sistêmica.</p>
           </div>
         </div>
