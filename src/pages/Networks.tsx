@@ -62,17 +62,15 @@ const TrendBadge = ({ trend }: { trend: 'up' | 'down' | 'stable' }) => {
   );
 };
 
-const StatTile = ({ icon: Icon, label, value, accent }: { icon: any; label: string; value: string; accent: string }) => (
-  <div className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card/40 backdrop-blur-xl p-5 hover:border-primary/30 hover:-translate-y-0.5 transition-all duration-300">
-    <div className={`absolute -top-12 -right-12 w-32 h-32 rounded-full blur-3xl opacity-20 group-hover:opacity-30 transition-opacity ${accent}`} />
-    <div className="relative flex items-start justify-between mb-4">
-      <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${accent} bg-opacity-10`}>
-        <Icon className="w-4 h-4 text-foreground" />
+const StatTile = ({ icon: Icon, label, value, tone }: { icon: any; label: string; value: string; tone?: string }) => (
+  <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5 hover:border-primary/40 transition-colors">
+    <div className="flex items-center justify-between mb-3">
+      <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">{label}</span>
+      <div className="w-7 h-7 rounded-md bg-secondary flex items-center justify-center">
+        <Icon className="w-3.5 h-3.5 text-muted-foreground" />
       </div>
-      <ArrowUpRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all" />
     </div>
-    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-1.5 relative">{label}</p>
-    <p className="text-2xl font-bold text-foreground tracking-tight relative">{value}</p>
+    <p className={`text-2xl font-bold tracking-tight tabular-nums ${tone || 'text-foreground'}`}>{value}</p>
   </div>
 );
 
