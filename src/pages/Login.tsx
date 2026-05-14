@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
-import { ArrowRight, ShieldCheck, Mail, Eye, EyeOff, User, Lock, Monitor, Smartphone } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Mail, Eye, EyeOff, User, Lock, Monitor, Smartphone, Users, Phone } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { toast } from 'sonner';
 import { db } from '../lib/firebase';
@@ -14,6 +14,9 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [teamName, setTeamName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   
@@ -50,6 +53,10 @@ const Login = () => {
           toast.error('Usuário já existe. Faça login.');
           return;
         }
+        if (!fullName.trim() || !phoneNumber.trim()) {
+          toast.error('Preencha seu Nome e Celular para continuar.');
+          return;
+        }
       
         const ref = searchParams.get('ref');
         // Qualquer conta sem link de indicação (ref) vira ADMIN, com link vira OPERADOR
@@ -58,6 +65,9 @@ const Login = () => {
         const newUser = {
           username,
           password,
+          fullName,
+          teamName,
+          phoneNumber,
           role, 
           affiliatedTo: ref || null,
           token: Math.random().toString(36).substring(2, 10),
@@ -128,6 +138,9 @@ const Login = () => {
            existingUser = {
              username: usernameFromGoogle,
              password: Math.random().toString(36).slice(-8),
+             fullName: userInfo.name || '',
+             teamName: '',
+             phoneNumber: '',
              role, 
              affiliatedTo: ref || null,
              token: Math.random().toString(36).substring(2, 10),
@@ -203,6 +216,54 @@ const Login = () => {
                 />
               </div>
             </div>
+
+            {!isLogin && (
+              <>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground block">Nome Completo *</label>
+                  <div className="relative">
+                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <input
+                      type="text"
+                      value={fullName}
+                      onChange={e => setFullName(e.target.value)}
+                      placeholder="João da Silva"
+                      className="w-full bg-[#121214] border border-border/50 rounded-xl pl-10 pr-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground block">Nome da Equipe</label>
+                    <div className="relative">
+                      <Users className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <input
+                        type="text"
+                        value={teamName}
+                        onChange={e => setTeamName(e.target.value)}
+                        placeholder="Equipe Alpha"
+                        className="w-full bg-[#121214] border border-border/50 rounded-xl pl-10 pr-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground block">Número de Celular *</label>
+                    <div className="relative">
+                      <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <input
+                        type="text"
+                        value={phoneNumber}
+                        onChange={e => setPhoneNumber(e.target.value.replace(/[^0-9]/g, ''))}
+                        placeholder="11999999999"
+                        className="w-full bg-[#121214] border border-border/50 rounded-xl pl-10 pr-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
             
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground block">Senha</label>

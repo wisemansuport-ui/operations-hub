@@ -13,31 +13,32 @@ const Reports = () => {
   const activeOperator = user?.username || 'admin';
   const role = user?.role || 'ADMIN';
 
-  const { operatorPerformance, kpis, monthlyData } = useMemo(() => {
+  const { operatorPerformance, kpis, weeklyData } = useMemo(() => {
     const now = new Date();
-    const isSameDay = (d: Date) => d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-    const isThisWeek = (d: Date) => (now.getTime() - d.getTime()) <= 7 * 24 * 60 * 60 * 1000;
-    const isThisMonth = (d: Date) => d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    
+    const getWeekKey = (d: Date) => {
+        const diffMs = now.getTime() - d.getTime();
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const weekIndex = Math.floor(diffDays / 7);
+        return weekIndex;
+    }
 
-    const opMap: Record<string, any> = {};
+    const opMap: Record<string, { name: string, contas: number, lucro: number, diasSet: Set<string> }> = {};
     
     if (role === 'ADMIN') {
       users.forEach(u => {
         if (u.affiliatedTo === activeOperator) {
-          opMap[u.username] = { name: u.username, dia: 0, semana: 0, mes: 0, total: 0 };
+          opMap[u.username] = { name: u.username, contas: 0, lucro: 0, diasSet: new Set() };
         }
       });
     }
 
     let totais = { previsaoContas: 0, executadas: 0, remessasBoas: 0, remessasRuins: 0 };
     
-    // Monthly stats init
-    const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-    const mDataMap: Record<number, {eficiencia: number, resBoas: number, resTotal: number}> = {};
+    const weekMap: Record<number, { weekName: string, contas: number, lucro: number, diasSet: Set<string>, sortIndex: number }> = {};
     for (let i = 0; i < 6; i++) {
-        let m = now.getMonth() - i;
-        if (m < 0) m += 12;
-        mDataMap[m] = { eficiencia: 0, resBoas: 0, resTotal: 0 };
+        let weekName = i === 0 ? "Nesta Semana" : i === 1 ? "Sem. Passada" : `${i} sem. atrás`;
+        weekMap[i] = { weekName, contas: 0, lucro: 0, diasSet: new Set(), sortIndex: i };
     }
 
     metas.forEach(meta => {
@@ -45,7 +46,7 @@ const Reports = () => {
       
       let isVisible = false;
       if (role === 'ADMIN') {
-        isVisible = (users.find(u => u.username === meta.operador)?.affiliatedTo === activeOperator);
+        isVisible = (users.find(u => u.username === meta.operador)?.affiliatedTo === activeOperator) || (!meta.operador && activeOperator === 'wiseman');
       } else {
         isVisible = meta.operador === activeOperator;
       }
@@ -54,67 +55,91 @@ const Reports = () => {
 
       const opName = meta.operador || 'Operador Central';
       if (!opMap[opName]) {
-        opMap[opName] = { name: opName, dia: 0, semana: 0, mes: 0, total: 0 };
+        opMap[opName] = { name: opName, contas: 0, lucro: 0, diasSet: new Set() };
       }
       
       totais.previsaoContas += meta.contas;
 
+      let isFechada = meta.status === 'fechada';
+      const sal = Number(meta.salarioOperador) || 0;
+      let autoSalarioMeta = 0;
+      let metaLucroBruto = 0;
+
       (meta.remessas || []).forEach(r => {
         const d = new Date(r.data || meta.createdAt);
+        const dateStr = d.toLocaleDateString('pt-BR');
         const contasProcessed = r.contas || 1;
         
         totais.executadas += contasProcessed;
-        const eLucro = (r.saque - r.deposito) >= 0;
+        const dep = Number(r.deposito || 0);
+        const saq = Number(r.saque || 0);
+        const eLucro = (saq - dep) >= 0;
         if (eLucro) totais.remessasBoas++;
         else totais.remessasRuins++;
 
-        if (isSameDay(d)) opMap[opName].dia += contasProcessed;
-        if (isThisWeek(d)) opMap[opName].semana += contasProcessed;
-        if (isThisMonth(d)) opMap[opName].mes += contasProcessed;
-        opMap[opName].total += contasProcessed;
+        if (isFechada) {
+            metaLucroBruto += (saq - dep);
+            const normais = (r as any).contasNormais || 0;
+            const baixas = (r as any).contasBaixas || 0;
+            if (!meta.isAdminMeta && meta.modelo !== 'Recarga') {
+                autoSalarioMeta += (normais * 2) + (baixas * 1);
+            }
+        }
+        
+        opMap[opName].contas += contasProcessed;
+        opMap[opName].diasSet.add(dateStr);
 
-        // Chart monthly data
-        const rm = d.getMonth();
-        if (mDataMap[rm] !== undefined) {
-           mDataMap[rm].resTotal++;
-           if (eLucro) mDataMap[rm].resBoas++;
+        const wIndex = getWeekKey(d);
+        if (weekMap[wIndex] !== undefined) {
+           weekMap[wIndex].contas += contasProcessed;
+           weekMap[wIndex].diasSet.add(dateStr);
         }
       });
+
+      if (isFechada) {
+         if (!meta.isAdminMeta && meta.modelo === 'Recarga') {
+             autoSalarioMeta += Number(meta.pagamentoOperador) || 0;
+         }
+         const lucroLiquido = metaLucroBruto + sal - autoSalarioMeta;
+         
+         opMap[opName].lucro += lucroLiquido;
+         
+         const metaDate = new Date(meta.createdAt);
+         const wIndex = getWeekKey(metaDate);
+         if (weekMap[wIndex] !== undefined) {
+             weekMap[wIndex].lucro += lucroLiquido;
+         }
+      }
     });
 
     const opPerf = Object.values(opMap).map(op => {
-      // Prioritize displayName from user settings
       const userRecord = users.find(u => u.username === op.name);
       const displayName = userRecord?.displayName || op.name;
       const avatar = displayName.substring(0, 2).toUpperCase();
       let status = 'Treinamento';
-      if (op.semana > 150) status = 'Em Alta';
-      else if (op.semana > 50) status = 'Consistente';
-      else if (op.semana > 20) status = 'Estável';
-      else if (op.semana > 5) status = 'Atenção';
+      if (op.contas > 500) status = 'Em Alta';
+      else if (op.contas > 200) status = 'Consistente';
+      else if (op.contas > 50) status = 'Estável';
+      else if (op.contas > 10) status = 'Atenção';
 
-      return { ...op, name: displayName, avatar, status };
-    }).sort((a, b) => b.mes - a.mes);
+      return { 
+        ...op, 
+        name: displayName, 
+        avatar, 
+        status, 
+        diasOperados: op.diasSet.size 
+      };
+    }).sort((a, b) => b.contas - a.contas);
 
     opPerf.forEach((op, i) => op.rank = i + 1);
 
-    const mData = Object.keys(mDataMap).map(k => {
-       const key = Number(k);
-       const d = mDataMap[key];
-       const efi = d.resTotal > 0 ? (d.resBoas / d.resTotal) * 100 : 0;
-       return { 
-         name: monthNames[key], 
-         eficiencia: Math.max(70, Math.min(100, efi + (Math.random()*10))), 
-         qualidade: Math.max(70, Math.min(100, efi + 5)), 
-         entrega: Math.max(70, Math.min(100, efi - 2)),
-         realMonthRank: key
-       };
-    }).sort((a,b) => {
-       // Put last 6 months in order
-       const am = a.realMonthRank > now.getMonth() ? a.realMonthRank - 12 : a.realMonthRank;
-       const bm = b.realMonthRank > now.getMonth() ? b.realMonthRank - 12 : b.realMonthRank;
-       return am - bm;
-    });
+    const wData = Object.values(weekMap).map(w => ({
+         name: w.weekName,
+         contas: w.contas,
+         lucro: w.lucro,
+         diasOperados: w.diasSet.size,
+         sortIndex: w.sortIndex
+    })).sort((a,b) => b.sortIndex - a.sortIndex); // oldest to newest (6 weeks ago ... this week)
 
     const oeeCalc = totais.remessasBoas + totais.remessasRuins > 0 ? 
       ((totais.remessasBoas) / (totais.remessasBoas + totais.remessasRuins)) * 100 : 0;
@@ -129,9 +154,9 @@ const Reports = () => {
         qualidade: qualCalc.toFixed(1) + "%",
         falhas: totais.remessasRuins
       },
-      monthlyData: mData,
+      weeklyData: wData,
     };
-  }, [metas]);
+  }, [metas, users, role, activeOperator]);
 
   return (
   <div className="space-y-6 relative z-10">
@@ -154,36 +179,43 @@ const Reports = () => {
 
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-4">
       <div className="glass-card rounded-2xl p-6 border-primary/10 relative overflow-hidden group">
-        <h3 className="text-base font-bold text-foreground mb-1">Eficiência Mensal (%)</h3>
-        <p className="text-xs text-muted-foreground mb-6">Comparativo histórico de capacidade produtiva.</p>
+        <h3 className="text-base font-bold text-foreground mb-1">Volume de Contas Semanal</h3>
+        <p className="text-xs text-muted-foreground mb-6">Acompanhamento histórico da capacidade de produção operacional.</p>
         <ResponsiveContainer width="100%" height={260}>
-          <BarChart data={monthlyData} margin={{ left: -20 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-            <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} domain={[70, 100]} />
+          <BarChart data={weeklyData} margin={{ left: -20, right: 10 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
+            <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
             <Tooltip 
               cursor={{ fill: 'hsl(var(--primary)/0.05)' }}
               contentStyle={{ background: "rgba(10, 10, 10, 0.9)", backdropFilter: "blur(12px)", border: "1px solid hsl(var(--primary)/0.2)", borderRadius: 12 }} 
+              itemStyle={{ color: "hsl(var(--foreground))", fontSize: '13px', fontWeight: 'bold' }}
             />
-            <Bar dataKey="eficiencia" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} maxBarSize={40} />
+            <Bar dataKey="contas" name="Contas Totais" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} maxBarSize={40} />
           </BarChart>
         </ResponsiveContainer>
       </div>
 
       <div className="glass-card rounded-2xl p-6 border-primary/10 relative overflow-hidden">
-        <h3 className="text-base font-bold text-foreground mb-1">Tendências de Linha</h3>
-        <p className="text-xs text-muted-foreground mb-6">Correlação de dados sobre qualidade (ouro), entrega (marrom) e eficiência (slate).</p>
+        <h3 className="text-base font-bold text-foreground mb-1">Lucratividade e Presença</h3>
+        <p className="text-xs text-muted-foreground mb-6">Relação entre o lucro gerado e o número de dias operados semanalmente.</p>
         <ResponsiveContainer width="100%" height={260}>
-          <LineChart data={monthlyData} margin={{ left: -20 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-            <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} domain={[70, 100]} />
+          <LineChart data={weeklyData} margin={{ left: -20, right: 10 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
+            <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
+            <YAxis yAxisId="left" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
+            <YAxis yAxisId="right" orientation="right" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
             <Tooltip 
               contentStyle={{ background: "rgba(10, 10, 10, 0.9)", backdropFilter: "blur(12px)", border: "1px solid hsl(var(--primary)/0.2)", borderRadius: 12 }} 
+              itemStyle={{ color: "hsl(var(--foreground))", fontSize: '13px', fontWeight: 'bold' }}
+              formatter={(value: any, name: string) => {
+                 if (name === "Lucro Gerado") return `R$ ${Number(value).toFixed(2)}`;
+                 if (name === "Dias Operados") return `${value} dias`;
+                 return value;
+              }}
             />
-            <Line type="monotone" dataKey="qualidade" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 4, fill: "hsl(var(--primary))" }} />
-            <Line type="monotone" dataKey="entrega" stroke="hsl(var(--muted-foreground))" strokeWidth={2} dot={false} />
-            <Line type="monotone" dataKey="eficiencia" stroke="hsl(var(--border))" strokeWidth={2} dot={false} />
+            <Line yAxisId="left" type="monotone" name="Lucro Gerado" dataKey="lucro" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 4, fill: "hsl(var(--primary))" }} />
+            <Line yAxisId="right" type="monotone" name="Dias Operados" dataKey="diasOperados" stroke="hsl(var(--warning))" strokeWidth={2} dot={true} />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -211,13 +243,13 @@ const Reports = () => {
 
       <div className="overflow-x-auto w-full">
         <table className="w-full text-sm text-left whitespace-nowrap">
-          <thead className="text-xs text-muted-foreground uppercase tracking-wider bg-black/20 border-b border-border">
+          <thead className="text-[10px] text-muted-foreground uppercase tracking-widest bg-black/20 border-b border-border">
             <tr>
               <th className="px-5 py-4 font-semibold text-center w-16">Rank</th>
               <th className="px-5 py-4 font-semibold">Colaborador</th>
-              <th className="px-5 py-4 font-semibold text-center border-l border-border/30">Hoje</th>
-              <th className="px-5 py-4 font-semibold text-center">Esta Semana</th>
-              <th className="px-5 py-4 font-semibold text-center">Este Mês</th>
+              <th className="px-5 py-4 font-semibold text-center border-l border-border/30">Contas Totais</th>
+              <th className="px-5 py-4 font-semibold text-center">Lucro Gerado</th>
+              <th className="px-5 py-4 font-semibold text-center">Dias Operados</th>
               <th className="px-5 py-4 font-semibold text-right">Status</th>
             </tr>
           </thead>
@@ -243,13 +275,15 @@ const Reports = () => {
                   </div>
                 </td>
                 <td className="px-5 py-4 text-center border-l border-border/20">
-                  <span className="text-primary font-bold">{op.dia}</span>
+                  <span className="text-primary font-bold tabular-nums">{op.contas}</span>
                 </td>
                 <td className="px-5 py-4 text-center">
-                  <span className="text-foreground/90 font-semibold">{op.semana}</span>
+                  <span className={`font-semibold tabular-nums ${op.lucro >= 0 ? 'text-success' : 'text-destructive'}`}>
+                    {op.lucro >= 0 ? '+' : ''}R$ {op.lucro.toFixed(2).replace('.', ',')}
+                  </span>
                 </td>
                 <td className="px-5 py-4 text-center">
-                  <span className="text-muted-foreground font-medium">{op.mes}</span>
+                  <span className="text-muted-foreground font-medium tabular-nums">{op.diasOperados} d</span>
                 </td>
                 <td className="px-5 py-4 text-right">
                   <span className={`inline-flex text-[10px] px-2.5 py-1 rounded bg-card/80 border font-bold uppercase tracking-wider ${
