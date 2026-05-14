@@ -122,130 +122,115 @@ export default function PixKeys() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-fade-in relative z-10 w-full text-foreground">
-      
+
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5 flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-primary/10 text-primary shadow-[0_0_15px_hsl(var(--primary)/0.2)] border border-primary/20">
-            <CreditCard className="w-6 h-6" />
+          <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+            <CreditCard className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-extrabold text-foreground tracking-tight">Chaves PIX</h1>
-            <p className="text-sm text-muted-foreground mt-1 font-medium">Gerenciamento inteligente com classificação sistêmica.</p>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">Chaves PIX</h1>
+            <p className="text-sm text-muted-foreground mt-1">Gerenciamento inteligente com classificação sistêmica.</p>
           </div>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border/50 text-xs font-bold text-muted-foreground hover:text-foreground hover:border-border transition-all bg-muted/20 hover:bg-muted/40 shadow-sm">
+        <button className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-secondary hover:bg-accent/10 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
           <RefreshCw className="w-3.5 h-3.5" />
           Sync
         </button>
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-        <div className="glass-card border border-border/30 hover:border-primary/30 transition-all hover:-translate-y-1 rounded-xl p-4 flex flex-col items-center justify-center py-5">
-           <span className="text-3xl font-black text-foreground drop-shadow-sm">{keys.length}</span>
-           <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1">Total</span>
-        </div>
-        <div className="glass-card border border-primary/30 hover:border-primary/50 transition-all hover:-translate-y-1 rounded-xl p-4 flex flex-col items-center justify-center py-5 shadow-[0_0_20px_hsl(var(--primary)/0.1)]">
-           <span className="text-3xl font-black text-primary drop-shadow-[0_0_8px_hsl(var(--primary)/0.4)]">{getCountStatus('DISPONIVEL')}</span>
-           <span className="text-[10px] text-primary/80 font-bold uppercase tracking-widest mt-1">Disponíveis</span>
-        </div>
-        <div className="glass-card border border-orange-900/40 hover:border-orange-500/40 transition-all hover:-translate-y-1 rounded-xl p-4 flex flex-col items-center justify-center py-5 shadow-[0_0_20px_rgba(249,115,22,0.05)]">
-           <span className="text-3xl font-black text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.4)]">{getCountStatus('USADA')}</span>
-           <span className="text-[10px] text-orange-500/80 font-bold uppercase tracking-widest mt-1">Usadas</span>
-        </div>
-        <div className="glass-card border border-border/30 hover:border-primary/30 transition-all hover:-translate-y-1 rounded-xl p-4 flex flex-col items-center justify-center py-5">
-           <span className="text-3xl font-black text-primary drop-shadow-sm">{getCountType('PHONE')}</span>
-           <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1">Phone</span>
-        </div>
-        <div className="glass-card border border-border/30 hover:border-amber-500/30 transition-all hover:-translate-y-1 rounded-xl p-4 flex flex-col items-center justify-center py-5">
-           <span className="text-3xl font-black text-amber-500 drop-shadow-sm">{getCountType('CPF')}</span>
-           <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1">CPF</span>
-        </div>
-        <div className="glass-card border border-border/30 hover:border-blue-500/30 transition-all hover:-translate-y-1 rounded-xl p-4 flex flex-col items-center justify-center py-5">
-           <span className="text-3xl font-black text-blue-500 drop-shadow-sm">{getCountType('EMAIL')}</span>
-           <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1">Email</span>
-        </div>
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+        {[
+          { label: 'Total', value: keys.length, tone: 'text-foreground' },
+          { label: 'Disponíveis', value: getCountStatus('DISPONIVEL'), tone: 'text-success' },
+          { label: 'Usadas', value: getCountStatus('USADA'), tone: 'text-warning' },
+          { label: 'Phone', value: getCountType('PHONE'), tone: 'text-success' },
+          { label: 'CPF', value: getCountType('CPF'), tone: 'text-warning' },
+          { label: 'Email', value: getCountType('EMAIL'), tone: 'text-primary' },
+        ].map((s) => (
+          <div key={s.label} className="rounded-2xl border border-border bg-card/60 backdrop-blur p-4 hover:border-primary/40 transition-colors">
+            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">{s.label}</p>
+            <p className={`text-2xl font-bold tabular-nums tracking-tight ${s.tone}`}>{s.value}</p>
+          </div>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
+
         {/* Left Column (Import) */}
         <div className="lg:col-span-4 space-y-4">
-          
-          <div className="glass-card border border-border/40 rounded-2xl p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-[0_0_15px_hsl(var(--primary)/0.15)]">
-                <Plus className="w-5 h-5 text-primary" />
+
+          <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <Plus className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <h3 className="text-base font-extrabold text-foreground">Importar lote</h3>
-                <p className="text-[11px] text-muted-foreground font-medium mt-0.5">Detecta CPF, Tel e Email automaticamente</p>
+                <h3 className="text-sm font-bold text-foreground">Importar lote</h3>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Detecta CPF, Tel e Email automaticamente</p>
               </div>
             </div>
 
-            <div className="mb-5">
-              <textarea 
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                className="w-full h-36 bg-background/50 border border-border/50 rounded-xl p-4 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 resize-none font-mono placeholder:text-muted-foreground/30 shadow-inner"
-                placeholder={`11999887766\n123.456.789-00\noperador@email.com`}
-              />
-            </div>
+            <textarea
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              className="w-full h-36 bg-background border border-border rounded-lg p-3 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/40 resize-none font-mono placeholder:text-muted-foreground/50 mb-4"
+              placeholder={`11999887766\n123.456.789-00\noperador@email.com`}
+            />
 
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-2 gap-3 mb-4">
               <div>
-                <label className="text-[10px] font-bold text-muted-foreground tracking-widest mb-2 block uppercase">Banco <span className="opacity-50">(Opcional)</span></label>
+                <label className="text-[10px] font-semibold text-muted-foreground tracking-widest mb-1.5 block uppercase">Banco <span className="opacity-60">(Opcional)</span></label>
                 <input
                   type="text"
                   value={bankInput}
                   onChange={(e) => setBankInput(e.target.value)}
-                  className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary shadow-inner"
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
                   placeholder="Ex: Inter"
                 />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-muted-foreground tracking-widest mb-2 block uppercase">Lote <span className="opacity-50">(Opcional)</span></label>
+                <label className="text-[10px] font-semibold text-muted-foreground tracking-widest mb-1.5 block uppercase">Lote <span className="opacity-60">(Opcional)</span></label>
                 <input
                   type="text"
                   value={batchInput}
                   onChange={(e) => setBatchInput(e.target.value)}
-                  className="w-full bg-background/50 border border-border/50 rounded-lg px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary shadow-inner"
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
                   placeholder="Ex: Lote A"
                 />
               </div>
             </div>
 
-            <div className="flex gap-2">
-              <button 
-                onClick={handleImport}
-                disabled={!inputText.trim()}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-extrabold py-3.5 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_hsl(var(--primary)/0.3)] hover:scale-[1.02] flex items-center justify-center gap-2"
-              >
-                <Upload className="w-4 h-4" />
-                Importar chaves
-              </button>
-            </div>
-            
+            <button
+              onClick={handleImport}
+              disabled={!inputText.trim()}
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              <Upload className="w-4 h-4" />
+              Importar chaves
+            </button>
+
             {lastImportCount > 0 && (
-              <p className="text-[11px] font-bold text-primary text-center mt-3 animate-pulse">✨ {lastImportCount} chave(s) processada(s) com sucesso</p>
+              <p className="text-[11px] font-semibold text-success text-center mt-3">{lastImportCount} chave(s) processada(s) com sucesso</p>
             )}
           </div>
 
-          <div className="glass-card border border-border/40 rounded-2xl p-6">
-            <h3 className="text-base font-extrabold text-foreground mb-4">Ações Rápidas</h3>
-            <div className="space-y-3">
-              <button 
+          <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5">
+            <h3 className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold mb-4">Ações Rápidas</h3>
+            <div className="space-y-2">
+              <button
                 onClick={copyAllAvailable}
-                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:scale-[1.02]"
+                className="w-full bg-primary/10 hover:bg-primary/20 text-primary font-semibold py-2.5 rounded-lg border border-primary/30 flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
                 disabled={getCountStatus('DISPONIVEL') === 0}
               >
                 <Copy className="w-4 h-4" />
                 Copiar Disponíveis ({getCountStatus('DISPONIVEL')})
               </button>
-              <button 
+              <button
                 onClick={exportTxt}
-                className="w-full bg-muted/20 hover:bg-muted/40 text-foreground font-bold py-3 rounded-xl border border-border/50 flex items-center justify-center gap-2 transition-all hover:scale-[1.02]"
+                className="w-full bg-secondary hover:bg-accent/10 text-foreground font-semibold py-2.5 rounded-lg border border-border flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
                 disabled={getCountStatus('DISPONIVEL') === 0}
               >
                 <Download className="w-4 h-4" />
@@ -258,28 +243,28 @@ export default function PixKeys() {
 
         {/* Right Column (List) */}
         <div className="lg:col-span-8 flex flex-col">
-          
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+
+          <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-4 mb-4 flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
-              <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <input 
-                type="text" 
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Buscar chave, banco, lote..." 
-                className="w-full bg-background/50 border border-border/50 rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors shadow-inner text-foreground"
+                placeholder="Buscar chave, banco, lote..."
+                className="w-full bg-background border border-border rounded-lg pl-10 pr-3 py-2.5 text-sm focus:outline-none focus:border-primary text-foreground"
               />
             </div>
-            
-            <div className="flex bg-muted/20 border border-border/50 rounded-xl p-1.5 overflow-x-auto hide-scrollbar shrink-0">
+
+            <div className="flex bg-secondary border border-border rounded-lg p-1 overflow-x-auto hide-scrollbar shrink-0">
               {['TODOS', 'DISPONIVEL', 'USADA', 'PHONE', 'CPF', 'EMAIL'].map((f) => (
                 <button
                   key={f}
                   onClick={() => setFilter(f as typeof filter)}
-                  className={`px-4 py-2 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all uppercase tracking-widest ${
-                    filter === f 
-                      ? 'bg-primary/20 text-primary border border-primary/50 shadow-sm' 
-                      : 'bg-transparent text-muted-foreground border border-transparent hover:text-foreground hover:bg-muted/40'
+                  className={`px-3 py-1.5 rounded-md text-[11px] font-semibold whitespace-nowrap transition-colors uppercase tracking-widest ${
+                    filter === f
+                      ? 'bg-primary/15 text-primary'
+                      : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   {f === 'DISPONIVEL' ? 'DISPONÍVEIS' : f === 'USADA' ? 'USADAS' : f}
@@ -288,49 +273,46 @@ export default function PixKeys() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between mb-4 px-2 border-b border-border/20 pb-3">
-            <span className="text-xs text-muted-foreground font-bold tracking-widest uppercase">{filteredKeys.length} chave(s) encontrada(s)</span>
+          <div className="flex items-center justify-between mb-3 px-1">
+            <span className="text-[11px] text-muted-foreground font-semibold tracking-widest uppercase">{filteredKeys.length} chave(s) encontrada(s)</span>
           </div>
 
-          <div className="space-y-3 flex-1">
+          <div className="rounded-2xl border border-border bg-card/60 backdrop-blur divide-y divide-border/60 flex-1">
             {filteredKeys.length === 0 ? (
-              <div className="h-48 flex items-center justify-center border border-dashed border-border/40 rounded-2xl glass-card">
-                <p className="text-sm font-bold text-muted-foreground">Nenhuma chave encontrada neste filtro.</p>
+              <div className="h-48 flex items-center justify-center">
+                <p className="text-sm font-medium text-muted-foreground">Nenhuma chave encontrada neste filtro.</p>
               </div>
             ) : (
               filteredKeys.map((key) => (
-                <div key={key.id} className={`glass-card border border-border/30 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 group hover:border-primary/40 hover:shadow-[0_4px_20px_hsl(var(--primary)/0.05)] transition-all ${key.status === 'USADA' ? 'opacity-60 hover:opacity-100' : ''}`}>
-                  <div className="flex items-center gap-4 border-l-[3px] border-transparent pl-3" style={{ borderLeftColor: PixColorClass[key.type]?.text?.split('-')[1] || 'hsl(var(--primary))' }}>
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-[11px] font-black lowercase tracking-widest border shadow-inner ${PixColorClass[key.type].pillbg} ${PixColorClass[key.type].text} ${PixColorClass[key.type].ring}`}>
+                <div key={key.id} className={`p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 group hover:bg-accent/5 transition-colors ${key.status === 'USADA' ? 'opacity-60 hover:opacity-100' : ''}`}>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className={`w-11 h-11 rounded-lg flex items-center justify-center text-[10px] font-bold uppercase tracking-widest border ${PixColorClass[key.type].pillbg} ${PixColorClass[key.type].text} ${PixColorClass[key.type].ring}`}>
                       {key.type}
                     </div>
-                    <div>
-                      <p className={`text-base font-extrabold tracking-tight ${key.status === 'USADA' ? 'text-muted-foreground line-through' : 'text-foreground'}`}>{key.keyValue}</p>
-                      <div className="flex flex-wrap gap-2 mt-1.5">
-                        <span className={`text-[9px] px-2 py-0.5 rounded font-black uppercase tracking-widest ${PixColorClass[key.type].pillbg} ${PixColorClass[key.type].text}`}>
-                          {key.type}
-                        </span>
+                    <div className="min-w-0">
+                      <p className={`text-sm font-bold tracking-tight truncate ${key.status === 'USADA' ? 'text-muted-foreground line-through' : 'text-foreground'}`}>{key.keyValue}</p>
+                      <div className="flex flex-wrap gap-1.5 mt-1.5">
                         {key.bank && (
-                           <span className="text-[9px] px-2 py-0.5 rounded font-black uppercase tracking-widest bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                             🏦 {key.bank}
+                           <span className="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-widest bg-secondary text-muted-foreground border border-border">
+                             {key.bank}
                            </span>
                         )}
                         {key.batch && (
-                           <span className="text-[9px] px-2 py-0.5 rounded font-black uppercase tracking-widest bg-amber-500/10 text-amber-500 border border-amber-500/20">
-                             📦 {key.batch}
+                           <span className="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-widest bg-secondary text-muted-foreground border border-border">
+                             {key.batch}
                            </span>
                         )}
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 pl-3 md:pl-0">
-                    <button 
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
                       onClick={() => toggleStatus(key.id)}
-                      className={`px-4 py-2 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 ${
-                        key.status === 'DISPONIVEL' 
-                        ? 'border-primary/30 text-primary hover:bg-primary/10 shadow-[0_0_10px_hsl(var(--primary)/0.1)]' 
-                        : 'border-orange-500/30 text-orange-500 hover:bg-orange-500/10'
+                      className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center gap-1.5 ${
+                        key.status === 'DISPONIVEL'
+                        ? 'border-success/30 text-success bg-success/10 hover:bg-success/20'
+                        : 'border-warning/30 text-warning bg-warning/10 hover:bg-warning/20'
                       }`}
                     >
                       {key.status === 'DISPONIVEL' ? <CheckCircle className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
