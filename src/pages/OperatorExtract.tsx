@@ -219,7 +219,7 @@ export default function OperatorExtract() {
             <Wallet className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight font-serif">Meu Relatório de Produtividade</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Meu Relatório de Produtividade</h1>
             <p className="text-sm text-muted-foreground mt-1">Fechamento de contas validadas e estimativa de acerto individual</p>
           </div>
         </div>
