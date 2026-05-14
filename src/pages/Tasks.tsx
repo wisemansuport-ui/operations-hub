@@ -34,6 +34,7 @@ export interface OperationMeta {
   modelo: string;
   operador?: string;
   totalApv?: number;
+  montante?: number;
   createdAt: string;
   status?: 'ativa' | 'fechada' | 'lixeira';
   remessas?: Remessa[];
@@ -112,6 +113,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
   const [editTitulo, setEditTitulo] = useState(meta.titulo);
   const [editContas, setEditContas] = useState<number | ''>(meta.contas);
   const [editTotalApv, setEditTotalApv] = useState<number | string>(meta.totalApv || '');
+  const [editMontante, setEditMontante] = useState<number | string>(meta.montante || '');
   const [editModelo, setEditModelo] = useState(meta.modelo);
   const [rTitulo, setRTitulo] = useState(String((meta.remessas?.length || 0) + 1));
   const [rTipo, setRTipo] = useState('Remessa');
@@ -293,6 +295,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
                setEditTitulo(meta.titulo);
                setEditContas(meta.contas);
                setEditTotalApv(meta.totalApv ? String(meta.totalApv) : '');
+               setEditMontante(meta.montante ? String(meta.montante) : '');
                setEditModelo(meta.modelo);
                setIsEditingMeta(true);
              }}
@@ -305,6 +308,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
         <p className="text-xs text-muted-foreground">
           <strong className="text-foreground/80">Requisitos:</strong> {meta.titulo} · {isRecarga ? `R$ ${meta.contas} recarga` : `${meta.contas} contas`} · {remessas.length} remessas · {acertoPct}% de acerto
           {meta.totalApv ? ` · AP.V Restante: ${apvRestante}` : ''}
+          {meta.montante ? ` · Montante Restante: R$ ${Math.max(0, meta.montante - depositoTotal)}` : ''}
         </p>
 
         {/* Link de referência — editable */}
@@ -601,6 +605,18 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
             </div>
           </div>
         ) : null}
+
+        {meta.montante ? (
+          <div>
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-sm font-bold text-foreground">Progresso Montante: R$ {depositoTotal} / R$ {meta.montante}</span>
+              <span className="text-sm font-bold text-primary">{Math.min(100, Math.floor((depositoTotal / meta.montante) * 100))}%</span>
+            </div>
+            <div className="w-full bg-muted/30 rounded-full h-2.5 overflow-hidden">
+               <div className="bg-primary h-full rounded-full shadow-[0_0_10px_hsl(var(--primary)/0.5)] transition-all duration-1000" style={{ width: `${Math.min(100, (depositoTotal / meta.montante) * 100)}%` }} />
+            </div>
+          </div>
+        ) : null}
       </div>
 
       {meta.status !== 'fechada' && (
@@ -861,6 +877,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
                   titulo: editTitulo,
                   contas: Number(editContas),
                   totalApv: parseBrlNumber(editTotalApv),
+                  montante: parseBrlNumber(editMontante),
                   modelo: editModelo,
                 });
                 setIsEditingMeta(false);
@@ -890,9 +907,15 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
                     <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">{editModelo === 'Recarga' ? 'Valor da Recarga (R$) *' : 'Contas *'}</label>
                     <input type="number" value={editContas} onChange={e => setEditContas(e.target.value ? Number(e.target.value) : '')} className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 font-semibold transition-colors" min="1" required />
                   </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Total AP.V</label>
-                    <input type="text" inputMode="decimal" value={editTotalApv} onChange={e => setEditTotalApv(e.target.value)} placeholder="Ex. 20.000" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" />
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Total AP.V</label>
+                      <input type="text" inputMode="decimal" value={editTotalApv} onChange={e => setEditTotalApv(e.target.value)} placeholder="Ex. 20.000" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Montante</label>
+                      <input type="text" inputMode="decimal" value={editMontante} onChange={e => setEditMontante(e.target.value)} placeholder="Ex. 5.000" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" />
+                    </div>
                   </div>
                 </div>
 
@@ -986,6 +1009,7 @@ const Tasks = () => {
   const [titulo, setTitulo] = useState('');
   const [contas, setContas] = useState<number | ''>('');
   const [totalApv, setTotalApv] = useState<number | string>('');
+  const [montante, setMontante] = useState<number | string>('');
   const [modelo, setModelo] = useState<'Depositante' | 'Recarga'>('Depositante');
   const [isAdminMeta, setIsAdminMeta] = useState(false);
 
@@ -996,6 +1020,7 @@ const Tasks = () => {
     const newMeta = {
       plataforma, rede, titulo, contas: Number(contas), modelo, operador: activeOperator,
       totalApv: parseBrlNumber(totalApv),
+      montante: parseBrlNumber(montante),
       createdAt: new Date().toISOString(),
       status: 'ativa',
       remessas: [],
@@ -1037,7 +1062,7 @@ const Tasks = () => {
       targetRole: 'ADMIN'
     });
 
-    setPlataforma(''); setRede('Selecione'); setTitulo(''); setContas(''); setTotalApv('');
+    setPlataforma(''); setRede('Selecione'); setTitulo(''); setContas(''); setTotalApv(''); setMontante('');
   };
 
   const onUpdateMeta = async (updatedMeta: OperationMeta) => {
@@ -1454,9 +1479,15 @@ const Tasks = () => {
                     <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">{modelo === 'Recarga' ? 'Valor da Recarga (R$) *' : 'Contas *'}</label>
                     <input type="number" value={contas} onChange={e => setContas(e.target.value ? Number(e.target.value) : '')} placeholder={modelo === 'Recarga' ? 'Ex. 5000' : 'Ex. 70'} className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 font-semibold transition-colors" min="1" required />
                   </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Total AP.V</label>
-                    <input type="text" inputMode="decimal" value={totalApv} onChange={e => setTotalApv(e.target.value)} placeholder="Ex. 20.000" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" />
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase" title="Apostas Válidas">Total AP.V</label>
+                      <input type="text" inputMode="decimal" value={totalApv} onChange={e => setTotalApv(e.target.value)} placeholder="Ex. 20.000" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Montante</label>
+                      <input type="text" inputMode="decimal" value={montante} onChange={e => setMontante(e.target.value)} placeholder="Ex. 5.000" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" />
+                    </div>
                   </div>
                 </div>
 
