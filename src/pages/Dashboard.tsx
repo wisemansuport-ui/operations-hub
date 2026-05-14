@@ -138,13 +138,19 @@ const Dashboard = () => {
     const roundedMedioPorConta = Math.round(medioporConta * 100) / 100;
 
     const rankingRedes = Object.entries(redesMap)
-      .map(([nome, d]) => ({ 
-        title: nome, 
-        subtitle: `${d.metas} metas · ${d.contas} contas`,
-        desc: `R$ ${(d.lucro / (d.contas || 1)).toFixed(2)}/cta · ${Math.round((d.acertos/d.metas)*100)}% acerto`,
-        val: `${d.lucro >= 0 ? '+' : ''}${formatBRL(d.lucro)}`,
-        lucroRaw: d.lucro
-      }))
+      .map(([nome, d]) => {
+        const profitPerConta = d.contas > 0 ? d.lucro / d.contas : 0;
+        let winRate = profitPerConta > 0 ? (profitPerConta / 10) * 100 : 0;
+        if (winRate > 200) winRate = 200;
+        
+        return { 
+          title: nome, 
+          subtitle: `${d.metas} metas · ${d.contas} contas`,
+          desc: `R$ ${(profitPerConta).toFixed(2)}/cta · ${Math.round(winRate)}% acerto`,
+          val: `${d.lucro >= 0 ? '+' : ''}${formatBRL(d.lucro)}`,
+          lucroRaw: d.lucro
+        };
+      })
       .sort((a, b) => b.lucroRaw - a.lucroRaw)
       .slice(0, 4);
 

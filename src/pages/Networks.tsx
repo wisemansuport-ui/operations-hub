@@ -116,8 +116,9 @@ const Networks = () => {
     });
 
     const data: NetworkData[] = Object.entries(redesMap).map(([name, d]) => {
-      const winRate = d.metas > 0 ? (d.acertos / d.metas) * 100 : 0;
       const profitPerConta = d.contas > 0 ? d.lucro / d.contas : 0;
+      let winRate = profitPerConta > 0 ? (profitPerConta / 10) * 100 : 0;
+      if (winRate > 200) winRate = 200;
 
       let score = 50;
       if (winRate >= 80) score += 20;
