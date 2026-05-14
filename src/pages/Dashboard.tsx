@@ -322,10 +322,10 @@ const Dashboard = () => {
   <div className="space-y-6 relative z-10 pb-20 md:pb-6">
     <div className="flex items-center justify-between">
       <div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Dashboard Geral</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight text-foreground whitespace-pre-line">{"\n"}</h1>
         <p className="text-sm text-primary/70 mt-1 uppercase tracking-widest font-semibold flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--primary))]" />
-          Sincronizado via Metas
+          SINCRONIZADO VIA PLANILHAS
         </p>
       </div>
     </div>
