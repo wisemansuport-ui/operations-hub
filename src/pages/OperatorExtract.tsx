@@ -42,7 +42,6 @@ export default function OperatorExtract() {
 
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryEntry[]>([]);
   const [showHistory, setShowHistory] = useState(false);
-  const [operatorPayment, setOperatorPayment] = useState<{ paidUntil?: string } | null>(null);
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'operatorPaymentHistory'), snap => {
@@ -51,17 +50,6 @@ export default function OperatorExtract() {
         .filter(h => h.operatorName === operatorName);
       list.sort((a, b) => new Date(b.paidAt).getTime() - new Date(a.paidAt).getTime());
       setPaymentHistory(list);
-    });
-    return () => unsub();
-  }, [operatorName]);
-
-  useEffect(() => {
-    const unsub = onSnapshot(doc(db, 'operatorPayments', operatorName), snap => {
-      if (snap.exists()) {
-        setOperatorPayment(snap.data() as any);
-      } else {
-        setOperatorPayment(null);
-      }
     });
     return () => unsub();
   }, [operatorName]);
@@ -85,7 +73,9 @@ export default function OperatorExtract() {
     const platforms = new Set<string>();
     const networks = new Set<string>();
 
-    const paidUntil = operatorPayment?.paidUntil ? new Date(operatorPayment.paidUntil).getTime() : 0;
+    const paidUntil = paymentHistory.length > 0 && paymentHistory[0].newPaidUntil 
+      ? new Date(paymentHistory[0].newPaidUntil).getTime() 
+      : 0;
 
     metas.forEach(meta => {
       if (meta.status === 'lixeira' || meta.operador !== operatorName || meta.isAdminMeta) return;
@@ -196,7 +186,7 @@ export default function OperatorExtract() {
       availablePlatforms: Array.from(platforms).sort(),
       availableNetworks: Array.from(networks).sort()
     };
-  }, [metas, operatorName, platformFilter, networkFilter, operatorPayment]);
+  }, [metas, operatorName, platformFilter, networkFilter, paymentHistory]);
 
   const currentStats = stats[timeFilter];
   const lucroTotal = (currentStats.pendingNormal * 2) + (currentStats.pendingDepBaixo * 1) + (currentStats.pendingSalarioManual || 0);
