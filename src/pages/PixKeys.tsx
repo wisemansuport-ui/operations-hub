@@ -30,11 +30,11 @@ const classifyPixKey = (key: string): PixType => {
   return 'INVALIDO';
 };
 
-const PixColorClass: Record<PixType, { text: string, bg: string, ring: string, pillbg: string }> = {
-  EMAIL: { text: "text-blue-400", bg: "bg-blue-400/10", ring: "ring-blue-400/30", pillbg: "bg-blue-950/30" },
-  CPF: { text: "text-amber-500", bg: "bg-amber-500/10", ring: "ring-amber-500/30", pillbg: "bg-amber-950/30" },
-  PHONE: { text: "text-primary", bg: "bg-primary/10", ring: "ring-primary/30", pillbg: "bg-primary/5" },
-  INVALIDO: { text: "text-red-500", bg: "bg-red-500/10", ring: "ring-red-500/50", pillbg: "bg-red-950/30" }
+const PixColorClass: Record<PixType, { text: string, pillbg: string, ring: string }> = {
+  EMAIL: { text: "text-primary", pillbg: "bg-primary/10", ring: "border-primary/30" },
+  CPF: { text: "text-warning", pillbg: "bg-warning/10", ring: "border-warning/30" },
+  PHONE: { text: "text-success", pillbg: "bg-success/10", ring: "border-success/30" },
+  INVALIDO: { text: "text-destructive", pillbg: "bg-destructive/10", ring: "border-destructive/40" }
 };
 export default function PixKeys() {
   const [keys, setKeys] = useSyncedState<PixKey[]>('nytzer-pix-keys', []);
