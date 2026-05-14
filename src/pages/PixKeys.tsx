@@ -319,16 +319,16 @@ export default function PixKeys() {
                       {key.status}
                     </button>
                     
-                    <button 
+                    <button
                       onClick={() => handleCopy(key.keyValue)}
-                      className="w-9 h-9 rounded-xl border border-border/50 bg-muted/20 hover:bg-primary/10 hover:border-primary/30 hover:text-primary flex items-center justify-center transition-all text-muted-foreground"
+                      className="w-9 h-9 rounded-lg border border-border bg-secondary hover:bg-primary/10 hover:border-primary/30 hover:text-primary flex items-center justify-center transition-colors text-muted-foreground"
                       title="Copiar"
                     >
                       <Copy className="w-4 h-4" />
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleDelete(key.id)}
-                      className="w-9 h-9 rounded-xl border border-red-900/30 bg-red-950/20 hover:bg-red-900/40 hover:text-red-400 flex items-center justify-center transition-all text-red-500/70"
+                      className="w-9 h-9 rounded-lg border border-destructive/30 bg-destructive/10 hover:bg-destructive/20 text-destructive flex items-center justify-center transition-colors"
                       title="Excluir"
                     >
                       <Trash2 className="w-4 h-4" />
