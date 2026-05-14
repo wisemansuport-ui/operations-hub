@@ -437,8 +437,6 @@ export default function OperatorExtract() {
           </div>
         )}
       </div>
-        )}
-      </div>
 
     </div>
   );
