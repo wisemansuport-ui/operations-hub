@@ -131,9 +131,11 @@ const Dashboard = () => {
     }
 
     const lucroBruto = totalSacado - totalDepositado;
-    const receitaMensal = lucroBruto + totalSalarios - totalAutoSalarios - totalCustos;
-    const medioporMeta = metasFechadas > 0 ? receitaMensal / metasFechadas : 0;
-    const medioporConta = contasProcessadas > 0 ? receitaMensal / contasProcessadas : 0;
+    const lucroOperacional = lucroBruto + totalSalarios - totalAutoSalarios;
+    const receitaMensal = lucroOperacional - totalCustos;
+    const medioporMeta = metasFechadas > 0 ? lucroOperacional / metasFechadas : 0;
+    const medioporConta = contasProcessadas > 0 ? lucroOperacional / contasProcessadas : 0;
+    const roundedMedioPorConta = Math.round(medioporConta * 100) / 100;
 
     const rankingRedes = Object.entries(redesMap)
       .map(([nome, d]) => ({ 
@@ -172,6 +174,7 @@ const Dashboard = () => {
       contasBaixas,
       medioporMeta,
       medioporConta,
+      roundedMedioPorConta,
       rankingRedes,
       chartData
     };
@@ -466,7 +469,7 @@ const Dashboard = () => {
           </div>
           <div className="flex items-center justify-between border-t border-border/60 pt-4 mt-2">
             <span className="text-sm text-muted-foreground">Próximas 50 contas (estimativa)</span>
-            <span className="text-base font-bold text-primary tabular-nums">+{formatBRL(stats.medioporConta * 50)}</span>
+            <span className="text-base font-bold text-primary tabular-nums">+{formatBRL(stats.roundedMedioPorConta * 50)}</span>
           </div>
         </div>
       </div>
