@@ -161,12 +161,17 @@ const Costs = () => {
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-20">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Custos Operacionais</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Proxy, SMS, bot, VPS e outros gastos operacionais
-          </p>
+      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5 flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+            <Wallet className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Custos Operacionais</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Proxy, SMS, bot, VPS e outros gastos operacionais
+            </p>
+          </div>
         </div>
         <button
           onClick={() => setOpen(true)}
