@@ -283,7 +283,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
       </div>
 
       <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
            <h1 className="text-xl md:text-3xl font-extrabold text-foreground tracking-tight">{meta.plataforma} {meta.rede !== 'Selecione' ? `- ${meta.rede}` : ''}</h1>
            <span className={`px-2 py-0.5 mt-1 rounded text-[10px] font-bold uppercase tracking-widest border ${meta.status === 'fechada' ? 'border-primary/50 text-primary bg-primary/10' : 'border-red-900/50 text-red-500 bg-red-950/30'}`}>
              {meta.status || 'ativa'}
@@ -304,6 +304,91 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
            >
              <Edit2 className="w-3.5 h-3.5" />
            </button>
+
+           {/* Link de referência — editable */}
+           <div className="flex items-center gap-2">
+             {isEditingLink ? (
+               <div className="flex items-center gap-2 w-full max-w-xl animate-fade-in">
+                 <LinkIcon className="w-4 h-4 text-primary shrink-0" />
+                 <input
+                   autoFocus
+                   type="url"
+                   value={linkValue}
+                   onChange={e => setLinkValue(e.target.value)}
+                   onKeyDown={e => {
+                     if (e.key === 'Enter') {
+                       onUpdateMeta({ ...meta, link: linkValue.trim() || null });
+                       setIsEditingLink(false);
+                       toast.success(linkValue.trim() ? 'Link atualizado!' : 'Link removido!');
+                     }
+                     if (e.key === 'Escape') {
+                       setLinkValue(meta.link || '');
+                       setIsEditingLink(false);
+                     }
+                   }}
+                   placeholder="Cole aqui o link da plataforma"
+                   className="flex-1 bg-background/50 border border-primary/40 rounded-lg px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-primary placeholder:text-muted-foreground/50"
+                 />
+                 <button
+                   onClick={() => {
+                     onUpdateMeta({ ...meta, link: linkValue.trim() || null });
+                     setIsEditingLink(false);
+                     toast.success(linkValue.trim() ? 'Link atualizado!' : 'Link removido!');
+                   }}
+                   className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-colors"
+                   title="Salvar"
+                 >
+                   <CheckSquare className="w-3.5 h-3.5" />
+                 </button>
+                 <button
+                   onClick={() => { setLinkValue(meta.link || ''); setIsEditingLink(false); }}
+                   className="p-1.5 rounded-lg bg-muted/20 hover:bg-muted/40 text-muted-foreground border border-border/40 transition-colors"
+                   title="Cancelar"
+                 >
+                   <X className="w-3.5 h-3.5" />
+                 </button>
+               </div>
+             ) : meta.link ? (
+               <div className="flex items-center gap-2 group/link">
+                 <LinkIcon className="w-3.5 h-3.5 text-primary/60" />
+                 <a
+                   href={meta.link}
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   className="text-xs text-primary/80 hover:text-primary underline underline-offset-2 decoration-primary/30 hover:decoration-primary/60 transition-colors truncate max-w-[300px]"
+                 >
+                   {meta.link.replace(/^https?:\/\//, '').substring(0, 50)}{meta.link.length > 55 ? '...' : ''}
+                 </a>
+                 <ExternalLink className="w-3 h-3 text-primary/40" />
+                 <button
+                   onClick={() => { setLinkValue(meta.link || ''); setIsEditingLink(true); }}
+                   className="p-1 rounded-md bg-muted/20 hover:bg-primary/10 text-muted-foreground hover:text-primary border border-border/30 transition-colors opacity-0 group-hover/link:opacity-100"
+                   title="Editar link"
+                 >
+                   <Edit2 className="w-3 h-3" />
+                 </button>
+                 <button
+                   onClick={() => {
+                     onUpdateMeta({ ...meta, link: null });
+                     setLinkValue('');
+                     toast.success('Link removido!');
+                   }}
+                   className="p-1 rounded-md bg-muted/20 hover:bg-red-500/10 text-muted-foreground hover:text-red-400 border border-border/30 transition-colors opacity-0 group-hover/link:opacity-100"
+                   title="Excluir link"
+                 >
+                   <Trash2 className="w-3 h-3" />
+                 </button>
+               </div>
+             ) : (
+               <button
+                 onClick={() => setIsEditingLink(true)}
+                 className="flex items-center gap-1.5 text-[11px] text-muted-foreground/60 hover:text-primary border border-dashed border-border/30 hover:border-primary/40 px-3 py-1.5 rounded-lg transition-all hover:bg-primary/5"
+               >
+                 <LinkIcon className="w-3.5 h-3.5" />
+                 Adicionar link
+               </button>
+             )}
+           </div>
         </div>
         <p className="text-xs text-muted-foreground">
           <strong className="text-foreground/80">Requisitos:</strong> {meta.titulo} · {isRecarga ? `R$ ${meta.contas} recarga` : `${meta.contas} contas`} · {remessas.length} remessas · {acertoPct}% de acerto
@@ -311,90 +396,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
           {meta.montante ? ` · Montante Restante: R$ ${Math.max(0, meta.montante - depositoTotal)}` : ''}
         </p>
 
-        {/* Link de referência — editable */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {isEditingLink ? (
-            <div className="flex items-center gap-2 w-full max-w-xl animate-fade-in">
-              <LinkIcon className="w-4 h-4 text-primary shrink-0" />
-              <input
-                autoFocus
-                type="url"
-                value={linkValue}
-                onChange={e => setLinkValue(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') {
-                    onUpdateMeta({ ...meta, link: linkValue.trim() || null });
-                    setIsEditingLink(false);
-                    toast.success(linkValue.trim() ? 'Link atualizado!' : 'Link removido!');
-                  }
-                  if (e.key === 'Escape') {
-                    setLinkValue(meta.link || '');
-                    setIsEditingLink(false);
-                  }
-                }}
-                placeholder="Cole aqui o link da plataforma"
-                className="flex-1 bg-background/50 border border-primary/40 rounded-lg px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-primary placeholder:text-muted-foreground/50"
-              />
-              <button
-                onClick={() => {
-                  onUpdateMeta({ ...meta, link: linkValue.trim() || null });
-                  setIsEditingLink(false);
-                  toast.success(linkValue.trim() ? 'Link atualizado!' : 'Link removido!');
-                }}
-                className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-colors"
-                title="Salvar"
-              >
-                <CheckSquare className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => { setLinkValue(meta.link || ''); setIsEditingLink(false); }}
-                className="p-1.5 rounded-lg bg-muted/20 hover:bg-muted/40 text-muted-foreground border border-border/40 transition-colors"
-                title="Cancelar"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ) : meta.link ? (
-            <div className="flex items-center gap-2 group/link">
-              <LinkIcon className="w-3.5 h-3.5 text-primary/60" />
-              <a
-                href={meta.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-primary/80 hover:text-primary underline underline-offset-2 decoration-primary/30 hover:decoration-primary/60 transition-colors truncate max-w-[300px]"
-              >
-                {meta.link.replace(/^https?:\/\//, '').substring(0, 50)}{meta.link.length > 55 ? '...' : ''}
-              </a>
-              <ExternalLink className="w-3 h-3 text-primary/40" />
-              <button
-                onClick={() => { setLinkValue(meta.link || ''); setIsEditingLink(true); }}
-                className="p-1 rounded-md bg-muted/20 hover:bg-primary/10 text-muted-foreground hover:text-primary border border-border/30 transition-colors opacity-0 group-hover/link:opacity-100"
-                title="Editar link"
-              >
-                <Edit2 className="w-3 h-3" />
-              </button>
-              <button
-                onClick={() => {
-                  onUpdateMeta({ ...meta, link: null });
-                  setLinkValue('');
-                  toast.success('Link removido!');
-                }}
-                className="p-1 rounded-md bg-muted/20 hover:bg-red-500/10 text-muted-foreground hover:text-red-400 border border-border/30 transition-colors opacity-0 group-hover/link:opacity-100"
-                title="Excluir link"
-              >
-                <Trash2 className="w-3 h-3" />
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setIsEditingLink(true)}
-              className="flex items-center gap-1.5 text-[11px] text-muted-foreground/60 hover:text-primary border border-dashed border-border/30 hover:border-primary/40 px-3 py-1.5 rounded-lg transition-all hover:bg-primary/5"
-            >
-              <LinkIcon className="w-3.5 h-3.5" />
-              Adicionar link
-            </button>
-          )}
-        </div>
+
 
         <div className="flex items-center gap-2 flex-wrap">
           {meta.status !== 'fechada' && (
