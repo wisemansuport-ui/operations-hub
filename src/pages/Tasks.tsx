@@ -907,15 +907,17 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
                     <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">{editModelo === 'Recarga' ? 'Valor da Recarga (R$) *' : 'Contas *'}</label>
                     <input type="number" value={editContas} onChange={e => setEditContas(e.target.value ? Number(e.target.value) : '')} className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 font-semibold transition-colors" min="1" required />
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className={`grid ${editModelo === 'Depositante' ? 'grid-cols-2' : 'grid-cols-1'} gap-2`}>
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Total AP.V</label>
                       <input type="text" inputMode="decimal" value={editTotalApv} onChange={e => setEditTotalApv(e.target.value)} placeholder="Ex. 20.000" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" />
                     </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Montante</label>
-                      <input type="text" inputMode="decimal" value={editMontante} onChange={e => setEditMontante(e.target.value)} placeholder="Ex. 5.000" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" />
-                    </div>
+                    {editModelo === 'Depositante' && (
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Montante</label>
+                        <input type="text" inputMode="decimal" value={editMontante} onChange={e => setEditMontante(e.target.value)} placeholder="Ex. 5.000" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" />
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1479,15 +1481,17 @@ const Tasks = () => {
                     <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">{modelo === 'Recarga' ? 'Valor da Recarga (R$) *' : 'Contas *'}</label>
                     <input type="number" value={contas} onChange={e => setContas(e.target.value ? Number(e.target.value) : '')} placeholder={modelo === 'Recarga' ? 'Ex. 5000' : 'Ex. 70'} className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 font-semibold transition-colors" min="1" required />
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className={`grid ${modelo === 'Depositante' ? 'grid-cols-2' : 'grid-cols-1'} gap-2`}>
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase" title="Apostas Válidas">Total AP.V</label>
                       <input type="text" inputMode="decimal" value={totalApv} onChange={e => setTotalApv(e.target.value)} placeholder="Ex. 20.000" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" />
                     </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Montante</label>
-                      <input type="text" inputMode="decimal" value={montante} onChange={e => setMontante(e.target.value)} placeholder="Ex. 5.000" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" />
-                    </div>
+                    {modelo === 'Depositante' && (
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Montante</label>
+                        <input type="text" inputMode="decimal" value={montante} onChange={e => setMontante(e.target.value)} placeholder="Ex. 5.000" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" />
+                      </div>
+                    )}
                   </div>
                 </div>
 
