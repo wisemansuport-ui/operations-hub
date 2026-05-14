@@ -81,20 +81,9 @@ const Operators = () => {
 
   const [search, setSearch] = useState('');
   const [confirmPayId, setConfirmPayId] = useState<string | null>(null);
-  const [payments, setPayments] = useState<Record<string, PaymentRecord>>({});
   const [history, setHistory] = useState<PaymentHistoryEntry[]>([]);
   const [expandedHistory, setExpandedHistory] = useState<string | null>(null);
   const [confirmUndoId, setConfirmUndoId] = useState<string | null>(null);
-
-  // Subscribe to payment snapshots
-  useEffect(() => {
-    const unsub = onSnapshot(collection(db, 'operatorPayments'), snap => {
-      const map: Record<string, PaymentRecord> = {};
-      snap.docs.forEach(d => { map[d.id] = { id: d.id, ...(d.data() as any) }; });
-      setPayments(map);
-    });
-    return () => unsub();
-  }, []);
 
   // Subscribe to payment history
   useEffect(() => {
@@ -173,21 +162,27 @@ const Operators = () => {
   const handleMarkPaid = async (op: OperatorData) => {
     setLoadingAction(true);
     try {
-      const now = new Date().toISOString();
-      const previousPaidUntil = payments[op.id]?.paidUntil || null;
-      await setDoc(doc(db, 'operatorPayments', op.id), {
-        paidUntil: now,
-        lastPaidAmount: op.pendingSalary,
-        lastPaidAt: now,
-      }, { merge: true });
+      // Find the maximum meta.createdAt for this operator to prevent clock drift issues
+      let maxMetaTime = Date.now();
+      metas.forEach(m => {
+        if (m.operador === op.id || m.operador === op.name) {
+          const t = new Date(m.createdAt).getTime();
+          if (t > maxMetaTime) maxMetaTime = t;
+        }
+      });
+      const safePaidUntil = new Date(maxMetaTime + 1000).toISOString(); // Add 1 second
+
+      const opHistory = history.filter(h => h.operatorId === op.id);
+      const previousPaidUntil = opHistory.length > 0 ? opHistory[0].newPaidUntil : null;
+      
       await addDoc(collection(db, 'operatorPaymentHistory'), {
         operatorId: op.id,
         operatorName: op.name,
         amount: op.pendingSalary,
-        paidAt: now,
+        paidAt: new Date().toISOString(),
         paidBy: activeOperator,
         previousPaidUntil,
-        newPaidUntil: now,
+        newPaidUntil: safePaidUntil,
       });
       toast.success(`Pagamento de ${op.name} registrado: ${formatBRL(op.pendingSalary)}`);
       setConfirmPayId(null);
@@ -204,12 +199,6 @@ const Operators = () => {
         return;
       }
       const last = opHistory[0];
-      // Restore previous state
-      await setDoc(doc(db, 'operatorPayments', op.id), {
-        paidUntil: last.previousPaidUntil ?? null,
-        lastPaidAmount: opHistory[1]?.amount ?? null,
-        lastPaidAt: opHistory[1]?.paidAt ?? null,
-      }, { merge: true });
       await deleteDoc(doc(db, 'operatorPaymentHistory', last.id));
       toast.success(`Último pagamento de ${op.name} desfeito (${formatBRL(last.amount)}).`);
       setConfirmUndoId(null);
@@ -276,7 +265,8 @@ const Operators = () => {
       opMap[opName].salary += metaSalary;
 
       // Pending check (after paidUntil)
-      const paidUntil = payments[opName]?.paidUntil ? new Date(payments[opName].paidUntil!).getTime() : 0;
+      const opHistory = history.filter(h => h.operatorId === opName);
+      const paidUntil = opHistory.length > 0 && opHistory[0].newPaidUntil ? new Date(opHistory[0].newPaidUntil).getTime() : 0;
       if (!paidUntil || metaTime > paidUntil) {
         opMap[opName].pendingSalary += metaSalary;
         opMap[opName].pendingNormais += metaNormais;
@@ -317,7 +307,7 @@ const Operators = () => {
       totalContas: tmpTotalContasCount,
       totalLucroEquipe: tmpTotalLucroEquipe
     };
-  }, [metas, users, activeOperator, periodBounds, payments]);
+  }, [metas, users, activeOperator, periodBounds, history]);
 
   const handleCopyLink = () => {
     const activeAdmin = user?.username || 'admin';
@@ -648,12 +638,12 @@ const Operators = () => {
           ) : (
             <div className="space-y-2">
               {filteredOps.map(op => {
-                const paid = payments[op.id];
-                const isPaidUp = op.pendingSalary === 0 && (paid?.paidUntil || op.salary === 0);
+                const opHistory = history.filter(h => h.operatorId === op.id);
+                const paidUntil = opHistory.length > 0 && opHistory[0].newPaidUntil ? opHistory[0].newPaidUntil : null;
+                const isPaidUp = op.pendingSalary === 0 && (paidUntil || op.salary === 0);
                 const isConfirm = confirmPayId === op.id;
                 const isUndoConfirm = confirmUndoId === op.id;
-                const lastPaidLabel = paid?.lastPaidAt ? format(new Date(paid.lastPaidAt), "dd MMM 'às' HH:mm", { locale: ptBR }) : null;
-                const opHistory = history.filter(h => h.operatorId === op.id);
+                const lastPaidLabel = opHistory.length > 0 ? format(new Date(opHistory[0].paidAt), "dd MMM 'às' HH:mm", { locale: ptBR }) : null;
                 const isExpanded = expandedHistory === op.id;
                 const totalPaidAllTime = opHistory.reduce((s, h) => s + (h.amount || 0), 0);
 
