@@ -339,9 +339,7 @@ const Operators = () => {
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 pt-2">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Equipe</span>
-            <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
-            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">v2.1</span>
+            <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">EQUIPE OPERACIONAL</span>
           </div>
           <h1 className="text-3xl font-bold text-foreground tracking-tight">Operadores</h1>
           <p className="text-sm text-muted-foreground mt-1.5">Performance, ranking e folha de pagamento em tempo real.</p>
