@@ -359,32 +359,32 @@ export default function OperatorExtract() {
         )}
       </div>
 
-      <div className="mt-8">
-        <h3 className="text-base font-bold text-foreground mb-4 flex items-center gap-2">
+      <div>
+        <h3 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
           <History className="w-4 h-4 text-primary" /> Histórico de Processamento
         </h3>
-        <DataTable 
-          title="Extrato de Operações" 
+        <DataTable
+          title="Extrato de Operações"
           subtitle="Registros validados pelo controle de qualidade"
-          columns={columns} 
-          data={extratoData} 
+          columns={columns}
+          data={extratoData}
           dynamicData={true}
         />
       </div>
 
       {/* Histórico de Pagamentos Recebidos */}
-      <div className="mt-6 rounded-2xl border border-border/50 bg-card/30 overflow-hidden">
+      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur overflow-hidden">
         <button
           onClick={() => setShowHistory(s => !s)}
-          className="w-full flex items-center justify-between gap-3 px-5 py-4 hover:bg-muted/[0.04] transition-colors"
+          className="w-full flex items-center justify-between gap-3 px-5 py-4 hover:bg-accent/5 transition-colors"
         >
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-              <Wallet className="w-4 h-4 text-emerald-500" />
+            <div className="w-9 h-9 rounded-xl bg-success/10 border border-success/20 flex items-center justify-center">
+              <Wallet className="w-4 h-4 text-success" />
             </div>
             <div className="text-left">
-              <h3 className="text-sm font-bold text-foreground tracking-tight">Histórico de pagamentos recebidos</h3>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
+              <h3 className="text-sm font-semibold text-foreground tracking-tight">Histórico de pagamentos recebidos</h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5 uppercase tracking-widest">
                 {paymentHistory.length} pagamento{paymentHistory.length !== 1 ? 's' : ''} · total recebido {formatBRL(totalPaidAllTime)}
               </p>
             </div>
@@ -393,32 +393,32 @@ export default function OperatorExtract() {
         </button>
 
         {showHistory && (
-          <div className="border-t border-border/40 px-5 py-4 animate-fade-in">
+          <div className="border-t border-border px-5 py-4 animate-fade-in">
             {paymentHistory.length === 0 ? (
               <div className="text-center py-8 text-xs text-muted-foreground">
                 Nenhum pagamento registrado ainda. Quando o administrador marcar um pagamento, ele aparecerá aqui.
               </div>
             ) : (
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 {paymentHistory.map((h, idx) => (
                   <div
                     key={h.id}
-                    className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 text-xs ${
+                    className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 text-xs transition-colors ${
                       idx === 0
-                        ? 'border-emerald-500/30 bg-emerald-500/[0.04]'
-                        : 'border-border/40 bg-card/30'
+                        ? 'border-success/30 bg-success/5'
+                        : 'border-border bg-secondary/40'
                     }`}
                   >
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                      idx === 0 ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30' : 'bg-muted/30 text-muted-foreground border border-border/40'
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${
+                      idx === 0 ? 'bg-success/10 text-success border-success/20' : 'bg-secondary text-muted-foreground border-border'
                     }`}>
                       <CheckCircle2 className="w-4 h-4" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-foreground text-sm">{formatBRL(h.amount)}</span>
+                        <span className="font-semibold text-foreground text-sm tabular-nums">{formatBRL(h.amount)}</span>
                         {idx === 0 && (
-                          <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border border-emerald-500/40 bg-emerald-500/10 text-emerald-500">
+                          <span className="text-[9px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded border border-success/30 bg-success/10 text-success">
                             Mais recente
                           </span>
                         )}
@@ -435,6 +435,8 @@ export default function OperatorExtract() {
               </div>
             )}
           </div>
+        )}
+      </div>
         )}
       </div>
 
