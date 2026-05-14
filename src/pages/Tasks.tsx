@@ -398,12 +398,22 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
 
 
         <div className="flex items-center gap-2 flex-wrap">
-          {meta.status !== 'fechada' && (
+          {meta.status !== 'fechada' ? (
             <button 
               onClick={handleFinishMeta}
               className="flex items-center gap-2 bg-primary/10 border border-primary/50 hover:bg-primary/20 text-primary px-4 py-2 rounded-lg font-bold transition-all text-xs shadow-[0_0_15px_hsl(var(--primary)/0.2)]"
             >
               <CheckSquare className="w-4 h-4" /> Finalizar meta
+            </button>
+          ) : (
+            <button 
+              onClick={() => {
+                onUpdateMeta({ ...meta, status: 'ativa' });
+                toast.success('Meta reaberta com sucesso!');
+              }}
+              className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/50 hover:bg-emerald-500/20 text-emerald-500 px-4 py-2 rounded-lg font-bold transition-all text-xs shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+            >
+              <RotateCcw className="w-4 h-4" /> Reabrir meta
             </button>
           )}
         </div>
