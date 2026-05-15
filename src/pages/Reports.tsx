@@ -141,7 +141,8 @@ const Reports = () => {
         name: displayName, 
         avatar, 
         status, 
-        diasOperados: op.diasSet.size 
+        diasOperados: op.diasSet.size,
+        rank: 0,
       };
     }).sort((a, b) => b.contas - a.contas);
 
