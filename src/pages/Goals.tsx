@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSyncedState } from '../hooks/useSyncedState';
 import { Target, Rocket, Edit3, Plus, Trash2, Check, TrendingUp, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNotifications } from '../contexts/NotificationContext';
+import { pushNotify } from '../lib/notifications';
 
 interface Goal {
   id: string;
@@ -9,6 +11,7 @@ interface Goal {
   target: number;
   current: number;
   createdAt: number;
+  notified?: boolean;
 }
 
 const formatBRL = (v: number) =>
@@ -105,6 +108,28 @@ export default function Goals() {
   const [target, setTarget] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
+  const { addNotification } = useNotifications();
+  const notifiedRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    goals.forEach(g => {
+      const reached = g.target > 0 && g.current >= g.target;
+      if (reached && !g.notified && !notifiedRef.current.has(g.id)) {
+        notifiedRef.current.add(g.id);
+        toast.success(`🎯 Meta atingida: ${g.title}!`, {
+          description: `Você alcançou ${formatBRL(g.target)}. Parabéns!`,
+        });
+        addNotification({
+          title: '🎯 Meta atingida!',
+          message: `${g.title} — ${formatBRL(g.target)} alcançados.`,
+          type: 'success',
+          targetRole: 'ALL',
+        });
+        pushNotify('🎯 Meta atingida!', `${g.title} — ${formatBRL(g.target)} alcançados.`);
+        setGoals(prev => prev.map(x => (x.id === g.id ? { ...x, notified: true } : x)));
+      }
+    });
+  }, [goals, addNotification, setGoals]);
 
   const addGoal = () => {
     const t = parseFloat(target.replace(',', '.'));
@@ -126,7 +151,14 @@ export default function Goals() {
   };
 
   const updateProgress = (id: string, value: number) => {
-    setGoals(prev => prev.map(g => (g.id === id ? { ...g, current: Math.max(0, value) } : g)));
+    setGoals(prev => prev.map(g => {
+      if (g.id !== id) return g;
+      const next = Math.max(0, value);
+      // Reset notified flag if dropped below target so re-completion notifies again
+      const notified = next < g.target ? false : g.notified;
+      if (next < g.target) notifiedRef.current.delete(g.id);
+      return { ...g, current: next, notified };
+    }));
   };
 
   const totals = useMemo(() => {
