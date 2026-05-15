@@ -64,8 +64,10 @@ const Reports = () => {
       const sal = Number(meta.salarioOperador) || 0;
       let autoSalarioMeta = 0;
       let metaLucroBruto = 0;
+      let metaContas = 0;
 
       (meta.remessas || []).forEach(r => {
+        metaContas += (r.contas || 1);
         const d = new Date(r.data || meta.createdAt);
         const dateStr = d.toLocaleDateString('pt-BR');
         const contasProcessed = r.contas || 1;
@@ -104,10 +106,22 @@ const Reports = () => {
          
          opMap[opName].lucro += lucroLiquido;
          
-         const metaDate = new Date(meta.createdAt);
-         const wIndex = getWeekKey(metaDate);
-         if (weekMap[wIndex] !== undefined) {
-             weekMap[wIndex].lucro += lucroLiquido;
+         if (metaContas === 0 || !meta.remessas || meta.remessas.length === 0) {
+             const metaDate = new Date(meta.createdAt);
+             const wIndex = getWeekKey(metaDate);
+             if (weekMap[wIndex] !== undefined) {
+                 weekMap[wIndex].lucro += lucroLiquido;
+             }
+         } else {
+             const profitPerConta = lucroLiquido / metaContas;
+             (meta.remessas || []).forEach(r => {
+                 const rc = r.contas || 1;
+                 const d = new Date(r.data || meta.createdAt);
+                 const wIndex = getWeekKey(d);
+                 if (weekMap[wIndex] !== undefined) {
+                     weekMap[wIndex].lucro += (rc * profitPerConta);
+                 }
+             });
          }
       }
     });

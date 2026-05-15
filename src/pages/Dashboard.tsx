@@ -72,6 +72,9 @@ const Dashboard = () => {
       let metaLucro = 0;
       let metaContas = 0;
       let autoSalarioMeta = 0;
+      const sal = Number(meta.salarioOperador) || 0;
+      const pagOp = Number(meta.pagamentoOperador) || 0;
+
       remessas.forEach(r => {
         const dep = Number(r.deposito || 0);
         const saq = Number(r.saque || 0);
@@ -94,8 +97,6 @@ const Dashboard = () => {
         metaContas += Number(r.contas || 0);
       });
       
-      const sal = Number(meta.salarioOperador) || 0;
-      const pagOp = Number(meta.pagamentoOperador) || 0;
       if (isFechada) {
         totalSalarios += sal;
         if (!meta.isAdminMeta && meta.modelo === 'Recarga') {
@@ -105,13 +106,35 @@ const Dashboard = () => {
       totalAutoSalarios += autoSalarioMeta;
 
       if (isFechada) {
-        const d = new Date(meta.createdAt);
-        const dateStr = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-        if (!chartDataByDate[dateStr]) chartDataByDate[dateStr] = { name: dateStr, contas: 0, lucro: 0, lucroOperador: 0 };
-        chartDataByDate[dateStr].contas += metaContas;
-        chartDataByDate[dateStr].lucro += (metaLucro + sal - autoSalarioMeta);
-        if (!meta.isAdminMeta) {
-          chartDataByDate[dateStr].lucroOperador += autoSalarioMeta;
+        const metaLucroLiquido = metaLucro + sal - autoSalarioMeta;
+        const metaLucroOperador = !meta.isAdminMeta ? autoSalarioMeta : 0;
+        
+        if (metaContas === 0 || remessas.length === 0) {
+          let lastDate = new Date(meta.createdAt);
+          remessas.forEach(r => {
+            const rd = new Date(r.data || meta.createdAt);
+            if (rd > lastDate) lastDate = rd;
+          });
+          const dateStr = lastDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+          if (!chartDataByDate[dateStr]) chartDataByDate[dateStr] = { name: dateStr, contas: 0, lucro: 0, lucroOperador: 0 };
+          chartDataByDate[dateStr].lucro += metaLucroLiquido;
+          chartDataByDate[dateStr].lucroOperador += metaLucroOperador;
+        } else {
+          const profitPerConta = metaLucroLiquido / metaContas;
+          const opProfitPerConta = metaLucroOperador / metaContas;
+
+          remessas.forEach(r => {
+             const rc = Number(r.contas || 0);
+             if (rc > 0) {
+                const rd = new Date(r.data || meta.createdAt);
+                const dateStr = rd.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                if (!chartDataByDate[dateStr]) chartDataByDate[dateStr] = { name: dateStr, contas: 0, lucro: 0, lucroOperador: 0 };
+                
+                chartDataByDate[dateStr].contas += rc;
+                chartDataByDate[dateStr].lucro += (rc * profitPerConta);
+                chartDataByDate[dateStr].lucroOperador += (rc * opProfitPerConta);
+             }
+          });
         }
       }
 

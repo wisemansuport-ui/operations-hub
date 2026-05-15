@@ -124,6 +124,12 @@ export default function OperatorExtract() {
               if (isPending) { newStats.MES.pendingNormal += rn; newStats.MES.pendingDepBaixo += rb; }
             }
           }
+
+          // Group for chart (by remessa day)
+          const dateStr = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+          if (!productionByDate[dateStr]) productionByDate[dateStr] = { date: dateStr, normal: 0, baixas: 0 };
+          productionByDate[dateStr].normal += rn;
+          productionByDate[dateStr].baixas += rb;
         });
 
         const totalContas = normais + baixas;
@@ -161,12 +167,6 @@ export default function OperatorExtract() {
           status: meta.status === 'fechada' ? 'Finalizada' : 'Em Andamento',
           timestamp: lastDate.getTime()
         });
-        
-        // Group for chart (by day)
-        const dateStr = lastDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-        if (!productionByDate[dateStr]) productionByDate[dateStr] = { date: dateStr, normal: 0, baixas: 0 };
-        productionByDate[dateStr].normal += normais;
-        productionByDate[dateStr].baixas += baixas;
       }
     });
 
