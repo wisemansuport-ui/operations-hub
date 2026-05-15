@@ -5,11 +5,13 @@ import { toast } from 'sonner';
 import { useNotifications } from '../contexts/NotificationContext';
 import { pushNotify } from '../lib/notifications';
 
+import { useFirestoreData } from '../hooks/useFirestoreData';
+
 interface Goal {
   id: string;
   title: string;
   target: number;
-  current: number;
+  current: number; // will be ignored and synced to receitaMensal
   createdAt: number;
   notified?: boolean;
 }
@@ -196,14 +198,52 @@ export default function Goals() {
   const [goals, setGoals] = useSyncedState<Goal[]>('nytzer-goals', []);
   const [title, setTitle] = useState('');
   const [target, setTarget] = useState('');
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState('');
   const { addNotification } = useNotifications();
-  const notifiedRef = useRef<Set<string>>(new Set());
+  const { metas, costs } = useFirestoreData();
+
+  const receitaMensal = useMemo(() => {
+    let totalDepositado = 0;
+    let totalSacado = 0;
+    let totalSalarios = 0;
+    let totalAutoSalarios = 0;
+
+    for (const meta of metas) {
+      if (meta.status === 'lixeira') continue;
+      const isFechada = meta.status === 'fechada';
+      if (!isFechada) continue;
+      
+      const remessas = meta.remessas || [];
+      remessas.forEach(r => {
+        totalDepositado += Number(r.deposito || 0);
+        totalSacado += Number(r.saque || 0);
+        
+        const normais = (r as any).contasNormais || 0;
+        const baixas = (r as any).contasBaixas || 0;
+        if (!meta.isAdminMeta && meta.modelo !== 'Recarga') {
+          totalAutoSalarios += (normais * 2) + (baixas * 1);
+        }
+      });
+      
+      const sal = Number(meta.salarioOperador) || 0;
+      totalSalarios += sal;
+      if (!meta.isAdminMeta && meta.modelo === 'Recarga') {
+        totalAutoSalarios += Number(meta.pagamentoOperador) || 0;
+      }
+    }
+
+    let totalCustos = 0;
+    for (const cost of costs) {
+       totalCustos += Number(cost.amount || 0);
+    }
+
+    const lucroBruto = totalSacado - totalDepositado;
+    const lucroOperacional = lucroBruto + totalSalarios - totalAutoSalarios;
+    return lucroOperacional - totalCustos;
+  }, [metas, costs]);
 
   useEffect(() => {
     goals.forEach(g => {
-      const reached = g.target > 0 && g.current >= g.target;
+      const reached = g.target > 0 && receitaMensal >= g.target;
       if (reached && !g.notified && !notifiedRef.current.has(g.id)) {
         notifiedRef.current.add(g.id);
         toast.success(`🎯 Meta atingida: ${g.title}!`, {
@@ -219,7 +259,7 @@ export default function Goals() {
         setGoals(prev => prev.map(x => (x.id === g.id ? { ...x, notified: true } : x)));
       }
     });
-  }, [goals, addNotification, setGoals]);
+  }, [goals, receitaMensal, addNotification, setGoals]);
 
   const addGoal = () => {
     const t = parseFloat(target.replace(',', '.'));
@@ -240,23 +280,13 @@ export default function Goals() {
     setGoals(prev => prev.filter(g => g.id !== id));
   };
 
-  const updateProgress = (id: string, value: number) => {
-    setGoals(prev => prev.map(g => {
-      if (g.id !== id) return g;
-      const next = Math.max(0, value);
-      // Reset notified flag if dropped below target so re-completion notifies again
-      const notified = next < g.target ? false : g.notified;
-      if (next < g.target) notifiedRef.current.delete(g.id);
-      return { ...g, current: next, notified };
-    }));
-  };
-
   const totals = useMemo(() => {
     const target = goals.reduce((s, g) => s + g.target, 0);
-    const current = goals.reduce((s, g) => s + Math.min(g.current, g.target), 0);
-    const reached = goals.filter(g => g.current >= g.target).length;
+    // current is now the dashboard's receitaMensal
+    const current = receitaMensal;
+    const reached = goals.filter(g => receitaMensal >= g.target).length;
     return { target, current, reached, pct: target ? (current / target) * 100 : 0 };
-  }, [goals]);
+  }, [goals, receitaMensal]);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-fade-in relative z-10 w-full text-foreground">
@@ -339,7 +369,7 @@ export default function Goals() {
           )}
 
           {goals.map(g => {
-            const pct = g.target > 0 ? (g.current / g.target) * 100 : 0;
+            const pct = g.target > 0 ? (receitaMensal / g.target) * 100 : 0;
             const reached = pct >= 100;
             return (
               <div key={g.id} className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5">
@@ -350,7 +380,7 @@ export default function Goals() {
                       {reached && <Trophy className="w-4 h-4 text-success shrink-0" />}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {formatBRL(Math.min(g.current, g.target))} de {formatBRL(g.target)}
+                      {formatBRL(Math.min(receitaMensal, g.target))} de {formatBRL(g.target)}
                     </p>
                   </div>
                   <button
@@ -369,53 +399,13 @@ export default function Goals() {
                       <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-1.5">
                         Progresso atual
                       </label>
-                      {editingId === g.id ? (
-                        <div className="flex gap-2">
-                          <input
-                            value={editValue}
-                            onChange={e => setEditValue(e.target.value)}
-                            inputMode="decimal"
-                            autoFocus
-                            className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/40"
-                          />
-                          <button
-                            onClick={() => {
-                              const v = parseFloat(editValue.replace(',', '.')) || 0;
-                              updateProgress(g.id, v);
-                              setEditingId(null);
-                            }}
-                            className="px-3 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
-                          >
-                            <Check className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setEditingId(g.id);
-                            setEditValue(String(g.current));
-                          }}
-                          className="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-background hover:border-primary/40 transition-colors text-sm"
-                        >
-                          <span className="font-semibold text-foreground tabular-nums">{formatBRL(g.current)}</span>
-                          <Edit3 className="w-3.5 h-3.5 text-muted-foreground" />
-                        </button>
-                      )}
+                      <div className="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-background transition-colors text-sm">
+                        <span className="font-semibold text-foreground tabular-nums">{formatBRL(receitaMensal)}</span>
+                        <TrendingUp className="w-3.5 h-3.5 text-primary" />
+                      </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2">
-                      {[0.1, 0.25, 0.5].map(f => (
-                        <button
-                          key={f}
-                          onClick={() => updateProgress(g.id, g.current + g.target * f)}
-                          className="px-2 py-1.5 rounded-lg border border-border bg-secondary text-xs font-semibold text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
-                        >
-                          +{f * 100}%
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="rounded-lg border border-border bg-background p-3">
+                    <div className="rounded-lg border border-border bg-background p-3 mt-4">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">
                           Restante
@@ -423,7 +413,7 @@ export default function Goals() {
                         <TrendingUp className="w-3.5 h-3.5 text-muted-foreground" />
                       </div>
                       <p className={`text-lg font-bold tabular-nums ${reached ? 'text-success' : 'text-foreground'}`}>
-                        {reached ? 'Meta atingida!' : formatBRL(Math.max(0, g.target - g.current))}
+                        {reached ? 'Meta atingida!' : formatBRL(Math.max(0, g.target - receitaMensal))}
                       </p>
                     </div>
 
