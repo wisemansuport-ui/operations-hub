@@ -5,7 +5,9 @@ import { Link } from "react-router-dom";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useFirestoreData } from "../hooks/useFirestoreData";
 import { OperationMeta } from "./Tasks";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { PeriodFilter, DateFilter, buildDateFilter, isInRange } from "@/components/ui/period-filter";
+import { startOfMonth, endOfMonth } from 'date-fns';
 
 const areaData = [
   { name: "Seg", tarefas: 12 },
@@ -34,6 +36,11 @@ const Dashboard = () => {
   const { metas, users, costs } = useFirestoreData();
   const operatorName = user?.username || 'Operador Central';
   const allowedLinks = quickLinks.filter(link => link.roles.includes(role));  
+
+  // Period filter — default: current month
+  const [dateFilter, setDateFilter] = useState<DateFilter>(
+    buildDateFilter('MES')
+  );
   
   const stats = useMemo(() => {
     let totalDepositado = 0;
@@ -80,6 +87,8 @@ const Dashboard = () => {
         const saq = Number(r.saque || 0);
         const normais = (r as any).contasNormais || 0;
         const baixas = (r as any).contasBaixas || 0;
+        const remessaDate = new Date(r.data || meta.createdAt);
+        const inPeriod = isInRange(remessaDate, dateFilter);
 
         if (!meta.isAdminMeta && isFechada) {
           if (meta.modelo !== 'Recarga') {
@@ -88,7 +97,7 @@ const Dashboard = () => {
             autoSalarioMeta += (normais * 2) + (baixas * 1);
           }
         }
-        if (isFechada) {
+        if (isFechada && inPeriod) {
           totalDepositado += dep;
           totalSacado += saq;
           contasProcessadas += Number(r.contas || 0);
@@ -207,7 +216,7 @@ const Dashboard = () => {
       rankingRedes,
       chartData
     };
-  }, [metas, costs, role, operatorName]);
+  }, [metas, costs, role, operatorName, dateFilter]);
 
   // Dynamic Chart Data
   const barData = stats.chartData;
@@ -362,8 +371,11 @@ const Dashboard = () => {
       </div>
     </div>
 
+    {/* Period filter - above KPIs */}
+    <PeriodFilter value={dateFilter} onChange={setDateFilter} />
+
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <KPICard title="Receita Mês Líquida" value={formatBRL(stats.receitaMensal)} change={`+ ${formatBRL(stats.totalSalarios)} FAT`} changeType="positive" icon={DollarSign} color="success" tooltip="Lucro bruto somado ao faturamento (salários) de toda a operação." />
+      <KPICard title="Receita Líquida" value={formatBRL(stats.receitaMensal)} change={`+ ${formatBRL(stats.totalSalarios)} FAT`} changeType="positive" icon={DollarSign} color="success" tooltip="Lucro bruto somado ao faturamento (salários) de toda a operação." />
       <KPICard title="Metas Fechadas" value={`${stats.metasFechadas}/${stats.totalMetas}`} change="Registradas" changeType="positive" icon={Target} color="primary" tooltip="Metas concluídas com sucesso do total criado." />
       <KPICard title="Metas Ativas" value={String(stats.metasAtivas)} change="Painel de controle" changeType="neutral" icon={Activity} color="warning" tooltip="Metas atualmente em andamento aguardando o fechamento dos operadores." />
       <KPICard title="Contas Operadas" value={String(stats.contasProcessadas)} change="Volume total" changeType="neutral" icon={Users} color="primary" tooltip="O volume total de contas produzidas em toda a operação." />

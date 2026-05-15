@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSyncedState } from '../hooks/useSyncedState';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { PeriodFilter, DateFilter, buildDateFilter, isInRange } from '@/components/ui/period-filter';
 import { Target, Rocket, Edit3, Plus, Trash2, Check, TrendingUp, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNotifications } from '../contexts/NotificationContext';
@@ -205,6 +206,8 @@ export default function Goals() {
   const [user] = useLocalStorage<any>('nytzer-user', null);
   const operatorName = user?.username || 'Operador Central';
 
+  const [dateFilter, setDateFilter] = useState<DateFilter>(buildDateFilter('MES'));
+
   const receitaMensal = useMemo(() => {
     let totalDepositado = 0;
     let totalSacado = 0;
@@ -229,6 +232,9 @@ export default function Goals() {
       
       const remessas = meta.remessas || [];
       remessas.forEach(r => {
+        const remessaDate = new Date(r.data || meta.createdAt);
+        if (!isInRange(remessaDate, dateFilter)) return;
+
         totalDepositado += Number(r.deposito || 0);
         totalSacado += Number(r.saque || 0);
         
@@ -254,7 +260,7 @@ export default function Goals() {
     const lucroBruto = totalSacado - totalDepositado;
     const lucroOperacional = lucroBruto + totalSalarios - totalAutoSalarios;
     return lucroOperacional - totalCustos;
-  }, [metas, costs, users, role, operatorName]);
+  }, [metas, costs, users, role, operatorName, dateFilter]);
 
   useEffect(() => {
     goals.forEach(g => {
@@ -316,6 +322,7 @@ export default function Goals() {
             <p className="text-sm text-muted-foreground mt-1">Defina metas e acompanhe o progresso em tempo real.</p>
           </div>
         </div>
+        <PeriodFilter value={dateFilter} onChange={setDateFilter} />
       </div>
 
       {/* Stats */}
