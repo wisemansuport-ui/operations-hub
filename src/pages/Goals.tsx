@@ -151,7 +151,14 @@ export default function Goals() {
   };
 
   const updateProgress = (id: string, value: number) => {
-    setGoals(prev => prev.map(g => (g.id === id ? { ...g, current: Math.max(0, value) } : g)));
+    setGoals(prev => prev.map(g => {
+      if (g.id !== id) return g;
+      const next = Math.max(0, value);
+      // Reset notified flag if dropped below target so re-completion notifies again
+      const notified = next < g.target ? false : g.notified;
+      if (next < g.target) notifiedRef.current.delete(g.id);
+      return { ...g, current: next, notified };
+    }));
   };
 
   const totals = useMemo(() => {
