@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSyncedState } from '../hooks/useSyncedState';
 import { Target, Rocket, Edit3, Plus, Trash2, Check, TrendingUp, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNotifications } from '../contexts/NotificationContext';
+import { pushNotify } from '../lib/notifications';
 
 interface Goal {
   id: string;
@@ -9,6 +11,7 @@ interface Goal {
   target: number;
   current: number;
   createdAt: number;
+  notified?: boolean;
 }
 
 const formatBRL = (v: number) =>
