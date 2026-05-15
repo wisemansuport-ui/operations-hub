@@ -108,6 +108,28 @@ export default function Goals() {
   const [target, setTarget] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
+  const { addNotification } = useNotifications();
+  const notifiedRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    goals.forEach(g => {
+      const reached = g.target > 0 && g.current >= g.target;
+      if (reached && !g.notified && !notifiedRef.current.has(g.id)) {
+        notifiedRef.current.add(g.id);
+        toast.success(`🎯 Meta atingida: ${g.title}!`, {
+          description: `Você alcançou ${formatBRL(g.target)}. Parabéns!`,
+        });
+        addNotification({
+          title: '🎯 Meta atingida!',
+          message: `${g.title} — ${formatBRL(g.target)} alcançados.`,
+          type: 'success',
+          targetRole: 'ALL',
+        });
+        pushNotify('🎯 Meta atingida!', `${g.title} — ${formatBRL(g.target)} alcançados.`);
+        setGoals(prev => prev.map(x => (x.id === g.id ? { ...x, notified: true } : x)));
+      }
+    });
+  }, [goals, addNotification, setGoals]);
 
   const addGoal = () => {
     const t = parseFloat(target.replace(',', '.'));
