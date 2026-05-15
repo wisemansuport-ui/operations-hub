@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSyncedState } from '../hooks/useSyncedState';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 import { Target, Rocket, Edit3, Plus, Trash2, Check, TrendingUp, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNotifications } from '../contexts/NotificationContext';
@@ -199,7 +200,10 @@ export default function Goals() {
   const [title, setTitle] = useState('');
   const [target, setTarget] = useState('');
   const { addNotification } = useNotifications();
-  const { metas, costs } = useFirestoreData();
+  const { metas, costs, users } = useFirestoreData();
+  const [role] = useLocalStorage<'ADMIN' | 'OPERADOR'>('nytzer-role', 'ADMIN');
+  const [user] = useLocalStorage<any>('nytzer-user', null);
+  const operatorName = user?.username || 'Operador Central';
 
   const receitaMensal = useMemo(() => {
     let totalDepositado = 0;
@@ -211,6 +215,17 @@ export default function Goals() {
       if (meta.status === 'lixeira') continue;
       const isFechada = meta.status === 'fechada';
       if (!isFechada) continue;
+
+      // Same visibility logic as Dashboard
+      let isVisible = false;
+      if (role === 'ADMIN') {
+        isVisible = meta.operador === operatorName ||
+                    (users.find((u: any) => u.username === meta.operador)?.affiliatedTo === operatorName) ||
+                    (!meta.operador && operatorName === 'wiseman');
+      } else {
+        isVisible = meta.operador === operatorName;
+      }
+      if (!isVisible) continue;
       
       const remessas = meta.remessas || [];
       remessas.forEach(r => {
@@ -239,7 +254,7 @@ export default function Goals() {
     const lucroBruto = totalSacado - totalDepositado;
     const lucroOperacional = lucroBruto + totalSalarios - totalAutoSalarios;
     return lucroOperacional - totalCustos;
-  }, [metas, costs]);
+  }, [metas, costs, users, role, operatorName]);
 
   useEffect(() => {
     goals.forEach(g => {
