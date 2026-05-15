@@ -37,67 +37,157 @@ function useAnimatedNumber(value: number, duration = 1200) {
   return display;
 }
 
+const STARS = Array.from({ length: 60 }).map(() => ({
+  size: Math.random() * 2 + 0.5,
+  left: Math.random() * 100,
+  top: Math.random() * 100,
+  delay: Math.random() * 4,
+  duration: 2 + Math.random() * 3,
+  opacity: 0.3 + Math.random() * 0.5,
+}));
+
 const RocketProgress: React.FC<{ percent: number }> = ({ percent }) => {
   const clamped = Math.min(100, Math.max(0, percent));
   const animated = useAnimatedNumber(clamped);
   const reached = clamped >= 100;
+  const milestones = [25, 50, 75];
 
   return (
-    <div className="relative w-full h-72 rounded-2xl border border-border bg-gradient-to-b from-background to-card/40 overflow-hidden">
+    <div
+      className="relative w-full h-80 rounded-2xl overflow-hidden border border-border/60 shadow-[inset_0_0_40px_hsl(var(--primary)/0.08)]"
+      style={{
+        background:
+          'radial-gradient(ellipse at 50% 100%, hsl(var(--primary)/0.18) 0%, transparent 60%), radial-gradient(ellipse at 30% 20%, hsl(var(--accent)/0.08) 0%, transparent 50%), linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--card)) 100%)',
+      }}
+    >
+      {/* nebula glow */}
+      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-primary/10 via-primary/5 to-transparent pointer-events-none" />
+
       {/* stars */}
-      <div className="absolute inset-0 opacity-50">
-        {Array.from({ length: 30 }).map((_, i) => (
+      <div className="absolute inset-0">
+        {STARS.map((s, i) => (
           <span
             key={i}
-            className="absolute rounded-full bg-foreground/40 animate-pulse"
+            className="absolute rounded-full bg-foreground"
             style={{
-              width: Math.random() * 2 + 1 + 'px',
-              height: Math.random() * 2 + 1 + 'px',
-              left: Math.random() * 100 + '%',
-              top: Math.random() * 100 + '%',
-              animationDelay: Math.random() * 3 + 's',
+              width: s.size + 'px',
+              height: s.size + 'px',
+              left: s.left + '%',
+              top: s.top + '%',
+              opacity: s.opacity,
+              animation: `pulse ${s.duration}s ease-in-out ${s.delay}s infinite`,
+              boxShadow: '0 0 4px currentColor',
             }}
           />
         ))}
       </div>
 
       {/* track */}
-      <div className="absolute left-1/2 -translate-x-1/2 top-4 bottom-4 w-1 bg-border/50 rounded-full" />
+      <div className="absolute left-1/2 -translate-x-1/2 top-6 bottom-6 w-[3px]">
+        <div className="absolute inset-0 rounded-full bg-gradient-to-b from-border/30 via-border/60 to-border/30" />
+        <div
+          className={`absolute left-0 right-0 bottom-0 rounded-full transition-all duration-1000 ease-out ${
+            reached
+              ? 'bg-gradient-to-t from-success via-success/80 to-success/60'
+              : 'bg-gradient-to-t from-primary via-primary/80 to-accent'
+          }`}
+          style={{
+            height: `${animated}%`,
+            boxShadow: reached
+              ? '0 0 20px hsl(var(--success)/0.6)'
+              : '0 0 20px hsl(var(--primary)/0.6)',
+          }}
+        />
+        {milestones.map(m => {
+          const passed = animated >= m;
+          return (
+            <div key={m} className="absolute left-1/2 -translate-x-1/2" style={{ bottom: `${m}%` }}>
+              <div
+                className={`w-2 h-2 rounded-full border transition-all duration-500 ${
+                  passed
+                    ? 'bg-primary border-primary shadow-[0_0_8px_hsl(var(--primary))]'
+                    : 'bg-card border-border'
+                }`}
+              />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[9px] font-mono text-muted-foreground/60">
+                {m}%
+              </span>
+            </div>
+          );
+        })}
+      </div>
 
       {/* rocket */}
       <div
-        className="absolute left-1/2 -translate-x-1/2 transition-all duration-1000 ease-out"
-        style={{ bottom: `calc(${animated}% * 0.85 + 8px)` }}
+        className="absolute left-1/2 transition-all duration-1000 ease-out z-10"
+        style={{ bottom: `calc(${animated}% * 0.78 + 24px)`, transform: 'translateX(-50%)' }}
       >
         <div className="relative">
-          <Rocket
-            className={`w-12 h-12 ${reached ? 'text-success' : 'text-primary'} drop-shadow-[0_0_20px_hsl(var(--primary)/0.6)]`}
-            style={{ transform: 'rotate(-45deg)' }}
-          />
-          {/* flame */}
           <div
-            className="absolute left-1/2 -translate-x-1/2 -bottom-2 w-3 h-6 rounded-full bg-gradient-to-t from-transparent via-warning to-destructive blur-[2px] animate-pulse"
-            style={{ transform: 'translateX(-50%) rotate(45deg) translateY(8px)' }}
+            className={`absolute inset-0 -m-6 rounded-full blur-2xl ${
+              reached ? 'bg-success/40' : 'bg-primary/40'
+            } animate-pulse`}
+          />
+          <div
+            className="absolute left-1/2 top-full -translate-x-1/2 -mt-1"
+            style={{ transform: 'translateX(-50%) rotate(45deg)' }}
+          >
+            <div className="relative w-3 h-12">
+              <div className="absolute inset-0 bg-gradient-to-b from-warning via-destructive to-transparent rounded-full blur-[3px] animate-pulse" />
+              <div className="absolute inset-x-1 top-0 bottom-3 bg-gradient-to-b from-warning/90 to-transparent rounded-full" />
+            </div>
+          </div>
+          {!reached && animated > 5 && (
+            <>
+              {[0, 1, 2].map(i => (
+                <span
+                  key={i}
+                  className="absolute left-1/2 top-full w-1 h-1 rounded-full bg-warning"
+                  style={{
+                    transform: `translate(-50%, ${10 + i * 6}px) rotate(45deg)`,
+                    opacity: 0.6 - i * 0.18,
+                    animation: `pulse 1s ease-in-out ${i * 0.2}s infinite`,
+                  }}
+                />
+              ))}
+            </>
+          )}
+          <Rocket
+            className={`relative w-14 h-14 ${
+              reached ? 'text-success' : 'text-primary'
+            } drop-shadow-[0_0_25px_hsl(var(--primary)/0.8)]`}
+            strokeWidth={1.5}
+            style={{ transform: 'rotate(-45deg)' }}
           />
         </div>
       </div>
 
-      {/* percent badge */}
-      <div className="absolute top-3 right-3 px-3 py-1.5 rounded-lg bg-card/80 backdrop-blur border border-border">
-        <span className={`text-lg font-extrabold tabular-nums ${reached ? 'text-success' : 'text-primary'}`}>
-          {animated.toFixed(1)}%
-        </span>
+      {/* finish line */}
+      <div
+        className={`absolute left-1/2 -translate-x-1/2 top-3 w-20 h-1 rounded-full ${
+          reached ? 'bg-success shadow-[0_0_12px_hsl(var(--success))]' : 'bg-success/60'
+        }`}
+      />
+      <div className="absolute left-1/2 -translate-x-1/2 top-5 text-[9px] font-mono font-bold text-success/80 tracking-widest">
+        META · 100%
+      </div>
+
+      {/* HUD */}
+      <div className="absolute top-3 right-3 px-3 py-2 rounded-xl bg-card/70 backdrop-blur-md border border-border/60 shadow-lg">
+        <div className="text-[9px] font-mono text-muted-foreground tracking-widest mb-0.5">PROGRESSO</div>
+        <div className={`text-2xl font-extrabold tabular-nums leading-none ${reached ? 'text-success' : 'text-primary'}`}>
+          {animated.toFixed(1)}<span className="text-sm opacity-60">%</span>
+        </div>
       </div>
 
       {reached && (
-        <div className="absolute top-3 left-3 px-3 py-1.5 rounded-lg bg-success/20 border border-success/40 flex items-center gap-1.5 animate-fade-in">
+        <div className="absolute top-3 left-3 px-3 py-2 rounded-xl bg-success/20 border border-success/50 backdrop-blur flex items-center gap-1.5 animate-fade-in shadow-[0_0_20px_hsl(var(--success)/0.4)]">
           <Trophy className="w-4 h-4 text-success" />
-          <span className="text-xs font-bold text-success">META ATINGIDA</span>
+          <span className="text-xs font-extrabold text-success tracking-wider">CONQUISTADO</span>
         </div>
       )}
 
-      {/* finish line */}
-      <div className="absolute left-1/2 -translate-x-1/2 top-3 w-16 h-1 bg-success/60 rounded-full" />
+      <div className="absolute bottom-0 inset-x-0 h-10 bg-gradient-to-t from-primary/15 to-transparent pointer-events-none" />
     </div>
   );
 };
