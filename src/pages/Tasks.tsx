@@ -146,7 +146,19 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
   const progresso = Math.min(((isRecarga ? depositoTotal : totalCompletedContas) / meta.contas) * 100, 100);
   const saqueTotal = remessas.reduce((acc, r) => acc + r.saque, 0);
   const resultadoBruto = saqueTotal - depositoTotal;
-  const resultadoLiquido = resultadoBruto + (meta.salarioOperador || 0);
+
+  const totalAutoSalarios = remessas.reduce((acc, r) => {
+    if (meta.modelo === 'Recarga') return acc;
+    return acc + ((r.contasNormais || 0) * 2) + ((r.contasBaixas || 0) * 1);
+  }, 0) + (meta.modelo === 'Recarga' ? (Number(meta.pagamentoOperador) || 0) : 0);
+
+  const saquesFeitos = remessas.reduce((acc, r) => acc + r.saque, 0);
+  const depositosFeitos = remessas.reduce((acc, r) => acc + r.deposito, 0);
+  const salarioOperador = meta.salarioOperador || 0;
+  
+  // O resultado líquido final DESCONTA o que foi pago ao operador
+  const resultadoLiquido = (saquesFeitos - depositosFeitos) + salarioOperador - (!meta.isAdminMeta ? totalAutoSalarios : 0);
+  
   const lucroAcumulado = remessas.reduce((acc, r) => r.saque > r.deposito ? acc + (r.saque - r.deposito) : acc, 0);
   const prejuizoAcumulado = remessas.reduce((acc, r) => r.deposito > r.saque ? acc + (r.deposito - r.saque) : acc, 0);
   const remessasPositivas = remessas.filter(r => r.saque > r.deposito).length;
@@ -586,8 +598,8 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
         </div>
         <div className="glass-card col-span-2 md:col-span-1 flex flex-col justify-center p-4 rounded-xl border-emerald-900/30 bg-emerald-950/20 shadow-lg">
            <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Resultado Líquido</span>
-           <span className={`text-xl font-black drop-shadow-md ${resultadoLiquido >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>
-             {resultadoLiquido > 0 ? '+' : ''}{formatBRL(resultadoLiquido)}
+           <span className={`text-xl font-black drop-shadow-md ${resultadoLiquido - (meta.salarioOperador || 0) >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>
+             {(resultadoLiquido - (meta.salarioOperador || 0)) > 0 ? '+' : ''}{formatBRL(resultadoLiquido - (meta.salarioOperador || 0))}
            </span>
         </div>
       </div>
@@ -1331,7 +1343,17 @@ const Tasks = () => {
             const rem = meta.remessas || [];
             const lucroBruto = rem.reduce((acc, r) => acc + (r.saque - r.deposito), 0);
             const salario = meta.salarioOperador || 0;
-            const lucroLiquido = lucroBruto + salario;
+            
+            let autoSalarioMeta = 0;
+            if (!meta.isAdminMeta) {
+              if (meta.modelo === 'Recarga') {
+                autoSalarioMeta = Number(meta.pagamentoOperador) || 0;
+              } else {
+                autoSalarioMeta = rem.reduce((acc, r) => acc + ((r.contasNormais || 0) * 2) + ((r.contasBaixas || 0) * 1), 0);
+              }
+            }
+            
+            const lucroLiquido = lucroBruto + salario - autoSalarioMeta;
             return (
               <div key={meta.id} className={meta.isAdminMeta ? "glass-card bg-[#111111]/95 rounded-2xl border border-yellow-500/20 p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:border-yellow-500/40 hover:bg-[#161616] hover:shadow-[0_8px_30px_-10px_rgba(234,179,8,0.15)] hover:-translate-y-0.5 transition-all relative overflow-hidden group cursor-pointer" : "glass-card rounded-2xl border border-border/30 p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:border-primary/40 hover:shadow-[0_8px_30px_-10px_hsl(var(--primary)/0.15)] hover:-translate-y-0.5 transition-all relative overflow-hidden group cursor-pointer"} onClick={() => setSelectedMetaId(meta.id)}>
                 <div className={`absolute left-0 top-0 bottom-0 w-1 transition-colors ${meta.status === 'fechada' ? 'bg-primary/40' : meta.status === 'lixeira' ? 'bg-red-500' : meta.isAdminMeta ? 'bg-gradient-to-b from-yellow-600 via-yellow-600/80 to-transparent shadow-[0_0_15px_rgba(202,138,4,0.5)]' : 'bg-gradient-to-b from-primary via-primary/80 to-transparent shadow-[0_0_15px_hsl(var(--primary)/0.5)]'}`} />
