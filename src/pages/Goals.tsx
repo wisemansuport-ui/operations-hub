@@ -231,30 +231,40 @@ export default function Goals() {
       if (!isVisible) continue;
       
       const remessas = meta.remessas || [];
+      const metaContasTotal = remessas.reduce((acc, r) => acc + Number(r.contas || 0), 0);
+      const sal = Number(meta.salarioOperador) || 0;
+      const pagOp = Number(meta.pagamentoOperador) || 0;
+
       remessas.forEach(r => {
         const remessaDate = new Date(r.data || meta.createdAt);
         if (!isInRange(remessaDate, dateFilter)) return;
 
+        const rc = Number(r.contas || 0);
         totalDepositado += Number(r.deposito || 0);
         totalSacado += Number(r.saque || 0);
         
+        const proportion = metaContasTotal > 0 ? (rc / metaContasTotal) : (1 / remessas.length);
+        totalSalarios += sal * proportion;
+
         const normais = (r as any).contasNormais || 0;
         const baixas = (r as any).contasBaixas || 0;
-        if (!meta.isAdminMeta && meta.modelo !== 'Recarga') {
-          totalAutoSalarios += (normais * 2) + (baixas * 1);
+        
+        if (!meta.isAdminMeta) {
+          if (meta.modelo !== 'Recarga') {
+            totalAutoSalarios += (normais * 2) + (baixas * 1);
+          } else {
+            totalAutoSalarios += pagOp * proportion;
+          }
         }
       });
-      
-      const sal = Number(meta.salarioOperador) || 0;
-      totalSalarios += sal;
-      if (!meta.isAdminMeta && meta.modelo === 'Recarga') {
-        totalAutoSalarios += Number(meta.pagamentoOperador) || 0;
-      }
     }
 
     let totalCustos = 0;
     for (const cost of costs) {
-       totalCustos += Number(cost.amount || 0);
+       const costDate = cost.date ? new Date(cost.date + 'T12:00:00') : new Date(cost.createdAt);
+       if (isInRange(costDate, dateFilter)) {
+         totalCustos += Number(cost.amount || 0);
+       }
     }
 
     const lucroBruto = totalSacado - totalDepositado;

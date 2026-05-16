@@ -76,6 +76,7 @@ const Dashboard = () => {
       else metasAtivas++;
       
       const remessas = meta.remessas || [];
+      const metaContasTotal = remessas.reduce((acc, r) => acc + Number(r.contas || 0), 0);
       let metaLucro = 0;
       let metaContas = 0;
       let autoSalarioMeta = 0;
@@ -85,34 +86,50 @@ const Dashboard = () => {
       remessas.forEach(r => {
         const dep = Number(r.deposito || 0);
         const saq = Number(r.saque || 0);
+        const rc = Number(r.contas || 0);
         const normais = (r as any).contasNormais || 0;
         const baixas = (r as any).contasBaixas || 0;
         const remessaDate = new Date(r.data || meta.createdAt);
         const inPeriod = isInRange(remessaDate, dateFilter);
 
+        // Chart / Unfiltered stats
+        metaLucro += (saq - dep);
+        metaContas += rc;
+        
+        let currentRemessaAutoSalario = 0;
         if (!meta.isAdminMeta && isFechada) {
           if (meta.modelo !== 'Recarga') {
+            currentRemessaAutoSalario = (normais * 2) + (baixas * 1);
             contasNormais += normais;
             contasBaixas += baixas;
-            autoSalarioMeta += (normais * 2) + (baixas * 1);
+            autoSalarioMeta += currentRemessaAutoSalario;
           }
         }
+
+        // Filtered KPIs (only what falls in dateFilter)
         if (isFechada && inPeriod) {
           totalDepositado += dep;
           totalSacado += saq;
-          contasProcessadas += Number(r.contas || 0);
+          contasProcessadas += rc;
+          
+          const proportion = metaContasTotal > 0 ? (rc / metaContasTotal) : (1 / remessas.length);
+          totalSalarios += sal * proportion;
+          
+          if (!meta.isAdminMeta) {
+            if (meta.modelo !== 'Recarga') {
+              totalAutoSalarios += currentRemessaAutoSalario;
+            } else {
+              totalAutoSalarios += pagOp * proportion;
+            }
+          }
         }
-        metaLucro += (saq - dep);
-        metaContas += Number(r.contas || 0);
       });
       
       if (isFechada) {
-        totalSalarios += sal;
         if (!meta.isAdminMeta && meta.modelo === 'Recarga') {
           autoSalarioMeta += pagOp;
         }
       }
-      totalAutoSalarios += autoSalarioMeta;
 
       if (isFechada) {
         const metaLucroLiquido = metaLucro + sal - autoSalarioMeta;
@@ -159,7 +176,10 @@ const Dashboard = () => {
 
     let totalCustos = 0;
     for (const cost of costs) {
-       totalCustos += Number(cost.amount || 0);
+       const costDate = cost.date ? new Date(cost.date + 'T12:00:00') : new Date(cost.createdAt);
+       if (isInRange(costDate, dateFilter)) {
+         totalCustos += Number(cost.amount || 0);
+       }
     }
 
     const lucroBruto = totalSacado - totalDepositado;
