@@ -1,15 +1,13 @@
 Add-Type -AssemblyName System.Drawing
 
 # -------------------------------------------------------
-# Source: new logo PNG with transparent background
-# Goal: produce fully-opaque icons with NO white border
+# Source: new logo JPG with black background and golden border
+# Goal: produce icons where the golden border is the edge.
 # Strategy:
-#   1. Fill canvas with solid #0A0A0A (matches icon bg)
-#   2. Draw image at 110% scale — crops the transparent fringe
-#   3. Pixel-walk to flatten any remaining semi-transparent px
+#   Crop the image to the golden border bounding box
 # -------------------------------------------------------
 
-$src    = 'C:/Users/wisem/OneDrive/Desktop/operations-hub-main/operations-hub-main/scripts/logo_source.png'
+$src    = 'C:/Users/wisem/OneDrive/Desktop/operations-hub-main/operations-hub-main/scripts/logo_source.jpg'
 $outDir = 'C:/Users/wisem/OneDrive/Desktop/operations-hub-main/operations-hub-main/public'
 
 $original = [System.Drawing.Bitmap]::new($src)
@@ -21,47 +19,29 @@ $sizes = @(
   @{name='icon-512.png';         w=512; h=512}
 )
 
+# Crop box tightly around the golden border
+$srcRect = New-Object System.Drawing.Rectangle(90, 90, 844, 844)
+
 foreach ($s in $sizes) {
   $bmp = New-Object System.Drawing.Bitmap($s.w, $s.h, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
   $g   = [System.Drawing.Graphics]::FromImage($bmp)
 
-  # 1. Fill with solid black — kills all transparency
-  $g.Clear([System.Drawing.Color]::FromArgb(255, 10, 10, 10))
-
+  $g.Clear([System.Drawing.Color]::Transparent)
   $g.InterpolationMode  = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
   $g.SmoothingMode      = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
   $g.PixelOffsetMode    = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
-  $g.CompositingMode    = [System.Drawing.Drawing2D.CompositingMode]::SourceOver
+  $g.CompositingMode    = [System.Drawing.Drawing2D.CompositingMode]::SourceCopy
   $g.CompositingQuality = [System.Drawing.Drawing2D.CompositingQuality]::HighQuality
 
-  # 2. Draw at 110% — clips anti-aliased transparent fringe at corners
-  $overScale = 1.10
-  $dw = [int]($s.w * $overScale)
-  $dh = [int]($s.h * $overScale)
-  $dx = -[int](($dw - $s.w) / 2)
-  $dy = -[int](($dh - $s.h) / 2)
-  $g.DrawImage($original, $dx, $dy, $dw, $dh)
+  $destRect = New-Object System.Drawing.Rectangle(0, 0, $s.w, $s.h)
+  $g.DrawImage($original, $destRect, $srcRect, [System.Drawing.GraphicsUnit]::Pixel)
   $g.Dispose()
-
-  # 3. Pixel-walk: flatten any remaining semi-transparent pixels onto black
-  for ($y = 0; $y -lt $s.h; $y++) {
-    for ($x = 0; $x -lt $s.w; $x++) {
-      $px = $bmp.GetPixel($x, $y)
-      if ($px.A -lt 255) {
-        $alpha = $px.A / 255.0
-        $r = [int]($px.R * $alpha + 10 * (1 - $alpha))
-        $gv = [int]($px.G * $alpha + 10 * (1 - $alpha))
-        $b = [int]($px.B * $alpha + 10 * (1 - $alpha))
-        $bmp.SetPixel($x, $y, [System.Drawing.Color]::FromArgb(255, $r, $gv, $b))
-      }
-    }
-  }
 
   $outPath = Join-Path $outDir $s.name
   $bmp.Save($outPath, [System.Drawing.Imaging.ImageFormat]::Png)
   $bmp.Dispose()
-  Write-Host "Saved $($s.name) ($($s.w)x$($s.h))"
+  Write-Host "Saved $($s.name) ($($s.w)x$($s.h)) cropped"
 }
 
 $original.Dispose()
-Write-Host "All icons generated. Zero white borders."
+Write-Host "All icons generated with golden border as the edge."
