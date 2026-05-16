@@ -57,6 +57,11 @@ const Dashboard = () => {
     let metasAtivas = 0;
     let totalMetas = 0;
 
+    // ----- SINGLE SOURCE OF TRUTH -----
+    // For every fechada meta: calculate totals from ALL remessas (for chart),
+    // but only accumulate KPI values for remessas whose date falls in dateFilter.
+    // Salary and autoSalario are split proportionally across remessas by conta count.
+
     for (const meta of metas) {
       if (meta.status === 'lixeira') continue;
       
@@ -76,92 +81,81 @@ const Dashboard = () => {
       else metasAtivas++;
       
       const remessas = meta.remessas || [];
-      let lastDate = new Date(meta.createdAt);
-      remessas.forEach(r => {
-        const rd = new Date(r.data || meta.createdAt);
-        if (rd > lastDate) lastDate = rd;
-      });
-      const isMetaInPeriod = isInRange(lastDate, dateFilter);
-
-      let metaLucro = 0;
-      let metaContas = 0;
-      let autoSalarioMeta = 0;
-      let metaDep = 0;
-      let metaSaq = 0;
       const sal = Number(meta.salarioOperador) || 0;
       const pagOp = Number(meta.pagamentoOperador) || 0;
+
+      // Total contas in the meta (used for proportional salary split)
+      const totalContasMeta = remessas.reduce((acc, r) => acc + Number(r.contas || 0), 0);
+
+      // For each remessa, calculate its proportional share of salary/autoSalario
+      let metaTotalDep = 0, metaTotalSaq = 0, metaTotalAutoSal = 0;
 
       remessas.forEach(r => {
         const dep = Number(r.deposito || 0);
         const saq = Number(r.saque || 0);
         const rc = Number(r.contas || 0);
-        const normais = (r as any).contasNormais || 0;
-        const baixas = (r as any).contasBaixas || 0;
-        
-        metaContas += rc;
-        metaDep += dep;
-        metaSaq += saq;
-        
-        if (!meta.isAdminMeta && isFechada) {
-          if (meta.modelo !== 'Recarga') {
+        const normais = Number((r as any).contasNormais || 0);
+        const baixas = Number((r as any).contasBaixas || 0);
+
+        metaTotalDep += dep;
+        metaTotalSaq += saq;
+
+        // Proportional share of this remessa for salary
+        const prop = totalContasMeta > 0 ? rc / totalContasMeta : (remessas.length > 0 ? 1 / remessas.length : 1);
+        const remSal = sal * prop;
+        let remAutoSal = 0;
+        if (!meta.isAdminMeta) {
+          if (meta.modelo === 'Recarga') {
+            remAutoSal = pagOp * prop;
+          } else {
+            remAutoSal = (normais * 2) + (baixas * 1);
+          }
+        }
+
+        const remessaDate = new Date(r.data || meta.createdAt);
+        const inPeriod = isInRange(remessaDate, dateFilter);
+
+        if (isFechada && inPeriod) {
+          totalDepositado += dep;
+          totalSacado += saq;
+          totalSalarios += remSal;
+          totalAutoSalarios += remAutoSal;
+          contasProcessadas += rc;
+          if (!meta.isAdminMeta && meta.modelo !== 'Recarga') {
             contasNormais += normais;
             contasBaixas += baixas;
-            autoSalarioMeta += (normais * 2) + (baixas * 1);
           }
         }
 
-        // Per-Remessa contas tracking
-        const remessaDate = new Date(r.data || meta.createdAt);
-        if (isFechada && isInRange(remessaDate, dateFilter)) {
-          contasProcessadas += rc;
+        // Chart: always add to the chart regardless of dateFilter (chart shows full history)
+        // lucro per remessa = (saq - dep) + remSal - remAutoSal
+        if (isFechada) {
+          const dateStr = remessaDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+          if (!chartDataByDate[dateStr]) chartDataByDate[dateStr] = { name: dateStr, contas: 0, lucro: 0, lucroOperador: 0 };
+          chartDataByDate[dateStr].contas += rc;
+          chartDataByDate[dateStr].lucro += (saq - dep) + remSal - remAutoSal;
+          chartDataByDate[dateStr].lucroOperador += !meta.isAdminMeta ? remAutoSal : 0;
         }
       });
-      
-      metaLucro = metaSaq - metaDep;
 
-      if (isFechada) {
-        if (!meta.isAdminMeta && meta.modelo === 'Recarga') {
-          autoSalarioMeta += pagOp;
-        }
-
-        // Atomically apply financial stats if the META closed in the period
-        if (isMetaInPeriod) {
-          totalDepositado += metaDep;
-          totalSacado += metaSaq;
-          totalSalarios += sal;
-          if (!meta.isAdminMeta) {
-            totalAutoSalarios += autoSalarioMeta;
-          }
-        }
-
-        const metaLucroLiquido = metaLucro + sal - autoSalarioMeta;
-        const metaLucroOperador = !meta.isAdminMeta ? autoSalarioMeta : 0;
-        const dateStr = lastDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+      // Handle metas with 0 contas (no remessas counted) — put full amount on createdAt date
+      if (isFechada && totalContasMeta === 0 && remessas.length === 0) {
+        const dateStr = new Date(meta.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
         if (!chartDataByDate[dateStr]) chartDataByDate[dateStr] = { name: dateStr, contas: 0, lucro: 0, lucroOperador: 0 };
-        
-        // Chart lucro is ALSO atomic
-        chartDataByDate[dateStr].lucro += metaLucroLiquido;
-        chartDataByDate[dateStr].lucroOperador += metaLucroOperador;
-
-        // Chart contas is proportional to REMESSAS
-        remessas.forEach(r => {
-           const rc = Number(r.contas || 0);
-           if (rc > 0) {
-              const rd = new Date(r.data || meta.createdAt);
-              const rStr = rd.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-              if (!chartDataByDate[rStr]) chartDataByDate[rStr] = { name: rStr, contas: 0, lucro: 0, lucroOperador: 0 };
-              chartDataByDate[rStr].contas += rc;
-           }
-        });
+        const metaAutoSal = !meta.isAdminMeta ? (meta.modelo === 'Recarga' ? pagOp : 0) : 0;
+        chartDataByDate[dateStr].lucro += (metaTotalSaq - metaTotalDep) + sal - metaAutoSal;
+        chartDataByDate[dateStr].lucroOperador += !meta.isAdminMeta ? metaAutoSal : 0;
       }
 
-      // Track by Network (Rede)
+      // Track by Network (Rede) — uses full meta totals
       if (isFechada && meta.rede && meta.rede !== 'Selecione') {
+        const metaAutoSal = !meta.isAdminMeta ? (meta.modelo === 'Recarga' ? pagOp : metaTotalAutoSal) : 0;
         if (!redesMap[meta.rede]) redesMap[meta.rede] = { lucro: 0, contas: 0, metas: 0, acertos: 0 };
-        redesMap[meta.rede].lucro += (metaLucro + sal - autoSalarioMeta);
-        redesMap[meta.rede].contas += metaContas;
+        const metaLiquido = (metaTotalSaq - metaTotalDep) + sal - metaAutoSal;
+        redesMap[meta.rede].lucro += metaLiquido;
+        redesMap[meta.rede].contas += totalContasMeta;
         redesMap[meta.rede].metas += 1;
-        if (metaLucro + sal > 0) redesMap[meta.rede].acertos += 1;
+        if (metaLiquido > 0) redesMap[meta.rede].acertos += 1;
       }
     }
 
@@ -197,11 +191,18 @@ const Dashboard = () => {
       .sort((a, b) => b.lucroRaw - a.lucroRaw)
       .slice(0, 4);
 
-    let chartData = Object.values(chartDataByDate).sort((a, b) => {
-      const [da, ma] = a.name.split('/');
-      const [db, mb] = b.name.split('/');
-      return new Date(2026, Number(ma)-1, Number(da)).getTime() - new Date(2026, Number(mb)-1, Number(db)).getTime();
-    }).slice(-7);
+    // Chart only shows dates within the selected period — so bars sum = KPI
+    let chartData = Object.values(chartDataByDate)
+      .filter(d => {
+        const [day, month] = d.name.split('/');
+        const dt = new Date(2026, Number(month) - 1, Number(day));
+        return isInRange(dt, dateFilter);
+      })
+      .sort((a, b) => {
+        const [da, ma] = a.name.split('/');
+        const [db, mb] = b.name.split('/');
+        return new Date(2026, Number(ma)-1, Number(da)).getTime() - new Date(2026, Number(mb)-1, Number(db)).getTime();
+      });
 
     if (chartData.length === 0) {
       chartData = [{ name: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }), contas: 0, lucro: 0, lucroOperador: 0 }];
