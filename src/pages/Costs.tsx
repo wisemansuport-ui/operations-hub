@@ -69,6 +69,12 @@ const Costs = () => {
 
   const today = new Date();
 
+  // Only count costs that belong to this user (or legacy entries with no operador)
+  const myCosts = useMemo(
+    () => costs.filter(c => !c.operador || c.operador === operatorName),
+    [costs, operatorName]
+  );
+
   // Lucro bruto do dia (a partir de metas concluídas hoje)
   const lucroBrutoHoje = useMemo(() => {
     let total = 0;
@@ -83,17 +89,17 @@ const Costs = () => {
   }, [metas]);
 
   const custoDia = useMemo(
-    () => costs.filter(c => c.date === format(today, 'yyyy-MM-dd'))
+    () => myCosts.filter(c => c.date === format(today, 'yyyy-MM-dd'))
                 .reduce((s, c) => s + Number(c.amount || 0), 0),
-    [costs]
+    [myCosts]
   );
 
   const custoMes = useMemo(
-    () => costs.filter(c => {
+    () => myCosts.filter(c => {
       const d = new Date(c.date + 'T00:00:00');
       return isSameMonth(d, today);
     }).reduce((s, c) => s + Number(c.amount || 0), 0),
-    [costs]
+    [myCosts]
   );
 
   const lucroLiquidoHoje = lucroBrutoHoje - custoDia;
@@ -103,13 +109,13 @@ const Costs = () => {
   const porTipo = useMemo(() => {
     const map = new Map<CostType, number>();
     COST_TYPES.forEach(t => map.set(t.key, 0));
-    costs.forEach(c => {
+    myCosts.forEach(c => {
       map.set(c.type, (map.get(c.type) || 0) + Number(c.amount || 0));
     });
     const arr = COST_TYPES.map(t => ({ ...t, value: map.get(t.key) || 0 }));
     arr.sort((a, b) => b.value - a.value);
     return arr;
-  }, [costs]);
+  }, [myCosts]);
 
   const maxTipo = Math.max(1, ...porTipo.map(p => p.value));
 
@@ -183,7 +189,7 @@ const Costs = () => {
       </div>
 
       {/* Aviso quando vazio */}
-      {!loading && costs.length === 0 && lucroBrutoHoje === 0 && (
+      {!loading && myCosts.length === 0 && lucroBrutoHoje === 0 && (
         <div className="rounded-xl border border-primary/30 bg-gradient-to-r from-primary/5 to-transparent px-4 py-3 flex items-center gap-3">
           <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
           <p className="text-sm text-muted-foreground">
@@ -273,13 +279,13 @@ const Costs = () => {
         <h2 className="text-base font-semibold text-foreground mb-4">Histórico de custos</h2>
         {loading ? (
           <div className="text-sm text-muted-foreground py-8 text-center">Carregando…</div>
-        ) : costs.length === 0 ? (
+        ) : myCosts.length === 0 ? (
           <div className="text-sm text-muted-foreground py-8 text-center">
             Nenhum custo registrado. Clique em <span className="text-primary">"Adicionar custo"</span> para começar.
           </div>
         ) : (
           <div className="divide-y divide-border/60">
-            {costs.map(c => {
+            {myCosts.map(c => {
               const meta = typeMeta(c.type);
               const Icon = meta.icon;
               return (
