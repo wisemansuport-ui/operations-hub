@@ -152,12 +152,10 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
     return acc + ((r.contasNormais || 0) * 2) + ((r.contasBaixas || 0) * 1);
   }, 0) + (meta.modelo === 'Recarga' ? (Number(meta.pagamentoOperador) || 0) : 0);
 
-  const saquesFeitos = remessas.reduce((acc, r) => acc + r.saque, 0);
-  const depositosFeitos = remessas.reduce((acc, r) => acc + r.deposito, 0);
   const salarioOperador = meta.salarioOperador || 0;
   
-  // O resultado líquido final DESCONTA o que foi pago ao operador
-  const resultadoLiquido = (saquesFeitos - depositosFeitos) + salarioOperador - (!meta.isAdminMeta ? totalAutoSalarios : 0);
+  // Resultado líquido = (saques - depósitos) + salário do admin - pagamento ao operador
+  const resultadoLiquido = resultadoBruto + salarioOperador - (!meta.isAdminMeta ? totalAutoSalarios : 0);
   
   const lucroAcumulado = remessas.reduce((acc, r) => r.saque > r.deposito ? acc + (r.saque - r.deposito) : acc, 0);
   const prejuizoAcumulado = remessas.reduce((acc, r) => r.deposito > r.saque ? acc + (r.deposito - r.saque) : acc, 0);
@@ -598,8 +596,8 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
         </div>
         <div className="glass-card col-span-2 md:col-span-1 flex flex-col justify-center p-4 rounded-xl border-emerald-900/30 bg-emerald-950/20 shadow-lg">
            <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Resultado Líquido</span>
-           <span className={`text-xl font-black drop-shadow-md ${resultadoLiquido - (meta.salarioOperador || 0) >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>
-             {(resultadoLiquido - (meta.salarioOperador || 0)) > 0 ? '+' : ''}{formatBRL(resultadoLiquido - (meta.salarioOperador || 0))}
+           <span className={`text-xl font-black drop-shadow-md ${resultadoLiquido >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>
+             {resultadoLiquido > 0 ? '+' : ''}{formatBRL(resultadoLiquido)}
            </span>
         </div>
       </div>

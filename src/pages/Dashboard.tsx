@@ -160,11 +160,22 @@ const Dashboard = () => {
     }
 
     let totalCustos = 0;
+    const costsByDate: Record<string, number> = {};
     for (const cost of costs) {
        const costDate = cost.date ? new Date(cost.date + 'T12:00:00') : new Date(cost.createdAt);
        if (isInRange(costDate, dateFilter)) {
-         totalCustos += Number(cost.amount || 0);
+         const amt = Number(cost.amount || 0);
+         totalCustos += amt;
+         const dateStr = costDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+         costsByDate[dateStr] = (costsByDate[dateStr] || 0) + amt;
        }
+    }
+
+    // Subtract costs from chart per day so chart bars = KPI contribution
+    for (const [dateStr, costAmt] of Object.entries(costsByDate)) {
+      if (chartDataByDate[dateStr]) {
+        chartDataByDate[dateStr].lucro -= costAmt;
+      }
     }
 
     const lucroBruto = totalSacado - totalDepositado;
@@ -191,7 +202,7 @@ const Dashboard = () => {
       .sort((a, b) => b.lucroRaw - a.lucroRaw)
       .slice(0, 4);
 
-    // Chart only shows dates within the selected period — so bars sum = KPI
+    // Chart only shows dates within the selected period — bars sum = KPI Receita Líquida
     let chartData = Object.values(chartDataByDate)
       .filter(d => {
         const [day, month] = d.name.split('/');
