@@ -50,7 +50,10 @@ const Reports = () => {
       
       let isVisible = false;
       if (role === 'ADMIN') {
-        isVisible = (users.find(u => u.username === meta.operador)?.affiliatedTo === activeOperator) || (!meta.operador && activeOperator === 'wiseman');
+        // Mirror Dashboard exactly: include metas the admin operates directly + affiliated operators + no-operator (wiseman)
+        isVisible = meta.operador === activeOperator ||
+                    (users.find(u => u.username === meta.operador)?.affiliatedTo === activeOperator) ||
+                    (!meta.operador && activeOperator === 'wiseman');
       } else {
         isVisible = meta.operador === activeOperator;
       }
@@ -193,7 +196,7 @@ const Reports = () => {
       },
       weeklyData: wData,
     };
-  }, [metas, users, role, activeOperator]);
+  }, [metas, users, role, activeOperator, dateFilter]);
 
   return (
   <div className="space-y-6 relative z-10">
