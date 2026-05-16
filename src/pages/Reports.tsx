@@ -15,6 +15,11 @@ const Reports = () => {
 
   const { operatorPerformance, kpis, weeklyData } = useMemo(() => {
     const now = new Date();
+
+    // Default: current month filter (same as Dashboard default)
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthEnd   = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+    const inCurrentMonth = (d: Date) => d >= monthStart && d <= monthEnd;
     
     const getWeekKey = (d: Date) => {
         const diffMs = now.getTime() - d.getTime();
@@ -60,19 +65,21 @@ const Reports = () => {
       
       totais.previsaoContas += meta.contas;
 
-      let isFechada = meta.status === 'fechada';
+      const isFechada = meta.status === 'fechada';
       const sal = Number(meta.salarioOperador) || 0;
-      let autoSalarioMeta = 0;
+      const pagOp = Number(meta.pagamentoOperador) || 0;
       let metaLucroBruto = 0;
       let metaContas = 0;
+      let autoSalarioMeta = 0;
+      let metaInMonth = false;
 
       (meta.remessas || []).forEach(r => {
-        metaContas += (r.contas || 1);
+        const rc = r.contas || 0;
+        metaContas += rc;
         const d = new Date(r.data || meta.createdAt);
         const dateStr = d.toLocaleDateString('pt-BR');
-        const contasProcessed = r.contas || 1;
         
-        totais.executadas += contasProcessed;
+        totais.executadas += rc;
         const dep = Number(r.deposito || 0);
         const saq = Number(r.saque || 0);
         const eLucro = (saq - dep) >= 0;
@@ -87,42 +94,44 @@ const Reports = () => {
                 autoSalarioMeta += (normais * 2) + (baixas * 1);
             }
         }
-        
-        opMap[opName].contas += contasProcessed;
-        opMap[opName].diasSet.add(dateStr);
+
+        // Only count contas/lucro for operator performance if remessa is in current month
+        if (inCurrentMonth(d)) {
+          metaInMonth = true;
+          opMap[opName].contas += rc;
+          opMap[opName].diasSet.add(dateStr);
+        }
 
         const wIndex = getWeekKey(d);
         if (weekMap[wIndex] !== undefined) {
-           weekMap[wIndex].contas += contasProcessed;
+           weekMap[wIndex].contas += rc;
            weekMap[wIndex].diasSet.add(dateStr);
         }
       });
 
       if (isFechada) {
          if (!meta.isAdminMeta && meta.modelo === 'Recarga') {
-             autoSalarioMeta += Number(meta.pagamentoOperador) || 0;
+             autoSalarioMeta += pagOp;
          }
-         const lucroLiquido = metaLucroBruto + sal - autoSalarioMeta;
          
-         opMap[opName].lucro += lucroLiquido;
+         // Lucro líquido gerado = bruto + salário fixo - pagamento ao operador
+         // This matches exactly the Dashboard formula
+         const lucroLiquido = metaLucroBruto + sal - (!meta.isAdminMeta ? autoSalarioMeta : 0);
          
-         if (metaContas === 0 || !meta.remessas || meta.remessas.length === 0) {
-             const metaDate = new Date(meta.createdAt);
-             const wIndex = getWeekKey(metaDate);
+         // Only add to operator performance if meta had remessas in current month
+         if (metaInMonth) {
+           opMap[opName].lucro += lucroLiquido;
+         }
+         
+         const profitPerConta = metaContas > 0 ? lucroLiquido / metaContas : lucroLiquido;
+         (meta.remessas || []).forEach(r => {
+             const rc = r.contas || 1;
+             const d = new Date(r.data || meta.createdAt);
+             const wIndex = getWeekKey(d);
              if (weekMap[wIndex] !== undefined) {
-                 weekMap[wIndex].lucro += lucroLiquido;
+                 weekMap[wIndex].lucro += (rc * profitPerConta);
              }
-         } else {
-             const profitPerConta = lucroLiquido / metaContas;
-             (meta.remessas || []).forEach(r => {
-                 const rc = r.contas || 1;
-                 const d = new Date(r.data || meta.createdAt);
-                 const wIndex = getWeekKey(d);
-                 if (weekMap[wIndex] !== undefined) {
-                     weekMap[wIndex].lucro += (rc * profitPerConta);
-                 }
-             });
-         }
+         });
       }
     });
 
@@ -154,7 +163,7 @@ const Reports = () => {
          lucro: w.lucro,
          diasOperados: w.diasSet.size,
          sortIndex: w.sortIndex
-    })).sort((a,b) => b.sortIndex - a.sortIndex); // oldest to newest (6 weeks ago ... this week)
+    })).sort((a,b) => b.sortIndex - a.sortIndex);
 
     const oeeCalc = totais.remessasBoas + totais.remessasRuins > 0 ? 
       ((totais.remessasBoas) / (totais.remessasBoas + totais.remessasRuins)) * 100 : 0;
