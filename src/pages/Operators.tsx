@@ -432,12 +432,13 @@ const Operators = () => {
         <div className="space-y-6 animate-fade-in">
 
           {/* KPI strip */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
             {[
               { icon: UserCheck, label: 'Operadores', value: String(operatorData.length), tone: 'text-foreground' },
               { icon: Target, label: 'Metas', value: String(totalMetas), tone: 'text-foreground' },
               { icon: TrendingUp, label: 'Depositantes', value: String(totalContas), tone: 'text-foreground' },
-              { icon: DollarSign, label: 'Lucro Equipe', value: formatBRL(totalLucroEquipe), tone: totalLucroEquipe >= 0 ? 'text-success' : 'text-destructive' },
+              { icon: DollarSign, label: 'Lucro Bruto Equipe', value: formatBRL(totalLucroEquipe), tone: totalLucroEquipe >= 0 ? 'text-success' : 'text-destructive' },
+              { icon: Wallet, label: 'Líquido (desc. folha)', value: formatBRL(totalLucroEquipe - folhaTotal), tone: (totalLucroEquipe - folhaTotal) >= 0 ? 'text-success' : 'text-destructive' },
             ].map((k) => (
               <div key={k.label} className="rounded-xl border border-border/50 bg-card/30 hover:bg-card/50 hover:border-border transition-all p-4">
                 <div className="flex items-center justify-between mb-3">
