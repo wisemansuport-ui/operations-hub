@@ -69,10 +69,13 @@ const Costs = () => {
 
   const today = new Date();
 
-  // Only count costs that belong to this user (or legacy entries with no operador)
+  // Admin sees ALL costs (all deduce from admin profit).
+  // Each operator sees only their own costs in this tab.
   const myCosts = useMemo(
-    () => costs.filter(c => !c.operador || c.operador === operatorName),
-    [costs, operatorName]
+    () => role === 'ADMIN'
+      ? costs  // admin sees everything — all costs deduct from admin net
+      : costs.filter(c => c.operador === operatorName),
+    [costs, operatorName, role]
   );
 
   // Lucro bruto do dia (a partir de metas concluídas hoje)

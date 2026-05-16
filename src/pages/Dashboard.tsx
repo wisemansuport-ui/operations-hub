@@ -162,8 +162,6 @@ const Dashboard = () => {
     let totalCustos = 0;
     const costsByDate: Record<string, number> = {};
     for (const cost of costs) {
-       // Only count costs that belong to this admin (or have no operador = legacy entries)
-       if (cost.operador && cost.operador !== operatorName) continue;
        const costDate = cost.date ? new Date(cost.date + 'T12:00:00') : new Date(cost.createdAt);
        if (isInRange(costDate, dateFilter)) {
          const amt = Number(cost.amount || 0);
