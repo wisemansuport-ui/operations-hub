@@ -5,7 +5,8 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { useFirestoreData } from "../hooks/useFirestoreData";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { OperationMeta } from "./Tasks";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { PeriodFilter, DateFilter, buildDateFilter, isInRange } from "@/components/ui/period-filter";
 
 const Reports = () => {
   const { metas, users } = useFirestoreData();
@@ -13,19 +14,17 @@ const Reports = () => {
   const activeOperator = user?.username || 'admin';
   const role = user?.role || 'ADMIN';
 
+  const [dateFilter, setDateFilter] = useState<DateFilter>(
+    buildDateFilter('MES')
+  );
+
   const { operatorPerformance, kpis, weeklyData } = useMemo(() => {
     const now = new Date();
-
-    // Default: current month filter (same as Dashboard default)
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const monthEnd   = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-    const inCurrentMonth = (d: Date) => d >= monthStart && d <= monthEnd;
     
     const getWeekKey = (d: Date) => {
         const diffMs = now.getTime() - d.getTime();
         const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-        const weekIndex = Math.floor(diffDays / 7);
-        return weekIndex;
+        return Math.floor(diffDays / 7);
     }
 
     const opMap: Record<string, { name: string, contas: number, lucro: number, diasSet: Set<string> }> = {};
@@ -68,14 +67,12 @@ const Reports = () => {
       const isFechada = meta.status === 'fechada';
       const sal = Number(meta.salarioOperador) || 0;
       const pagOp = Number(meta.pagamentoOperador) || 0;
-      let metaLucroBruto = 0;
-      let metaContas = 0;
-      let autoSalarioMeta = 0;
-      let metaInMonth = false;
+      
+      const remessas = meta.remessas || [];
+      const totalContasMeta = remessas.reduce((acc, r) => acc + Number(r.contas || 0), 0);
 
-      (meta.remessas || []).forEach(r => {
-        const rc = r.contas || 0;
-        metaContas += rc;
+      remessas.forEach(r => {
+        const rc = Number(r.contas || 0);
         const d = new Date(r.data || meta.createdAt);
         const dateStr = d.toLocaleDateString('pt-BR');
         
@@ -86,52 +83,68 @@ const Reports = () => {
         if (eLucro) totais.remessasBoas++;
         else totais.remessasRuins++;
 
-        if (isFechada) {
-            metaLucroBruto += (saq - dep);
-            const normais = (r as any).contasNormais || 0;
-            const baixas = (r as any).contasBaixas || 0;
-            if (!meta.isAdminMeta && meta.modelo !== 'Recarga') {
-                autoSalarioMeta += (normais * 2) + (baixas * 1);
-            }
-        }
-
-        // Only count contas/lucro for operator performance if remessa is in current month
-        if (inCurrentMonth(d)) {
-          metaInMonth = true;
+        // Only count towards Operator Performance if the remessa matches the selected dateFilter
+        if (isInRange(d, dateFilter)) {
           opMap[opName].contas += rc;
           opMap[opName].diasSet.add(dateStr);
+          
+          if (isFechada) {
+            const normais = Number((r as any).contasNormais || 0);
+            const baixas = Number((r as any).contasBaixas || 0);
+            const prop = totalContasMeta > 0 ? rc / totalContasMeta : (remessas.length > 0 ? 1 / remessas.length : 1);
+            const remSal = sal * prop;
+            let remAutoSal = 0;
+            if (!meta.isAdminMeta) {
+              if (meta.modelo === 'Recarga') {
+                remAutoSal = pagOp * prop;
+              } else {
+                remAutoSal = (normais * 2) + (baixas * 1);
+              }
+            }
+            
+            // Lucro for this remessa exactly matches the Dashboard chart contribution
+            const remLucroLiquido = (saq - dep) + remSal - (!meta.isAdminMeta ? remAutoSal : 0);
+            opMap[opName].lucro += remLucroLiquido;
+          }
         }
 
-        const wIndex = getWeekKey(d);
-        if (weekMap[wIndex] !== undefined) {
-           weekMap[wIndex].contas += rc;
-           weekMap[wIndex].diasSet.add(dateStr);
+        // Weekly chart always shows history (no date filter applied)
+        if (isFechada) {
+          const normais = Number((r as any).contasNormais || 0);
+          const baixas = Number((r as any).contasBaixas || 0);
+          const prop = totalContasMeta > 0 ? rc / totalContasMeta : (remessas.length > 0 ? 1 / remessas.length : 1);
+          const remSal = sal * prop;
+          let remAutoSal = 0;
+          if (!meta.isAdminMeta) {
+            if (meta.modelo === 'Recarga') {
+              remAutoSal = pagOp * prop;
+            } else {
+              remAutoSal = (normais * 2) + (baixas * 1);
+            }
+          }
+          const remLucroLiquido = (saq - dep) + remSal - (!meta.isAdminMeta ? remAutoSal : 0);
+          
+          const wIndex = getWeekKey(d);
+          if (weekMap[wIndex] !== undefined) {
+             weekMap[wIndex].contas += rc;
+             weekMap[wIndex].diasSet.add(dateStr);
+             weekMap[wIndex].lucro += remLucroLiquido;
+          }
         }
       });
-
-      if (isFechada) {
-         if (!meta.isAdminMeta && meta.modelo === 'Recarga') {
-             autoSalarioMeta += pagOp;
+      
+      // Handle closed metas with 0 remessas (safeguard)
+      if (isFechada && totalContasMeta === 0 && remessas.length === 0) {
+         const metaDate = new Date(meta.createdAt);
+         if (isInRange(metaDate, dateFilter)) {
+           const metaAutoSal = !meta.isAdminMeta ? (meta.modelo === 'Recarga' ? pagOp : 0) : 0;
+           opMap[opName].lucro += sal - metaAutoSal;
          }
-         
-         // Lucro líquido gerado = bruto + salário fixo - pagamento ao operador
-         // This matches exactly the Dashboard formula
-         const lucroLiquido = metaLucroBruto + sal - (!meta.isAdminMeta ? autoSalarioMeta : 0);
-         
-         // Only add to operator performance if meta had remessas in current month
-         if (metaInMonth) {
-           opMap[opName].lucro += lucroLiquido;
+         const wIndex = getWeekKey(metaDate);
+         if (weekMap[wIndex] !== undefined) {
+            const metaAutoSal = !meta.isAdminMeta ? (meta.modelo === 'Recarga' ? pagOp : 0) : 0;
+            weekMap[wIndex].lucro += sal - metaAutoSal;
          }
-         
-         const profitPerConta = metaContas > 0 ? lucroLiquido / metaContas : lucroLiquido;
-         (meta.remessas || []).forEach(r => {
-             const rc = r.contas || 1;
-             const d = new Date(r.data || meta.createdAt);
-             const wIndex = getWeekKey(d);
-             if (weekMap[wIndex] !== undefined) {
-                 weekMap[wIndex].lucro += (rc * profitPerConta);
-             }
-         });
       }
     });
 
@@ -193,6 +206,8 @@ const Reports = () => {
         </p>
       </div>
     </div>
+
+    <PeriodFilter value={dateFilter} onChange={setDateFilter} />
 
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <KPICard title="OEE Geral" value={kpis.oee} change="Volume sucesso" changeType="neutral" icon={TrendingUp} color="success" />
