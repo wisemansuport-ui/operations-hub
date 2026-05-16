@@ -1,10 +1,5 @@
 Add-Type -AssemblyName System.Drawing
 
-# -------------------------------------------------------
-# Source: Exact image requested by user, transparent background
-# Goal: Resize exactly as is, preserving transparency, no borders
-# -------------------------------------------------------
-
 $src    = 'C:\Users\wisem\.gemini\antigravity\brain\bf3c00e4-1973-4b3b-9b03-2ec3940ba29e\media__1778909963533.png'
 $outDir = 'C:/Users/wisem/OneDrive/Desktop/operations-hub-main/operations-hub-main/public'
 
@@ -17,31 +12,33 @@ $sizes = @(
   @{name='icon-512.png';         w=512; h=512}
 )
 
+# Crop box that tightly bounds the golden icon inside the transparent PNG
+# Based on pixel scanning: Non-transparent bounds are roughly X:150-875, Y:120-890
+# We use a square crop box of 770x770 to perfectly capture the edges
+$srcRect = New-Object System.Drawing.Rectangle(127, 120, 770, 770)
+
 foreach ($s in $sizes) {
   $bmp = New-Object System.Drawing.Bitmap($s.w, $s.h, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
   $g   = [System.Drawing.Graphics]::FromImage($bmp)
 
-  # Clear with fully transparent background
-  $g.Clear([System.Drawing.Color]::Transparent)
+  # CRITICAL: Fill with solid black so iOS doesn't fill transparent corners with white
+  $g.Clear([System.Drawing.Color]::FromArgb(255, 0, 0, 0))
+  
   $g.InterpolationMode  = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
   $g.SmoothingMode      = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
   $g.PixelOffsetMode    = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
-  $g.CompositingMode    = [System.Drawing.Drawing2D.CompositingMode]::SourceCopy
+  $g.CompositingMode    = [System.Drawing.Drawing2D.CompositingMode]::SourceOver
   $g.CompositingQuality = [System.Drawing.Drawing2D.CompositingQuality]::HighQuality
 
-  # Draw exactly as it is (no crop, no scaling offset)
-  $g.DrawImage($original, 0, 0, $s.w, $s.h)
+  $destRect = New-Object System.Drawing.Rectangle(0, 0, $s.w, $s.h)
+  $g.DrawImage($original, $destRect, $srcRect, [System.Drawing.GraphicsUnit]::Pixel)
   $g.Dispose()
 
   $outPath = Join-Path $outDir $s.name
   $bmp.Save($outPath, [System.Drawing.Imaging.ImageFormat]::Png)
   $bmp.Dispose()
-  Write-Host "Saved $($s.name) ($($s.w)x$($s.h)) exactly as is"
+  Write-Host "Saved $($s.name) ($($s.w)x$($s.h))"
 }
 
 $original.Dispose()
-
-# Keep a reference copy
-Copy-Item $src 'C:\Users\wisem\OneDrive\Desktop\operations-hub-main\operations-hub-main\scripts\logo_source.png' -Force
-
-Write-Host "Done! Transparency fully preserved."
+Write-Host "Done!"
