@@ -22,7 +22,7 @@ export const AppSidebar = () => {
     { path: "/pix", label: "PIX", icon: CreditCard, roles: ['ADMIN', 'OPERADOR'] },
     { path: "/reports", label: "Relatórios", icon: BarChart3, roles: ['ADMIN'] },
     { path: "/costs", label: "Custos", icon: Receipt, roles: ['ADMIN', 'OPERADOR'] },
-    { path: "/goals", label: "Objetivos", icon: Target, roles: ['ADMIN', 'OPERADOR'] },
+    { path: "/goals", label: "Objetivos", icon: Target, roles: ['ADMIN'] },
     { path: "/tutorial", label: "Tutorial", icon: PlayCircle, roles: ['ADMIN', 'OPERADOR'] },
   ].filter(item => item.roles.includes(role));
 
