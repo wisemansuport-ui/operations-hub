@@ -45,9 +45,9 @@ const Costs = () => {
   const [costs, setCosts] = useState<CostEntry[]>([]);
   const [loading, setLoading] = useState(true);
   
+  const [role] = useLocalStorage<'ADMIN' | 'OPERADOR'>('nytzer-role', 'ADMIN');
   const [user] = useLocalStorage<any>('nytzer-user', null);
-  const operatorName = user?.username || 'Admin';
-  const role = user?.role || 'ADMIN';
+  const operatorName = user?.username || 'Operador Central';
 
   // modal
   const [open, setOpen] = useState(false);
@@ -82,6 +82,7 @@ const Costs = () => {
   const lucroBrutoHoje = useMemo(() => {
     let total = 0;
     metas.forEach((m: any) => {
+      if (role !== 'ADMIN' && m.operador !== operatorName) return;
       if (!m.createdAt) return;
       const d = new Date(m.createdAt);
       if (!isSameDay(d, today)) return;
@@ -89,7 +90,7 @@ const Costs = () => {
       total += profit;
     });
     return total;
-  }, [metas]);
+  }, [metas, role, operatorName]);
 
   const custoDia = useMemo(
     () => myCosts.filter(c => c.date === format(today, 'yyyy-MM-dd'))
