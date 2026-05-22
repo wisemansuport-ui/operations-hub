@@ -140,17 +140,13 @@ const Dashboard = () => {
   const [user] = useLocalStorage<any>('nytzer-user', null);
   const { metas, users, costs, loading } = useFirestoreData();
   const operatorName = user?.username || 'Operador Central';
-  const allowedLinks = quickLinks.filter(link => link.roles.includes(role));  
+  const allowedLinks = quickLinks.filter(link => link.roles.includes(role));
 
-  if (loading) {
-    return <DashboardSkeleton role={role} />;
-  }
-
-  // Period filter — default: current month
+  // Period filter — default: current month (must be before any early return)
   const [dateFilter, setDateFilter] = useState<DateFilter>(
     buildDateFilter('MES')
   );
-  
+
   const stats = useMemo(() => {
     let totalDepositado = 0;
     let totalSacado = 0;
@@ -359,6 +355,11 @@ const Dashboard = () => {
   ].filter(d => d.value > 0);
   
   if (pieData.length === 0) pieData.push({ name: "Sem Dados", value: 1 });
+
+  // Loading check AFTER all hooks (required by React Rules of Hooks)
+  if (loading) {
+    return <DashboardSkeleton role={role} />;
+  }
 
   if (role === 'OPERADOR') {
     return (
