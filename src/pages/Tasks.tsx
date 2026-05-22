@@ -44,7 +44,7 @@ export interface OperationMeta {
   link?: string;
 }
 
-const redes = ['Selecione', 'WE', 'W1', 'VOY', '91', 'DZ', 'A8', 'OKOK', 'ANJO', 'XW', 'EK', 'DY', '777', '888', 'WP', 'BRA', 'GAME', 'ALFA', 'KK', 'MK'];
+const redes = ['Selecione', 'WE', 'W1', 'VOY', '91', 'DZ', 'A8', 'OKOK', 'ANJO', 'XW', 'EK', 'DY', '777', '888', 'WP', 'BRA', 'GAME', 'ALFA', 'KK', 'MK', 'OUTRAS'];
 
 // Extracts the first name from a username or email, prioritizing displayName
 const getOperatorName = (username: string, users: any[] = []): string => {
@@ -1036,19 +1036,22 @@ const Tasks = () => {
   const [modelo, setModelo] = useState<'Depositante' | 'Recarga'>('Depositante');
   const [isAdminMeta, setIsAdminMeta] = useState(false);
   const [link, setLink] = useState('');
+  const [redeCustom, setRedeCustom] = useState('');
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     const activeOperator = user?.username || 'Operador Desconhecido';
+    const redeValue = rede === 'OUTRAS' ? (redeCustom.trim() || 'OUTRAS') : rede;
     if (!plataforma || rede === 'Selecione' || !titulo || !contas || !activeOperator) return;
+    if (rede === 'OUTRAS' && !redeCustom.trim()) return;
     const newMeta = {
-      plataforma, rede, titulo, contas: Number(contas), modelo, operador: activeOperator,
+      plataforma, rede: redeValue, titulo, contas: Number(contas), modelo, operador: activeOperator,
       totalApv: parseBrlNumber(totalApv),
       montante: parseBrlNumber(montante),
       createdAt: new Date().toISOString(),
       status: 'ativa',
       remessas: [],
-      isAdminMeta: role === 'ADMIN' ? isAdminMeta : false,
+      isAdminMeta: role === 'ADMIN' ? true : false,
       link: link.trim() || null
     };
     
@@ -1087,7 +1090,7 @@ const Tasks = () => {
       targetRole: 'ADMIN'
     });
 
-    setPlataforma(''); setRede('Selecione'); setTitulo(''); setContas(''); setTotalApv(''); setMontante(''); setLink('');
+    setPlataforma(''); setRede('Selecione'); setRedeCustom(''); setTitulo(''); setContas(''); setTotalApv(''); setMontante(''); setLink('');
   };
 
   const onUpdateMeta = async (updatedMeta: OperationMeta) => {
@@ -1498,9 +1501,36 @@ const Tasks = () => {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Rede *</label>
-                    <select value={rede} onChange={e => setRede(e.target.value)} className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" required>
-                      {redes.map(r => <option key={r} value={r}>{r}</option>)}
+                    <select
+                      value={rede}
+                      onChange={e => { setRede(e.target.value); if (e.target.value !== 'OUTRAS') setRedeCustom(''); }}
+                      className={`w-full h-11 bg-muted/30 border rounded-lg px-3.5 text-sm text-foreground focus:outline-none focus:bg-muted/50 transition-colors appearance-none cursor-pointer ${
+                        rede === 'Selecione' ? 'border-border/50 text-muted-foreground/70' :
+                        rede === 'OUTRAS' ? 'border-primary/60 text-primary font-semibold' :
+                        'border-border/50 focus:border-primary/60'
+                      }`}
+                      required
+                    >
+                      {redes.map(r => (
+                        <option key={r} value={r} style={{ background: '#1a1a2e', color: r === 'OUTRAS' ? '#d4a017' : '#e2e8f0', fontWeight: r === 'OUTRAS' ? '700' : '400' }}>
+                          {r === 'OUTRAS' ? '✏️ OUTRAS' : r}
+                        </option>
+                      ))}
                     </select>
+                    {rede === 'OUTRAS' && (
+                      <div className="animate-fade-in">
+                        <input
+                          type="text"
+                          value={redeCustom}
+                          onChange={e => setRedeCustom(e.target.value.toUpperCase())}
+                          placeholder="Nome do grupo (ex: BETMAX)"
+                          maxLength={20}
+                          autoFocus
+                          className="w-full h-10 bg-primary/5 border border-primary/40 rounded-lg px-3.5 text-sm text-primary font-semibold placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:bg-primary/10 transition-colors tracking-widest uppercase"
+                          required
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1569,15 +1599,7 @@ const Tasks = () => {
                   />
                 </div>
 
-                {role === 'ADMIN' && (
-                  <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-xl mt-2">
-                    <input type="checkbox" id="adminMetaCheck" checked={isAdminMeta} onChange={e => setIsAdminMeta(e.target.checked)} className="w-4 h-4 rounded text-primary focus:ring-primary accent-primary" />
-                    <label htmlFor="adminMetaCheck" className="text-xs font-bold text-foreground cursor-pointer">
-                      Criar como Meta Administrativa
-                      <p className="text-[10px] text-muted-foreground font-normal mt-0.5">Metas de admin não contabilizam folha de pagamento.</p>
-                    </label>
-                  </div>
-                )}
+
 
                 <div className="pt-2">
                   <button
