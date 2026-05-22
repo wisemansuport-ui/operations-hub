@@ -30,12 +30,121 @@ const quickLinks = [
 
 const formatBRL = (val: number) => `R$ ${val.toFixed(2).replace('.', ',')}`;
 
+const DashboardSkeleton = ({ role }: { role: 'ADMIN' | 'OPERADOR' }) => {
+  return (
+    <div className="space-y-6 relative z-10 pb-20 md:pb-6 animate-pulse">
+      {/* Title */}
+      <div>
+        <div className="h-9 w-48 bg-muted/40 rounded-lg" />
+        <div className="h-4 w-64 bg-muted/20 rounded mt-2" />
+      </div>
+
+      {/* Period Filter Placeholder */}
+      {role === 'ADMIN' && (
+        <div className="h-10 w-full sm:w-80 bg-muted/30 rounded-xl" />
+      )}
+
+      {/* KPI Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="glass-card rounded-2xl p-6 border-primary/5 flex flex-col gap-3 min-h-[120px]">
+            <div className="flex justify-between items-center">
+              <div className="h-4 w-24 bg-muted/30 rounded" />
+              <div className="w-8 h-8 rounded-lg bg-muted/30" />
+            </div>
+            <div className="h-8 w-32 bg-muted/40 rounded-lg mt-1" />
+            <div className="h-3 w-40 bg-muted/20 rounded" />
+          </div>
+        ))}
+      </div>
+
+      {role === 'OPERADOR' ? (
+        <>
+          {/* Operador Layout */}
+          <div className="glass-card rounded-2xl p-6 border-primary/5 flex flex-col md:flex-row items-center justify-between gap-6 min-h-[220px]">
+            <div className="w-full md:w-1/2 space-y-4">
+              <div className="h-6 w-36 bg-muted/40 rounded" />
+              <div className="h-4 w-56 bg-muted/25 rounded" />
+              <div className="h-4 w-full bg-muted/20 rounded mt-4" />
+              <div className="h-4 w-full bg-muted/20 rounded" />
+            </div>
+            <div className="w-full md:w-1/3 flex justify-center">
+              <div className="w-36 h-36 rounded-full border-[10px] border-muted/10 flex items-center justify-center" />
+            </div>
+          </div>
+
+          <div className="glass-card rounded-2xl p-6 border-primary/5 min-h-[280px]">
+            <div className="h-5 w-40 bg-muted/40 rounded mb-2" />
+            <div className="h-3 w-56 bg-muted/20 rounded mb-6" />
+            <div className="h-48 w-full bg-muted/10 rounded-lg" />
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Admin Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4">
+            <div className="lg:col-span-2 glass-card rounded-2xl p-6 border-primary/5 min-h-[350px]">
+              <div className="h-5 w-40 bg-muted/40 rounded mb-2" />
+              <div className="h-3 w-56 bg-muted/20 rounded mb-6" />
+              <div className="h-48 w-full bg-muted/10 rounded-lg" />
+            </div>
+            <div className="glass-card rounded-2xl p-6 border-primary/5 flex flex-col items-center justify-center min-h-[350px] gap-6">
+              <div className="w-full">
+                <div className="h-5 w-36 bg-muted/40 rounded mb-2" />
+                <div className="h-3 w-28 bg-muted/20 rounded" />
+              </div>
+              <div className="w-40 h-40 rounded-full border-[10px] border-muted/10 flex items-center justify-center" />
+              <div className="flex gap-4">
+                <div className="h-4 w-16 bg-muted/30 rounded" />
+                <div className="h-4 w-16 bg-muted/30 rounded" />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="rounded-2xl border border-border/50 bg-card/40 p-5 min-h-[220px] flex flex-col gap-4">
+                <div className="h-4 w-32 bg-muted/40 rounded mb-2" />
+                <div className="space-y-3 mt-2">
+                  <div className="h-4 w-full bg-muted/20 rounded" />
+                  <div className="h-4 w-full bg-muted/20 rounded" />
+                  <div className="h-4 w-full bg-muted/20 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Comandos Rápidos */}
+      <div>
+        <div className="h-5 w-40 bg-muted/40 rounded mb-4" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="flex items-center gap-4 p-4 rounded-xl border border-border/30 bg-background/20">
+              <div className="w-10 h-10 rounded-lg bg-muted/20 shrink-0" />
+              <div className="space-y-2 w-full">
+                <div className="h-4 w-20 bg-muted/30 rounded" />
+                <div className="h-3 w-28 bg-muted/20 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Dashboard = () => {
   const [role] = useLocalStorage<'ADMIN' | 'OPERADOR'>('nytzer-role', 'ADMIN');
   const [user] = useLocalStorage<any>('nytzer-user', null);
-  const { metas, users, costs } = useFirestoreData();
+  const { metas, users, costs, loading } = useFirestoreData();
   const operatorName = user?.username || 'Operador Central';
   const allowedLinks = quickLinks.filter(link => link.roles.includes(role));  
+
+  if (loading) {
+    return <DashboardSkeleton role={role} />;
+  }
 
   // Period filter — default: current month
   const [dateFilter, setDateFilter] = useState<DateFilter>(
