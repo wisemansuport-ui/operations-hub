@@ -1035,6 +1035,7 @@ const Tasks = () => {
   const [montante, setMontante] = useState<number | string>('');
   const [modelo, setModelo] = useState<'Depositante' | 'Recarga'>('Depositante');
   const [isAdminMeta, setIsAdminMeta] = useState(false);
+  const [link, setLink] = useState('');
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1047,7 +1048,8 @@ const Tasks = () => {
       createdAt: new Date().toISOString(),
       status: 'ativa',
       remessas: [],
-      isAdminMeta: role === 'ADMIN' ? isAdminMeta : false
+      isAdminMeta: role === 'ADMIN' ? isAdminMeta : false,
+      link: link.trim() || null
     };
     
     await addDoc(collection(db, 'metas'), newMeta);
@@ -1085,7 +1087,7 @@ const Tasks = () => {
       targetRole: 'ADMIN'
     });
 
-    setPlataforma(''); setRede('Selecione'); setTitulo(''); setContas(''); setTotalApv(''); setMontante('');
+    setPlataforma(''); setRede('Selecione'); setTitulo(''); setContas(''); setTotalApv(''); setMontante(''); setLink('');
   };
 
   const onUpdateMeta = async (updatedMeta: OperationMeta) => {
@@ -1554,6 +1556,17 @@ const Tasks = () => {
                       >{mod}</button>
                     ))}
                   </div>
+                </div>
+
+                <div className="space-y-1.5 animate-fade-in">
+                  <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Link de Divulgação (Opcional)</label>
+                  <input
+                    type="url"
+                    value={link}
+                    onChange={e => setLink(e.target.value)}
+                    placeholder="Cole o link de afiliado/divulgação da plataforma"
+                    className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors"
+                  />
                 </div>
 
                 {role === 'ADMIN' && (
