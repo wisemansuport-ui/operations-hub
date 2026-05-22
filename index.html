@@ -35,17 +35,37 @@
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://www.nytzervision.com" />
     <style>
-      @keyframes fadePulse {
-        0%, 100% { opacity: 0.3; }
-        50% { opacity: 1; }
+      @keyframes splashFadeIn {
+        from { opacity: 0; transform: scale(0.92); }
+        to   { opacity: 1; transform: scale(1); }
+      }
+      @keyframes splashPulse {
+        0%, 100% { opacity: 0.5; transform: scaleX(1); }
+        50% { opacity: 1; transform: scaleX(1.15); }
+      }
+      #splash-wrapper {
+        animation: splashFadeIn 0.4s ease-out both;
       }
     </style>
   </head>
 
   <body style="background-color: #0a0a0f; margin: 0; min-height: 100vh;">
     <div id="root">
-      <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background-color: #0a0a0f; font-family: system-ui, -apple-system, sans-serif;">
-        <span style="color: #eab308; font-size: 12px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; animation: fadePulse 1.5s infinite ease-in-out;">Carregando...</span>
+      <div id="splash-wrapper" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background-color:#06060a;font-family:system-ui,-apple-system,sans-serif;">
+        <!-- Logo -->
+        <img
+          src="/apple-touch-icon.png?v=20"
+          alt="NytzerVision"
+          style="width:80px;height:80px;border-radius:20px;object-fit:cover;box-shadow:0 8px 32px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.05);margin-bottom:20px;"
+        />
+        <!-- Brand name -->
+        <span style="color:#ffffff;font-size:16px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:18px;">NytzerVision</span>
+        <!-- Loading dots -->
+        <div style="display:flex;gap:6px;align-items:center;">
+          <div style="width:5px;height:5px;border-radius:50%;background:#eab308;animation:splashPulse 1.4s ease-in-out 0s infinite;"></div>
+          <div style="width:5px;height:5px;border-radius:50%;background:#eab308;animation:splashPulse 1.4s ease-in-out 0.2s infinite;"></div>
+          <div style="width:5px;height:5px;border-radius:50%;background:#eab308;animation:splashPulse 1.4s ease-in-out 0.4s infinite;"></div>
+        </div>
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>
