@@ -207,6 +207,7 @@ export default function Goals() {
   const operatorName = user?.username || 'Operador Central';
 
   const [dateFilter, setDateFilter] = useState<DateFilter>(buildDateFilter('MES'));
+  const notifiedRef = useRef<Set<string>>(new Set());
 
   const receitaMensal = useMemo(() => {
     let totalDepositado = 0;
