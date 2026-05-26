@@ -81,7 +81,8 @@ const App = () => {
             <BrowserRouter>
                 <Routes>
                   <Route path="/login" element={<Login />} />
-                  <Route path="/" element={<PrivateRoute><Index /></PrivateRoute>} />
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/app" element={<PrivateRoute><Index /></PrivateRoute>} />
                   <Route path="/production" element={<PrivateRoute><Production /></PrivateRoute>} />
                   <Route path="/tasks" element={<PrivateRoute><Tasks /></PrivateRoute>} />
                   <Route path="/networks" element={<PrivateRoute><Networks /></PrivateRoute>} />
