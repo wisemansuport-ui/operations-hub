@@ -68,8 +68,27 @@ export const AppSidebar = () => {
         </nav>
 
         <div className="mt-auto flex flex-col gap-2 pb-2">
-          {!collapsed && (user?.role === 'ADMIN' || user?.username?.toUpperCase() === 'NYTZER' || user?.username?.toUpperCase() === 'WISEMAN') && (
-            <div
+          {!collapsed && (
+            <button
+              onClick={() => setPlanModalOpen(true)}
+              className="mx-2 px-3 py-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 hover:border-primary/60 transition-all text-left group"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <Sparkles className="w-3.5 h-3.5 text-primary" />
+                <span className="text-[11px] font-black text-primary tracking-wider">UPGRADE</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-tight">Desbloqueie todo o poder do NytzerVision</p>
+            </button>
+          )}
+          {collapsed && (
+            <button
+              onClick={() => setPlanModalOpen(true)}
+              className="mx-2 h-9 rounded-lg bg-primary/15 hover:bg-primary/25 border border-primary/30 flex items-center justify-center text-primary transition-colors"
+            >
+              <Sparkles className="w-4 h-4" />
+            </button>
+          )}
+
               onClick={() => setRole(role === 'ADMIN' ? 'OPERADOR' : 'ADMIN')}
               className="mx-3 px-3 py-2 rounded-lg bg-black/20 border border-primary/20 text-xs flex justify-between items-center cursor-pointer hover:bg-black/40 transition-colors"
             >
