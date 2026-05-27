@@ -67,6 +67,9 @@ const Login = () => {
         const ref = searchParams.get('ref');
         // Qualquer conta sem link de indicação (ref) vira ADMIN, com link vira OPERADOR
         const role = !ref ? 'ADMIN' : 'OPERADOR';
+
+        const trialStartedAt = new Date().toISOString();
+        const planExpiry = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
         
         const newUser = {
           username,
@@ -74,10 +77,11 @@ const Login = () => {
           fullName,
           teamName,
           phoneNumber,
-          role, 
+          role,
           affiliatedTo: ref || null,
           token: Math.random().toString(36).substring(2, 10),
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
+          ...(role === 'ADMIN' ? { plan: 'trial', trialStartedAt, planExpiry } : {})
         };
         
         await addDoc(usersRef, newUser);
@@ -140,6 +144,9 @@ const Login = () => {
            const ref = searchParams.get('ref');
            // Qualquer conta sem link de indicação (ref) vira ADMIN, com link vira OPERADOR
            const role = !ref ? 'ADMIN' : 'OPERADOR';
+
+           const trialStartedAt = new Date().toISOString();
+           const planExpiry = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
            
            existingUser = {
              username: usernameFromGoogle,
@@ -147,11 +154,12 @@ const Login = () => {
              fullName: userInfo.name || '',
              teamName: '',
              phoneNumber: '',
-             role, 
+             role,
              affiliatedTo: ref || null,
              token: Math.random().toString(36).substring(2, 10),
              createdAt: new Date().toISOString(),
-             method: 'Google SSO'
+             method: 'Google SSO',
+             ...(role === 'ADMIN' ? { plan: 'trial', trialStartedAt, planExpiry } : {})
            };
            
            const docRef = await addDoc(usersRef, existingUser);
