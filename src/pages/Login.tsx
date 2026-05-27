@@ -24,13 +24,19 @@ const Login = () => {
   const [, setGlobalRole] = useLocalStorage<'ADMIN' | 'OPERADOR'>('nytzer-role', 'OPERADOR');
   const navigate = useNavigate();
 
+  const [existingUser] = useLocalStorage<any>('nytzer-user', null);
+
   useEffect(() => {
+    if (existingUser) {
+      navigate('/app', { replace: true });
+      return;
+    }
     const ref = searchParams.get('ref');
     if (ref) {
       setIsLogin(false);
       toast.info(`Você foi convidado por: ${ref}`);
     }
-  }, [searchParams]);
+  }, [searchParams, existingUser, navigate]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
