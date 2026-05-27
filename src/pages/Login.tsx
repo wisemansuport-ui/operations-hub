@@ -24,13 +24,19 @@ const Login = () => {
   const [, setGlobalRole] = useLocalStorage<'ADMIN' | 'OPERADOR'>('nytzer-role', 'OPERADOR');
   const navigate = useNavigate();
 
+  const [existingUser] = useLocalStorage<any>('nytzer-user', null);
+
   useEffect(() => {
+    if (existingUser) {
+      navigate('/app', { replace: true });
+      return;
+    }
     const ref = searchParams.get('ref');
     if (ref) {
       setIsLogin(false);
       toast.info(`Você foi convidado por: ${ref}`);
     }
-  }, [searchParams]);
+  }, [searchParams, existingUser, navigate]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,7 +86,7 @@ const Login = () => {
         // Tag this device in OneSignal immediately after account creation
         registerDeviceTag(username, role).catch(console.warn);
         toast.success('Conta criada com sucesso!');
-        navigate('/');
+        navigate('/app');
       } else {
         if (querySnapshot.empty) {
           toast.error('Usuário não encontrado');
@@ -101,7 +107,7 @@ const Login = () => {
         // Tag this device in OneSignal immediately after login
         registerDeviceTag(username, user.role || 'OPERADOR').catch(console.warn);
         toast.success('Bem-vindo de volta, ' + username + '!');
-        navigate('/');
+        navigate('/app');
       }
     } catch (error: any) {
       console.error("Erro na autenticação:", error);
@@ -161,7 +167,7 @@ const Login = () => {
         setGlobalRole(existingUser.role || 'OPERADOR');
         // Tag this device in OneSignal immediately after Google login
         registerDeviceTag(existingUser.username, existingUser.role || 'OPERADOR').catch(console.warn);
-        navigate('/');
+        navigate('/app');
       } catch (err) {
         console.error("Erro no Google Login:", err);
         toast.error('Erro ao obter dados da conta Google');

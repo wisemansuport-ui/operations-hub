@@ -14,7 +14,7 @@ export const AppSidebar = () => {
   const [user] = useLocalStorage<any>('nytzer-user', null);
 
   const navItems = [
-    { path: "/", label: "Dashboard", icon: LayoutDashboard, roles: ['ADMIN', 'OPERADOR'] },
+    { path: "/app", label: "Dashboard", icon: LayoutDashboard, roles: ['ADMIN', 'OPERADOR'] },
     { path: "/me", label: "Extrato", icon: Wallet, roles: ['OPERADOR'] },
     { path: "/operators", label: "Operadores", icon: Users, roles: ['ADMIN'] },
     { path: "/tasks", label: "Planilhas", icon: ChartNoAxesCombined, roles: ['ADMIN', 'OPERADOR'] },
