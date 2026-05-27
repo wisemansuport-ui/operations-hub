@@ -131,6 +131,8 @@ export const AppSidebar = () => {
           );
         })}
       </nav>
+
+      <SubscriptionModal open={planModalOpen} onOpenChange={setPlanModalOpen} />
     </>
   );
 };
