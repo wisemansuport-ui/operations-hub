@@ -88,7 +88,8 @@ export const AppSidebar = () => {
               <Sparkles className="w-4 h-4" />
             </button>
           )}
-
+          {!collapsed && (user?.role === 'ADMIN' || user?.username?.toUpperCase() === 'NYTZER' || user?.username?.toUpperCase() === 'WISEMAN') && (
+            <div
               onClick={() => setRole(role === 'ADMIN' ? 'OPERADOR' : 'ADMIN')}
               className="mx-3 px-3 py-2 rounded-lg bg-black/20 border border-primary/20 text-xs flex justify-between items-center cursor-pointer hover:bg-black/40 transition-colors"
             >
