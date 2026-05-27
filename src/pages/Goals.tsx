@@ -41,14 +41,42 @@ function useAnimatedNumber(value: number, duration = 1200) {
   return display;
 }
 
-const STARS = Array.from({ length: 60 }).map(() => ({
-  size: Math.random() * 2 + 0.5,
+const STARS = Array.from({ length: 80 }).map(() => ({
+  size: Math.random() * 1.8 + 0.4,
   left: Math.random() * 100,
   top: Math.random() * 100,
   delay: Math.random() * 4,
-  duration: 2 + Math.random() * 3,
-  opacity: 0.3 + Math.random() * 0.5,
+  duration: 2 + Math.random() * 4,
+  opacity: 0.25 + Math.random() * 0.6,
+  hue: Math.random() > 0.7 ? 'cyan' : Math.random() > 0.5 ? 'violet' : 'white',
 }));
+
+const RocketSVG: React.FC<{ reached: boolean }> = ({ reached }) => (
+  <svg width="56" height="56" viewBox="0 0 64 64" fill="none" className="drop-shadow-[0_0_20px_rgba(99,102,241,0.6)]">
+    <defs>
+      <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor={reached ? '#34d399' : '#e0e7ff'} />
+        <stop offset="50%" stopColor={reached ? '#10b981' : '#a5b4fc'} />
+        <stop offset="100%" stopColor={reached ? '#059669' : '#6366f1'} />
+      </linearGradient>
+      <linearGradient id="windowGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#22d3ee" />
+        <stop offset="100%" stopColor="#3b82f6" />
+      </linearGradient>
+      <linearGradient id="finGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor={reached ? '#10b981' : '#6366f1'} />
+        <stop offset="100%" stopColor={reached ? '#047857' : '#4338ca'} />
+      </linearGradient>
+    </defs>
+    <path d="M20 42 L14 54 L24 48 Z" fill="url(#finGrad)" />
+    <path d="M44 42 L50 54 L40 48 Z" fill="url(#finGrad)" />
+    <path d="M32 6 C24 14 22 24 22 34 L22 48 L42 48 L42 34 C42 24 40 14 32 6 Z" fill="url(#bodyGrad)" />
+    <circle cx="32" cy="26" r="5" fill="url(#windowGrad)" stroke="#1e293b" strokeWidth="1.5" />
+    <circle cx="30.5" cy="24.5" r="1.5" fill="#ffffff" opacity="0.8" />
+    <path d="M26 16 C25 22 24.5 28 24.5 34 L24.5 46" stroke="#ffffff" strokeWidth="1" opacity="0.3" strokeLinecap="round" />
+    <rect x="22" y="46" width="20" height="3" fill={reached ? '#047857' : '#4338ca'} rx="1" />
+  </svg>
+);
 
 const RocketProgress: React.FC<{ percent: number }> = ({ percent }) => {
   const clamped = Math.min(100, Math.max(0, percent));
@@ -58,48 +86,55 @@ const RocketProgress: React.FC<{ percent: number }> = ({ percent }) => {
 
   return (
     <div
-      className="relative w-full h-80 rounded-2xl overflow-hidden border border-border/60 shadow-[inset_0_0_40px_hsl(var(--primary)/0.08)]"
+      className="relative w-full h-80 rounded-2xl overflow-hidden border border-white/10"
       style={{
         background:
-          'radial-gradient(ellipse at 50% 100%, hsl(var(--primary)/0.18) 0%, transparent 60%), radial-gradient(ellipse at 30% 20%, hsl(var(--accent)/0.08) 0%, transparent 50%), linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--card)) 100%)',
+          'radial-gradient(ellipse at 50% 110%, rgba(99,102,241,0.35) 0%, transparent 55%), radial-gradient(ellipse at 20% 10%, rgba(34,211,238,0.18) 0%, transparent 50%), radial-gradient(ellipse at 85% 20%, rgba(168,85,247,0.15) 0%, transparent 50%), linear-gradient(180deg, #05060f 0%, #0a0d1f 60%, #0d1230 100%)',
+        boxShadow: 'inset 0 0 60px rgba(99,102,241,0.12), inset 0 1px 0 rgba(255,255,255,0.05)',
       }}
     >
-      {/* nebula glow */}
-      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-primary/10 via-primary/5 to-transparent pointer-events-none" />
+      <div
+        className="absolute inset-0 opacity-[0.07] pointer-events-none"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)',
+          backgroundSize: '32px 32px',
+          maskImage: 'radial-gradient(ellipse at center, black 30%, transparent 75%)',
+        }}
+      />
 
-      {/* stars */}
       <div className="absolute inset-0">
         {STARS.map((s, i) => (
           <span
             key={i}
-            className="absolute rounded-full bg-foreground"
+            className="absolute rounded-full"
             style={{
               width: s.size + 'px',
               height: s.size + 'px',
               left: s.left + '%',
               top: s.top + '%',
               opacity: s.opacity,
+              background: s.hue === 'cyan' ? '#67e8f9' : s.hue === 'violet' ? '#c4b5fd' : '#ffffff',
               animation: `pulse ${s.duration}s ease-in-out ${s.delay}s infinite`,
-              boxShadow: '0 0 4px currentColor',
+              boxShadow:
+                s.hue === 'cyan' ? '0 0 6px #22d3ee' : s.hue === 'violet' ? '0 0 6px #a78bfa' : '0 0 4px #ffffff',
             }}
           />
         ))}
       </div>
 
-      {/* track */}
-      <div className="absolute left-1/2 -translate-x-1/2 top-6 bottom-6 w-[3px]">
-        <div className="absolute inset-0 rounded-full bg-gradient-to-b from-border/30 via-border/60 to-border/30" />
+      <div className="absolute left-1/2 -translate-x-1/2 top-6 bottom-6 w-[2px]">
+        <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/5 via-white/10 to-white/5" />
         <div
-          className={`absolute left-0 right-0 bottom-0 rounded-full transition-all duration-1000 ease-out ${
-            reached
-              ? 'bg-gradient-to-t from-success via-success/80 to-success/60'
-              : 'bg-gradient-to-t from-primary via-primary/80 to-accent'
-          }`}
+          className="absolute left-0 right-0 bottom-0 rounded-full transition-all duration-1000 ease-out"
           style={{
             height: `${animated}%`,
+            background: reached
+              ? 'linear-gradient(to top, #10b981, #34d399, #6ee7b7)'
+              : 'linear-gradient(to top, #6366f1, #8b5cf6, #22d3ee)',
             boxShadow: reached
-              ? '0 0 20px hsl(var(--success)/0.6)'
-              : '0 0 20px hsl(var(--primary)/0.6)',
+              ? '0 0 16px rgba(16,185,129,0.7), 0 0 32px rgba(16,185,129,0.3)'
+              : '0 0 16px rgba(99,102,241,0.7), 0 0 32px rgba(139,92,246,0.4)',
           }}
         />
         {milestones.map(m => {
@@ -107,13 +142,17 @@ const RocketProgress: React.FC<{ percent: number }> = ({ percent }) => {
           return (
             <div key={m} className="absolute left-1/2 -translate-x-1/2" style={{ bottom: `${m}%` }}>
               <div
-                className={`w-2 h-2 rounded-full border transition-all duration-500 ${
-                  passed
-                    ? 'bg-primary border-primary shadow-[0_0_8px_hsl(var(--primary))]'
-                    : 'bg-card border-border'
-                }`}
+                className="w-2.5 h-2.5 rounded-full border-2 transition-all duration-500"
+                style={{
+                  background: passed ? '#a5b4fc' : 'rgba(15,18,40,0.9)',
+                  borderColor: passed ? '#8b5cf6' : 'rgba(255,255,255,0.15)',
+                  boxShadow: passed ? '0 0 10px #8b5cf6, 0 0 4px #ffffff' : 'none',
+                }}
               />
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[9px] font-mono text-muted-foreground/60">
+              <span
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-[9px] font-mono tracking-widest"
+                style={{ color: passed ? 'rgba(196,181,253,0.9)' : 'rgba(255,255,255,0.3)' }}
+              >
                 {m}%
               </span>
             </div>
@@ -121,77 +160,120 @@ const RocketProgress: React.FC<{ percent: number }> = ({ percent }) => {
         })}
       </div>
 
-      {/* rocket */}
       <div
         className="absolute left-1/2 transition-all duration-1000 ease-out z-10"
-        style={{ bottom: `calc(${animated}% * 0.78 + 24px)`, transform: 'translateX(-50%)' }}
+        style={{ bottom: `calc(${animated}% * 0.78 + 20px)`, transform: 'translateX(-50%)' }}
       >
         <div className="relative">
           <div
-            className={`absolute inset-0 -m-6 rounded-full blur-2xl ${
-              reached ? 'bg-success/40' : 'bg-primary/40'
-            } animate-pulse`}
+            className="absolute inset-0 -m-8 rounded-full blur-2xl animate-pulse"
+            style={{
+              background: reached
+                ? 'radial-gradient(circle, rgba(16,185,129,0.5), transparent 70%)'
+                : 'radial-gradient(circle, rgba(99,102,241,0.55), rgba(34,211,238,0.25) 50%, transparent 70%)',
+            }}
           />
-          <div
-            className="absolute left-1/2 top-full -translate-x-1/2 -mt-1"
-            style={{ transform: 'translateX(-50%) rotate(45deg)' }}
-          >
-            <div className="relative w-3 h-12">
-              <div className="absolute inset-0 bg-gradient-to-b from-warning via-destructive to-transparent rounded-full blur-[3px] animate-pulse" />
-              <div className="absolute inset-x-1 top-0 bottom-3 bg-gradient-to-b from-warning/90 to-transparent rounded-full" />
+          <div className="absolute left-1/2 top-full -translate-x-1/2 -mt-2 pointer-events-none">
+            <div className="relative w-4 h-16">
+              <div
+                className="absolute inset-x-0 top-0 h-full rounded-full blur-md animate-pulse"
+                style={{
+                  background: 'linear-gradient(to bottom, #22d3ee 0%, #8b5cf6 40%, transparent 100%)',
+                  opacity: 0.85,
+                }}
+              />
+              <div
+                className="absolute inset-x-1 top-0 h-3/4 rounded-full"
+                style={{ background: 'linear-gradient(to bottom, #ffffff, #67e8f9 30%, #a78bfa 70%, transparent)' }}
+              />
             </div>
           </div>
-          {!reached && animated > 5 && (
-            <>
-              {[0, 1, 2].map(i => (
-                <span
-                  key={i}
-                  className="absolute left-1/2 top-full w-1 h-1 rounded-full bg-warning"
-                  style={{
-                    transform: `translate(-50%, ${10 + i * 6}px) rotate(45deg)`,
-                    opacity: 0.6 - i * 0.18,
-                    animation: `pulse 1s ease-in-out ${i * 0.2}s infinite`,
-                  }}
-                />
-              ))}
-            </>
-          )}
-          <Rocket
-            className={`relative w-14 h-14 ${
-              reached ? 'text-success' : 'text-primary'
-            } drop-shadow-[0_0_25px_hsl(var(--primary)/0.8)]`}
-            strokeWidth={1.5}
-            style={{ transform: 'rotate(-45deg)' }}
-          />
+          {!reached && animated > 3 &&
+            [0, 1, 2, 3].map(i => (
+              <span
+                key={i}
+                className="absolute left-1/2 top-full w-1 h-1 rounded-full"
+                style={{
+                  transform: `translate(${-50 + (i % 2 === 0 ? -8 : 8)}%, ${14 + i * 8}px)`,
+                  background: i % 2 ? '#22d3ee' : '#a78bfa',
+                  boxShadow: i % 2 ? '0 0 6px #22d3ee' : '0 0 6px #a78bfa',
+                  opacity: 0.7 - i * 0.15,
+                  animation: `pulse 1.2s ease-in-out ${i * 0.15}s infinite`,
+                }}
+              />
+            ))}
+          <RocketSVG reached={reached} />
         </div>
       </div>
 
-      {/* finish line */}
-      <div
-        className={`absolute left-1/2 -translate-x-1/2 top-3 w-20 h-1 rounded-full ${
-          reached ? 'bg-success shadow-[0_0_12px_hsl(var(--success))]' : 'bg-success/60'
-        }`}
-      />
-      <div className="absolute left-1/2 -translate-x-1/2 top-5 text-[9px] font-mono font-bold text-success/80 tracking-widest">
-        META · 100%
+      <div className="absolute left-1/2 -translate-x-1/2 top-3 flex flex-col items-center gap-1">
+        <div
+          className="w-24 h-[3px] rounded-full"
+          style={{
+            background: reached
+              ? 'linear-gradient(90deg, transparent, #10b981, transparent)'
+              : 'linear-gradient(90deg, transparent, #22d3ee, #8b5cf6, transparent)',
+            boxShadow: reached ? '0 0 12px #10b981' : '0 0 12px #22d3ee',
+          }}
+        />
+        <span
+          className="text-[9px] font-mono font-bold tracking-[0.2em]"
+          style={{ color: reached ? '#34d399' : '#a5b4fc' }}
+        >
+          META · 100%
+        </span>
       </div>
 
-      {/* HUD */}
-      <div className="absolute top-3 right-3 px-3 py-2 rounded-xl bg-card/70 backdrop-blur-md border border-border/60 shadow-lg">
-        <div className="text-[9px] font-mono text-muted-foreground tracking-widest mb-0.5">PROGRESSO</div>
-        <div className={`text-2xl font-extrabold tabular-nums leading-none ${reached ? 'text-success' : 'text-primary'}`}>
-          {animated.toFixed(1)}<span className="text-sm opacity-60">%</span>
+      <div
+        className="absolute top-3 right-3 px-3.5 py-2 rounded-xl backdrop-blur-xl border"
+        style={{
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))',
+          borderColor: 'rgba(255,255,255,0.12)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1)',
+        }}
+      >
+        <div className="text-[9px] font-mono tracking-widest mb-0.5" style={{ color: 'rgba(196,181,253,0.7)' }}>
+          PROGRESSO
+        </div>
+        <div
+          className="text-2xl font-extrabold tabular-nums leading-none"
+          style={{
+            background: reached
+              ? 'linear-gradient(135deg, #34d399, #10b981)'
+              : 'linear-gradient(135deg, #67e8f9, #a78bfa)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}
+        >
+          {animated.toFixed(1)}
+          <span className="text-sm opacity-60">%</span>
         </div>
       </div>
 
       {reached && (
-        <div className="absolute top-3 left-3 px-3 py-2 rounded-xl bg-success/20 border border-success/50 backdrop-blur flex items-center gap-1.5 animate-fade-in shadow-[0_0_20px_hsl(var(--success)/0.4)]">
-          <Trophy className="w-4 h-4 text-success" />
-          <span className="text-xs font-extrabold text-success tracking-wider">CONQUISTADO</span>
+        <div
+          className="absolute top-3 left-3 px-3 py-2 rounded-xl backdrop-blur-xl flex items-center gap-1.5 animate-fade-in border"
+          style={{
+            background: 'linear-gradient(135deg, rgba(16,185,129,0.25), rgba(16,185,129,0.05))',
+            borderColor: 'rgba(52,211,153,0.4)',
+            boxShadow: '0 0 24px rgba(16,185,129,0.4)',
+          }}
+        >
+          <Trophy className="w-4 h-4" style={{ color: '#34d399' }} />
+          <span className="text-xs font-extrabold tracking-wider" style={{ color: '#6ee7b7' }}>
+            CONQUISTADO
+          </span>
         </div>
       )}
 
-      <div className="absolute bottom-0 inset-x-0 h-10 bg-gradient-to-t from-primary/15 to-transparent pointer-events-none" />
+      <div
+        className="absolute bottom-0 inset-x-0 h-16 pointer-events-none"
+        style={{
+          background:
+            'linear-gradient(to top, rgba(99,102,241,0.25), rgba(139,92,246,0.08) 50%, transparent)',
+        }}
+      />
     </div>
   );
 };
