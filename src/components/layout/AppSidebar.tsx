@@ -2,13 +2,15 @@ import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, CalendarDays, Globe, ShieldCheck,
   BarChart3, ChevronLeft, ChevronRight, Zap, CreditCard, Users, Wallet, UserCog, PlayCircle,
-  ChartNoAxesCombined, Receipt, Target
+  ChartNoAxesCombined, Receipt, Target, Sparkles
 } from "lucide-react";
 import { useState } from "react";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
+import { SubscriptionModal } from "../SubscriptionModal";
 
 export const AppSidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const [planModalOpen, setPlanModalOpen] = useState(false);
   const location = useLocation();
   const [role, setRole] = useLocalStorage<'ADMIN' | 'OPERADOR'>('nytzer-role', 'ADMIN');
   const [user] = useLocalStorage<any>('nytzer-user', null);
