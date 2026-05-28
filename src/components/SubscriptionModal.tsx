@@ -119,7 +119,7 @@ export const SubscriptionModal = ({ open, onOpenChange }: Props) => {
                   className={cn(
                     "relative px-4 py-1.5 text-xs font-medium rounded-full transition-all",
                     billing === opt
-                      ? "bg-foreground text-background"
+                      ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
@@ -129,7 +129,7 @@ export const SubscriptionModal = ({ open, onOpenChange }: Props) => {
                       className={cn(
                         "ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full",
                         billing === "yearly"
-                          ? "bg-background/20 text-background"
+                          ? "bg-primary-foreground/20 text-primary-foreground"
                           : "bg-emerald-500/15 text-emerald-500"
                       )}
                     >
@@ -153,12 +153,12 @@ export const SubscriptionModal = ({ open, onOpenChange }: Props) => {
                   className={cn(
                     "relative flex flex-col rounded-2xl border p-6 transition-all duration-300",
                     plan.highlight
-                      ? "border-foreground/20 bg-card shadow-[0_0_0_1px_hsl(var(--foreground)/0.06)]"
+                      ? "border-primary/40 bg-card shadow-[0_0_40px_-12px_hsl(var(--primary)/0.45)]"
                       : "border-border/60 bg-card/40 hover:border-border"
                   )}
                 >
                   {plan.badge && (
-                    <span className="absolute -top-2.5 left-6 text-[10px] font-semibold tracking-wide uppercase px-2.5 py-1 rounded-full bg-foreground text-background">
+                    <span className="absolute -top-2.5 left-6 text-[10px] font-semibold tracking-wide uppercase px-2.5 py-1 rounded-full bg-primary text-primary-foreground">
                       {plan.badge}
                     </span>
                   )}
@@ -196,7 +196,7 @@ export const SubscriptionModal = ({ open, onOpenChange }: Props) => {
                     className={cn(
                       "w-full py-2.5 px-4 rounded-lg text-sm font-medium flex items-center justify-center gap-1.5 transition-all group",
                       plan.highlight
-                        ? "bg-foreground text-background hover:opacity-90"
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
                         : "border border-border bg-transparent text-foreground hover:bg-muted/50"
                     )}
                   >
