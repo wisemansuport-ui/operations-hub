@@ -41,40 +41,49 @@ function useAnimatedNumber(value: number, duration = 1200) {
   return display;
 }
 
-const STARS = Array.from({ length: 80 }).map(() => ({
-  size: Math.random() * 1.8 + 0.4,
+const STARS = Array.from({ length: 70 }).map(() => ({
+  size: Math.random() * 1.4 + 0.4,
   left: Math.random() * 100,
   top: Math.random() * 100,
-  delay: Math.random() * 4,
-  duration: 2 + Math.random() * 4,
-  opacity: 0.25 + Math.random() * 0.6,
-  hue: Math.random() > 0.7 ? 'cyan' : Math.random() > 0.5 ? 'violet' : 'white',
+  delay: Math.random() * 6,
+  duration: 5 + Math.random() * 5,
+  opacity: 0.3 + Math.random() * 0.35,
+  hue: Math.random() > 0.65 ? 'gold' : Math.random() > 0.5 ? 'amber' : 'white',
 }));
 
+// premium easing curve
+const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
+
 const RocketSVG: React.FC<{ reached: boolean }> = ({ reached }) => (
-  <svg width="56" height="56" viewBox="0 0 64 64" fill="none" className="drop-shadow-[0_0_20px_rgba(99,102,241,0.6)]">
+  <svg
+    width="56"
+    height="56"
+    viewBox="0 0 64 64"
+    fill="none"
+    className="drop-shadow-[0_0_14px_rgba(251,191,36,0.45)]"
+  >
     <defs>
       <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor={reached ? '#34d399' : '#e0e7ff'} />
-        <stop offset="50%" stopColor={reached ? '#10b981' : '#a5b4fc'} />
-        <stop offset="100%" stopColor={reached ? '#059669' : '#6366f1'} />
+        <stop offset="0%" stopColor={reached ? '#fef3c7' : '#fef3c7'} />
+        <stop offset="50%" stopColor={reached ? '#fbbf24' : '#fcd34d'} />
+        <stop offset="100%" stopColor={reached ? '#b45309' : '#d97706'} />
       </linearGradient>
       <linearGradient id="windowGrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="#22d3ee" />
-        <stop offset="100%" stopColor="#3b82f6" />
+        <stop offset="0%" stopColor="#fde68a" />
+        <stop offset="100%" stopColor="#b45309" />
       </linearGradient>
       <linearGradient id="finGrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor={reached ? '#10b981' : '#6366f1'} />
-        <stop offset="100%" stopColor={reached ? '#047857' : '#4338ca'} />
+        <stop offset="0%" stopColor="#d97706" />
+        <stop offset="100%" stopColor="#78350f" />
       </linearGradient>
     </defs>
     <path d="M20 42 L14 54 L24 48 Z" fill="url(#finGrad)" />
     <path d="M44 42 L50 54 L40 48 Z" fill="url(#finGrad)" />
     <path d="M32 6 C24 14 22 24 22 34 L22 48 L42 48 L42 34 C42 24 40 14 32 6 Z" fill="url(#bodyGrad)" />
-    <circle cx="32" cy="26" r="5" fill="url(#windowGrad)" stroke="#1e293b" strokeWidth="1.5" />
-    <circle cx="30.5" cy="24.5" r="1.5" fill="#ffffff" opacity="0.8" />
-    <path d="M26 16 C25 22 24.5 28 24.5 34 L24.5 46" stroke="#ffffff" strokeWidth="1" opacity="0.3" strokeLinecap="round" />
-    <rect x="22" y="46" width="20" height="3" fill={reached ? '#047857' : '#4338ca'} rx="1" />
+    <circle cx="32" cy="26" r="5" fill="url(#windowGrad)" stroke="#3f2d12" strokeWidth="1.5" />
+    <circle cx="30.5" cy="24.5" r="1.5" fill="#fffbeb" opacity="0.85" />
+    <path d="M26 16 C25 22 24.5 28 24.5 34 L24.5 46" stroke="#fffbeb" strokeWidth="1" opacity="0.25" strokeLinecap="round" />
+    <rect x="22" y="46" width="20" height="3" fill="#78350f" rx="1" />
   </svg>
 );
 
@@ -89,12 +98,12 @@ const RocketProgress: React.FC<{ percent: number }> = ({ percent }) => {
       className="relative w-full h-80 rounded-2xl overflow-hidden border border-white/10"
       style={{
         background:
-          'radial-gradient(ellipse at 50% 110%, rgba(99,102,241,0.35) 0%, transparent 55%), radial-gradient(ellipse at 20% 10%, rgba(34,211,238,0.18) 0%, transparent 50%), radial-gradient(ellipse at 85% 20%, rgba(168,85,247,0.15) 0%, transparent 50%), linear-gradient(180deg, #05060f 0%, #0a0d1f 60%, #0d1230 100%)',
-        boxShadow: 'inset 0 0 60px rgba(99,102,241,0.12), inset 0 1px 0 rgba(255,255,255,0.05)',
+          'radial-gradient(ellipse at 50% 110%, rgba(217,119,6,0.22) 0%, transparent 55%), radial-gradient(ellipse at 20% 10%, rgba(251,191,36,0.10) 0%, transparent 50%), radial-gradient(ellipse at 85% 20%, rgba(180,83,9,0.10) 0%, transparent 50%), linear-gradient(180deg, #07070a 0%, #0c0a12 60%, #110d18 100%)',
+        boxShadow: 'inset 0 0 60px rgba(217,119,6,0.08), inset 0 1px 0 rgba(255,255,255,0.04)',
       }}
     >
       <div
-        className="absolute inset-0 opacity-[0.07] pointer-events-none"
+        className="absolute inset-0 opacity-[0.05] pointer-events-none"
         style={{
           backgroundImage:
             'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)',
@@ -114,10 +123,10 @@ const RocketProgress: React.FC<{ percent: number }> = ({ percent }) => {
               left: s.left + '%',
               top: s.top + '%',
               opacity: s.opacity,
-              background: s.hue === 'cyan' ? '#67e8f9' : s.hue === 'violet' ? '#c4b5fd' : '#ffffff',
-              animation: `pulse ${s.duration}s ease-in-out ${s.delay}s infinite`,
+              background: s.hue === 'gold' ? '#fcd34d' : s.hue === 'amber' ? '#fbbf24' : '#fffbeb',
+              animation: `pulse ${s.duration}s ${EASE} ${s.delay}s infinite`,
               boxShadow:
-                s.hue === 'cyan' ? '0 0 6px #22d3ee' : s.hue === 'violet' ? '0 0 6px #a78bfa' : '0 0 4px #ffffff',
+                s.hue === 'gold' ? '0 0 4px rgba(252,211,77,0.6)' : s.hue === 'amber' ? '0 0 4px rgba(251,191,36,0.5)' : '0 0 3px rgba(255,251,235,0.5)',
             }}
           />
         ))}
@@ -126,15 +135,16 @@ const RocketProgress: React.FC<{ percent: number }> = ({ percent }) => {
       <div className="absolute left-1/2 -translate-x-1/2 top-6 bottom-6 w-[2px]">
         <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/5 via-white/10 to-white/5" />
         <div
-          className="absolute left-0 right-0 bottom-0 rounded-full transition-all duration-1000 ease-out"
+          className="absolute left-0 right-0 bottom-0 rounded-full"
           style={{
             height: `${animated}%`,
+            transition: `height 1400ms ${EASE}`,
             background: reached
-              ? 'linear-gradient(to top, #10b981, #34d399, #6ee7b7)'
-              : 'linear-gradient(to top, #6366f1, #8b5cf6, #22d3ee)',
+              ? 'linear-gradient(to top, #b45309, #f59e0b, #fcd34d)'
+              : 'linear-gradient(to top, #92400e, #d97706, #fbbf24)',
             boxShadow: reached
-              ? '0 0 16px rgba(16,185,129,0.7), 0 0 32px rgba(16,185,129,0.3)'
-              : '0 0 16px rgba(99,102,241,0.7), 0 0 32px rgba(139,92,246,0.4)',
+              ? '0 0 12px rgba(251,191,36,0.45), 0 0 24px rgba(217,119,6,0.18)'
+              : '0 0 10px rgba(217,119,6,0.4), 0 0 20px rgba(180,83,9,0.18)',
           }}
         />
         {milestones.map(m => {
@@ -142,16 +152,17 @@ const RocketProgress: React.FC<{ percent: number }> = ({ percent }) => {
           return (
             <div key={m} className="absolute left-1/2 -translate-x-1/2" style={{ bottom: `${m}%` }}>
               <div
-                className="w-2.5 h-2.5 rounded-full border-2 transition-all duration-500"
+                className="w-2.5 h-2.5 rounded-full border-2"
                 style={{
-                  background: passed ? '#a5b4fc' : 'rgba(15,18,40,0.9)',
-                  borderColor: passed ? '#8b5cf6' : 'rgba(255,255,255,0.15)',
-                  boxShadow: passed ? '0 0 10px #8b5cf6, 0 0 4px #ffffff' : 'none',
+                  transition: `all 700ms ${EASE}`,
+                  background: passed ? '#fcd34d' : 'rgba(17,13,24,0.9)',
+                  borderColor: passed ? '#f59e0b' : 'rgba(255,255,255,0.15)',
+                  boxShadow: passed ? '0 0 8px rgba(251,191,36,0.6)' : 'none',
                 }}
               />
               <span
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-[9px] font-mono tracking-widest"
-                style={{ color: passed ? 'rgba(196,181,253,0.9)' : 'rgba(255,255,255,0.3)' }}
+                style={{ color: passed ? 'rgba(252,211,77,0.85)' : 'rgba(255,255,255,0.3)' }}
               >
                 {m}%
               </span>
@@ -161,30 +172,35 @@ const RocketProgress: React.FC<{ percent: number }> = ({ percent }) => {
       </div>
 
       <div
-        className="absolute left-1/2 transition-all duration-1000 ease-out z-10"
-        style={{ bottom: `calc(${animated}% * 0.78 + 20px)`, transform: 'translateX(-50%)' }}
+        className="absolute left-1/2 z-10"
+        style={{
+          bottom: `calc(${animated}% * 0.78 + 20px)`,
+          transform: 'translateX(-50%)',
+          transition: `bottom 1400ms ${EASE}`,
+        }}
       >
-        <div className="relative">
+        <div className="relative" style={{ animation: `rocket-float 6s ${EASE} infinite` }}>
           <div
-            className="absolute inset-0 -m-8 rounded-full blur-2xl animate-pulse"
+            className="absolute inset-0 -m-8 rounded-full blur-2xl"
             style={{
               background: reached
-                ? 'radial-gradient(circle, rgba(16,185,129,0.5), transparent 70%)'
-                : 'radial-gradient(circle, rgba(99,102,241,0.55), rgba(34,211,238,0.25) 50%, transparent 70%)',
+                ? 'radial-gradient(circle, rgba(251,191,36,0.35), transparent 70%)'
+                : 'radial-gradient(circle, rgba(217,119,6,0.35), rgba(180,83,9,0.15) 50%, transparent 70%)',
+              opacity: 0.85,
             }}
           />
           <div className="absolute left-1/2 top-full -translate-x-1/2 -mt-2 pointer-events-none">
             <div className="relative w-4 h-16">
               <div
-                className="absolute inset-x-0 top-0 h-full rounded-full blur-md animate-pulse"
+                className="absolute inset-x-0 top-0 h-full rounded-full blur-md"
                 style={{
-                  background: 'linear-gradient(to bottom, #22d3ee 0%, #8b5cf6 40%, transparent 100%)',
-                  opacity: 0.85,
+                  background: 'linear-gradient(to bottom, #fcd34d 0%, #d97706 40%, transparent 100%)',
+                  opacity: 0.75,
                 }}
               />
               <div
                 className="absolute inset-x-1 top-0 h-3/4 rounded-full"
-                style={{ background: 'linear-gradient(to bottom, #ffffff, #67e8f9 30%, #a78bfa 70%, transparent)' }}
+                style={{ background: 'linear-gradient(to bottom, #fffbeb, #fcd34d 30%, #d97706 70%, transparent)' }}
               />
             </div>
           </div>
@@ -195,10 +211,10 @@ const RocketProgress: React.FC<{ percent: number }> = ({ percent }) => {
                 className="absolute left-1/2 top-full w-1 h-1 rounded-full"
                 style={{
                   transform: `translate(${-50 + (i % 2 === 0 ? -8 : 8)}%, ${14 + i * 8}px)`,
-                  background: i % 2 ? '#22d3ee' : '#a78bfa',
-                  boxShadow: i % 2 ? '0 0 6px #22d3ee' : '0 0 6px #a78bfa',
-                  opacity: 0.7 - i * 0.15,
-                  animation: `pulse 1.2s ease-in-out ${i * 0.15}s infinite`,
+                  background: i % 2 ? '#fcd34d' : '#d97706',
+                  boxShadow: i % 2 ? '0 0 5px rgba(252,211,77,0.6)' : '0 0 5px rgba(217,119,6,0.5)',
+                  opacity: 0.55 - i * 0.1,
+                  animation: `pulse 2.4s ${EASE} ${i * 0.2}s infinite`,
                 }}
               />
             ))}
@@ -211,14 +227,14 @@ const RocketProgress: React.FC<{ percent: number }> = ({ percent }) => {
           className="w-24 h-[3px] rounded-full"
           style={{
             background: reached
-              ? 'linear-gradient(90deg, transparent, #10b981, transparent)'
-              : 'linear-gradient(90deg, transparent, #22d3ee, #8b5cf6, transparent)',
-            boxShadow: reached ? '0 0 12px #10b981' : '0 0 12px #22d3ee',
+              ? 'linear-gradient(90deg, transparent, #fcd34d, transparent)'
+              : 'linear-gradient(90deg, transparent, #d97706, #fbbf24, transparent)',
+            boxShadow: reached ? '0 0 10px rgba(252,211,77,0.6)' : '0 0 10px rgba(217,119,6,0.5)',
           }}
         />
         <span
           className="text-[9px] font-mono font-bold tracking-[0.2em]"
-          style={{ color: reached ? '#34d399' : '#a5b4fc' }}
+          style={{ color: reached ? '#fcd34d' : '#fbbf24' }}
         >
           META · 100%
         </span>
@@ -227,20 +243,20 @@ const RocketProgress: React.FC<{ percent: number }> = ({ percent }) => {
       <div
         className="absolute top-3 right-3 px-3.5 py-2 rounded-xl backdrop-blur-xl border"
         style={{
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))',
-          borderColor: 'rgba(255,255,255,0.12)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1)',
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))',
+          borderColor: 'rgba(251,191,36,0.18)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
         }}
       >
-        <div className="text-[9px] font-mono tracking-widest mb-0.5" style={{ color: 'rgba(196,181,253,0.7)' }}>
+        <div className="text-[9px] font-mono tracking-widest mb-0.5" style={{ color: 'rgba(252,211,77,0.7)' }}>
           PROGRESSO
         </div>
         <div
           className="text-2xl font-extrabold tabular-nums leading-none"
           style={{
             background: reached
-              ? 'linear-gradient(135deg, #34d399, #10b981)'
-              : 'linear-gradient(135deg, #67e8f9, #a78bfa)',
+              ? 'linear-gradient(135deg, #fef3c7, #fbbf24)'
+              : 'linear-gradient(135deg, #fcd34d, #d97706)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
@@ -255,13 +271,13 @@ const RocketProgress: React.FC<{ percent: number }> = ({ percent }) => {
         <div
           className="absolute top-3 left-3 px-3 py-2 rounded-xl backdrop-blur-xl flex items-center gap-1.5 animate-fade-in border"
           style={{
-            background: 'linear-gradient(135deg, rgba(16,185,129,0.25), rgba(16,185,129,0.05))',
-            borderColor: 'rgba(52,211,153,0.4)',
-            boxShadow: '0 0 24px rgba(16,185,129,0.4)',
+            background: 'linear-gradient(135deg, rgba(251,191,36,0.22), rgba(251,191,36,0.04))',
+            borderColor: 'rgba(252,211,77,0.4)',
+            boxShadow: '0 0 20px rgba(251,191,36,0.3)',
           }}
         >
-          <Trophy className="w-4 h-4" style={{ color: '#34d399' }} />
-          <span className="text-xs font-extrabold tracking-wider" style={{ color: '#6ee7b7' }}>
+          <Trophy className="w-4 h-4" style={{ color: '#fcd34d' }} />
+          <span className="text-xs font-extrabold tracking-wider" style={{ color: '#fde68a' }}>
             CONQUISTADO
           </span>
         </div>
@@ -271,9 +287,16 @@ const RocketProgress: React.FC<{ percent: number }> = ({ percent }) => {
         className="absolute bottom-0 inset-x-0 h-16 pointer-events-none"
         style={{
           background:
-            'linear-gradient(to top, rgba(99,102,241,0.25), rgba(139,92,246,0.08) 50%, transparent)',
+            'linear-gradient(to top, rgba(217,119,6,0.18), rgba(180,83,9,0.06) 50%, transparent)',
         }}
       />
+
+      <style>{`
+        @keyframes rocket-float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-4px); }
+        }
+      `}</style>
     </div>
   );
 };
