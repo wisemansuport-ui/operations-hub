@@ -226,7 +226,7 @@ const Subscription = () => {
                   p.highlight
                     ? 'border-primary/40 bg-card shadow-[0_0_40px_-12px_hsl(var(--primary)/0.45)]'
                     : 'border-border/60 bg-card/40 hover:border-border',
-                  isCurrentPlan && 'ring-1 ring-foreground/30'
+                  isCurrentPlan && 'ring-1 ring-primary/40'
                 )}
               >
                 {p.badge && (
@@ -299,7 +299,7 @@ const Subscription = () => {
                         <Icon
                           className={cn(
                             'w-3.5 h-3.5 mt-0.5 shrink-0',
-                            p.highlight ? 'text-foreground' : 'text-muted-foreground'
+                            p.highlight ? 'text-primary' : 'text-muted-foreground'
                           )}
                           strokeWidth={2.5}
                         />

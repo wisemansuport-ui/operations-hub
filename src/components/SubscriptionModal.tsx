@@ -217,7 +217,7 @@ export const SubscriptionModal = ({ open, onOpenChange }: Props) => {
                           <Icon
                             className={cn(
                               "w-3.5 h-3.5 mt-0.5 shrink-0",
-                              plan.highlight ? "text-foreground" : "text-muted-foreground"
+                              plan.highlight ? "text-primary" : "text-muted-foreground"
                             )}
                             strokeWidth={2.5}
                           />
