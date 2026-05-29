@@ -189,7 +189,7 @@ const Landing = () => {
             NYTZER<span className="text-primary">VISION</span>
           </Link>
           <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
-            <a href="#dor" className="hover:text-foreground transition-colors">A dor</a>
+            <a href="#dor" className="hover:text-foreground transition-colors">O problema</a>
             <a href="#solucao" className="hover:text-foreground transition-colors">A solução</a>
             <a href="#planos" className="hover:text-foreground transition-colors">Planos</a>
             <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
