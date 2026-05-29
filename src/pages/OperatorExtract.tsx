@@ -143,9 +143,17 @@ export default function OperatorExtract() {
             const remessaTime = d.getTime();
             const isPending = !paidUntil || remessaTime > paidUntil;
 
-            const rn = Number(r.contasNormais || 0);
-            const rb = Number(r.contasBaixas || 0);
-            const rc = Number(r.contas || 0);
+            let rn = Number(r.contasNormais || 0);
+            let rb = Number(r.contasBaixas || 0);
+            let rc = Number(r.contas || 0);
+            
+            const originalRc = rc;
+            if (meta.modelo === 'Recarga') {
+              rn = 0;
+              rb = 0;
+              rc = 0;
+            }
+
             normais += rn;
             baixas += rb;
 
@@ -167,7 +175,7 @@ export default function OperatorExtract() {
               }
             }
 
-            const prop = totalContasMeta > 0 ? rc / totalContasMeta : 1 / remessas.length;
+            const prop = totalContasMeta > 0 ? originalRc / totalContasMeta : 1 / remessas.length;
             let remManualSalario = 0;
             if (meta.modelo === 'Recarga') {
               remManualSalario = manualSalario * prop;

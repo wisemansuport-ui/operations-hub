@@ -286,10 +286,18 @@ const Operators = () => {
             }
           }
 
-          const rc = Number(r.contas || 0);
-          const normais = Number(r.contasNormais || 0);
-          const baixas = Number(r.contasBaixas || 0);
-          const prop = totalContasMeta > 0 ? rc / totalContasMeta : 1 / remessas.length;
+          let rc = Number(r.contas || 0);
+          let normais = Number(r.contasNormais || 0);
+          let baixas = Number(r.contasBaixas || 0);
+          
+          const originalRc = rc;
+          if (meta.modelo === 'Recarga') {
+             rc = 0;
+             normais = 0;
+             baixas = 0;
+          }
+
+          const prop = totalContasMeta > 0 ? originalRc / totalContasMeta : 1 / remessas.length;
           
           let remAutoSal = 0;
           if (meta.modelo === 'Recarga') {

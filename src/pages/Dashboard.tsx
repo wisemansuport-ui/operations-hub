@@ -198,15 +198,22 @@ const Dashboard = () => {
       remessas.forEach(r => {
         const dep = Number(r.deposito || 0);
         const saq = Number(r.saque || 0);
-        const rc = Number(r.contas || 0);
-        const normais = Number((r as any).contasNormais || 0);
-        const baixas = Number((r as any).contasBaixas || 0);
+        let rc = Number(r.contas || 0);
+        let normais = Number((r as any).contasNormais || 0);
+        let baixas = Number((r as any).contasBaixas || 0);
+        
+        const originalRc = rc;
+        if (meta.modelo === 'Recarga') {
+          rc = 0;
+          normais = 0;
+          baixas = 0;
+        }
 
         metaTotalDep += dep;
         metaTotalSaq += saq;
 
         // Proportional share of this remessa for salary
-        const prop = totalContasMeta > 0 ? rc / totalContasMeta : (remessas.length > 0 ? 1 / remessas.length : 1);
+        const prop = totalContasMeta > 0 ? originalRc / totalContasMeta : (remessas.length > 0 ? 1 / remessas.length : 1);
         const remSal = sal * prop;
         let remAutoSal = 0;
         if (!meta.isAdminMeta) {
