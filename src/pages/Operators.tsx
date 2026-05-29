@@ -43,6 +43,8 @@ interface OperatorData {
   baixas: number;
   pendingNormais: number;
   pendingBaixas: number;
+  totalCosts: number;
+  netProfit: number;
 }
 
 interface PaymentRecord {
@@ -67,7 +69,7 @@ const TABS = ['Ranking', 'Equipe', 'Folha de pagamento', 'Configurações'] as c
 
 const Operators = () => {
   const [activeTab, setActiveTab] = useState<typeof TABS[number]>('Ranking');
-  const { metas, users } = useFirestoreData();
+  const { metas, users, costs } = useFirestoreData();
   const [user] = useLocalStorage<any>('nytzer-user', null);
   const activeOperator = user?.username || 'admin';
 
@@ -215,17 +217,18 @@ const Operators = () => {
     finally { setLoadingAction(false); }
   };
 
-  const { operatorData, folhaTotal, folhaPendente, totalMetas, totalContas, totalLucroEquipe } = useMemo(() => {
+  const { operatorData, folhaTotal, folhaPendente, totalMetas, totalContas, totalLucroEquipe, custoTotal } = useMemo(() => {
     const opMap: Record<string, any> = {};
     let tmpFolhaTotal = 0;
     let tmpFolhaPendente = 0;
     let tmpTotalMetasCount = 0;
     let tmpTotalContasCount = 0;
     let tmpTotalLucroEquipe = 0;
+    let tmpCustoTotal = 0;
 
     users.forEach(u => {
       if (u.affiliatedTo === activeOperator) {
-        opMap[u.username] = { id: u.username, name: u.username, deps: 0, metas: 0, totalProfit: 0, normais: 0, baixas: 0, salary: 0, pendingSalary: 0, pendingNormais: 0, pendingBaixas: 0 };
+        opMap[u.username] = { id: u.username, name: u.username, deps: 0, metas: 0, totalProfit: 0, normais: 0, baixas: 0, salary: 0, pendingSalary: 0, pendingNormais: 0, pendingBaixas: 0, totalCosts: 0, netProfit: 0 };
       }
     });
 
@@ -242,7 +245,7 @@ const Operators = () => {
 
       const opName = meta.operador || 'Operador Central';
       if (!opMap[opName]) {
-        opMap[opName] = { id: opName, name: opName, deps: 0, metas: 0, totalProfit: 0, normais: 0, baixas: 0, salary: 0, pendingSalary: 0, pendingNormais: 0, pendingBaixas: 0 };
+        opMap[opName] = { id: opName, name: opName, deps: 0, metas: 0, totalProfit: 0, normais: 0, baixas: 0, salary: 0, pendingSalary: 0, pendingNormais: 0, pendingBaixas: 0, totalCosts: 0, netProfit: 0 };
       }
 
       let metaLucro = 0, metaNormais = 0, metaBaixas = 0, metaContas = 0;
@@ -279,22 +282,48 @@ const Operators = () => {
       tmpTotalLucroEquipe += (metaLucro + faturamentoExtra);
     });
 
+    costs.forEach(cost => {
+      const isAffiliated = (users.find(u => u.username === cost.operador)?.affiliatedTo === activeOperator);
+      if (!isAffiliated) return;
+
+      let costTime = 0;
+      if (cost.date) {
+        costTime = new Date(cost.date + 'T00:00:00').getTime();
+      } else if (cost.createdAt) {
+        costTime = new Date(cost.createdAt).getTime();
+      }
+
+      if (periodBounds && costTime > 0) {
+        if (costTime < periodBounds.start.getTime() || costTime > periodBounds.end.getTime()) return;
+      }
+
+      const opName = cost.operador || 'Operador Central';
+      if (!opMap[opName]) {
+        opMap[opName] = { id: opName, name: opName, deps: 0, metas: 0, totalProfit: 0, normais: 0, baixas: 0, salary: 0, pendingSalary: 0, pendingNormais: 0, pendingBaixas: 0, totalCosts: 0, netProfit: 0 };
+      }
+      
+      const cAmt = Number(cost.amount || 0);
+      opMap[opName].totalCosts += cAmt;
+      tmpCustoTotal += cAmt;
+    });
+
     const ranked = Object.values(opMap).map((op: any) => {
       const userRecord = users.find((u: any) => u.username === op.id);
       const displayName = userRecord?.displayName || op.name;
       const initials = displayName.substring(0, 2).toUpperCase();
-      const profitPerConta = op.deps > 0 ? (op.totalProfit / op.deps) : 0;
+      const netProfit = op.totalProfit - op.totalCosts;
+      const profitPerConta = op.deps > 0 ? (netProfit / op.deps) : 0;
       let badge = 'Em progressão';
       let badgeColor = 'text-success/80 border-success/30 bg-success/5';
-      if (profitPerConta > 2 && op.totalProfit > 100) {
+      if (profitPerConta > 2 && netProfit > 100) {
         badge = 'Top performer';
         badgeColor = 'text-primary border-primary/40 bg-primary/10';
-      } else if (op.totalProfit < 0) {
+      } else if (netProfit < 0) {
         badge = 'Prejuízo';
         badgeColor = 'text-destructive border-destructive/40 bg-destructive/10';
       }
-      return { ...op, name: displayName, initials, profitPerConta, badge, badgeColor };
-    }).sort((a: any, b: any) => b.totalProfit - a.totalProfit) as OperatorData[];
+      return { ...op, name: displayName, initials, profitPerConta, badge, badgeColor, netProfit };
+    }).sort((a: any, b: any) => b.netProfit - a.netProfit) as OperatorData[];
 
     ranked.forEach((op, i) => op.rank = i + 1);
     tmpFolhaPendente = ranked.reduce((acc, o) => acc + o.pendingSalary, 0);
@@ -305,9 +334,10 @@ const Operators = () => {
       folhaPendente: tmpFolhaPendente,
       totalMetas: tmpTotalMetasCount,
       totalContas: tmpTotalContasCount,
-      totalLucroEquipe: tmpTotalLucroEquipe
+      totalLucroEquipe: tmpTotalLucroEquipe,
+      custoTotal: tmpCustoTotal
     };
-  }, [metas, users, activeOperator, periodBounds, history]);
+  }, [metas, users, costs, activeOperator, periodBounds, history]);
 
   const handleCopyLink = () => {
     const activeAdmin = user?.username || 'admin';
@@ -317,7 +347,7 @@ const Operators = () => {
   };
 
   const formatBRL = (v: number) => `R$ ${v.toFixed(2).replace('.', ',')}`;
-  const maxProfit = Math.max(...operatorData.map(o => o.totalProfit), 1);
+  const maxProfit = Math.max(...operatorData.map(o => o.netProfit), 1);
 
   const filteredOps = useMemo(() => {
     if (!search.trim()) return operatorData;
@@ -438,7 +468,7 @@ const Operators = () => {
               { icon: Target, label: 'Metas', value: String(totalMetas), tone: 'text-foreground' },
               { icon: TrendingUp, label: 'Depositantes', value: String(totalContas), tone: 'text-foreground' },
               { icon: DollarSign, label: 'Lucro Bruto Equipe', value: formatBRL(totalLucroEquipe), tone: totalLucroEquipe >= 0 ? 'text-success' : 'text-destructive' },
-              { icon: Wallet, label: 'Líquido (desc. folha)', value: formatBRL(totalLucroEquipe - folhaTotal), tone: (totalLucroEquipe - folhaTotal) >= 0 ? 'text-success' : 'text-destructive' },
+              { icon: Wallet, label: 'Líquido (desc. folha + custos)', value: formatBRL(totalLucroEquipe - folhaTotal - custoTotal), tone: (totalLucroEquipe - folhaTotal - custoTotal) >= 0 ? 'text-success' : 'text-destructive' },
             ].map((k) => (
               <div key={k.label} className="rounded-xl border border-border/50 bg-card/30 hover:bg-card/50 hover:border-border transition-all p-4">
                 <div className="flex items-center justify-between mb-3">
@@ -461,7 +491,7 @@ const Operators = () => {
           ) : (
             <div className="rounded-2xl border border-border/50 bg-card/20 divide-y divide-border/40 overflow-hidden">
               {operatorData.map((op) => {
-                const widthPct = op.totalProfit > 0 ? Math.max(8, (op.totalProfit / maxProfit) * 100) : 8;
+                const widthPct = op.netProfit > 0 ? Math.max(8, (op.netProfit / maxProfit) * 100) : 8;
                 const isTop = op.rank === 1;
                 return (
                   <div
@@ -505,7 +535,7 @@ const Operators = () => {
                           <div className="mt-2 h-[3px] w-full max-w-md rounded-full bg-border/40 overflow-hidden">
                             <div
                               className={`h-full rounded-full transition-all duration-700 ${
-                                op.totalProfit >= 0 ? 'bg-success' : 'bg-destructive'
+                                op.netProfit >= 0 ? 'bg-success' : 'bg-destructive'
                               }`}
                               style={{ width: `${widthPct}%` }}
                             />
@@ -514,11 +544,14 @@ const Operators = () => {
                       </div>
 
                       <div className="flex justify-between lg:flex-col lg:items-end w-full lg:w-auto lg:min-w-[160px] lg:text-right">
-                        <p className={`text-xl font-bold tracking-tight ${op.totalProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
-                          {op.totalProfit >= 0 ? '+' : ''}{formatBRL(op.totalProfit)}
+                        <p className={`text-xl font-bold tracking-tight ${op.netProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
+                          {op.netProfit >= 0 ? '+' : ''}{formatBRL(op.netProfit)}
                         </p>
                         <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-                          Lucro
+                          Lucro Líquido
+                        </p>
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                          Bruto: {formatBRL(op.totalProfit)} | Custos: {formatBRL(op.totalCosts)}
                         </p>
                       </div>
                     </div>
@@ -577,9 +610,9 @@ const Operators = () => {
                         <p className="text-sm font-bold text-foreground mt-0.5">{opStats?.deps || 0}</p>
                       </div>
                       <div>
-                        <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">Lucro</p>
-                        <p className={`text-sm font-bold mt-0.5 ${(opStats?.totalProfit || 0) >= 0 ? 'text-success' : 'text-destructive'}`}>
-                          {formatBRL(opStats?.totalProfit || 0)}
+                        <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">Líquido</p>
+                        <p className={`text-sm font-bold mt-0.5 ${(opStats?.netProfit || 0) >= 0 ? 'text-success' : 'text-destructive'}`}>
+                          {formatBRL(opStats?.netProfit || 0)}
                         </p>
                       </div>
                     </div>

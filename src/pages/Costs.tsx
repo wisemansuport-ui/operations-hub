@@ -57,6 +57,10 @@ const Costs = () => {
   const [formNote, setFormNote] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // pagination
+  const ITEMS_PER_PAGE = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'costs'), (snap) => {
       const data = snap.docs.map(d => ({ id: d.id, ...d.data() } as CostEntry));
@@ -77,6 +81,17 @@ const Costs = () => {
       : costs.filter(c => c.operador === operatorName),
     [costs, operatorName, role]
   );
+
+  const totalPages = Math.ceil(myCosts.length / ITEMS_PER_PAGE);
+  const currentCosts = useMemo(() => {
+    return myCosts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  }, [myCosts, currentPage]);
+
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
 
   // Lucro bruto do dia (a partir de metas concluídas hoje)
   const lucroBrutoHoje = useMemo(() => {
@@ -288,9 +303,10 @@ const Costs = () => {
             Nenhum custo registrado. Clique em <span className="text-primary">"Adicionar custo"</span> para começar.
           </div>
         ) : (
-          <div className="divide-y divide-border/60">
-            {myCosts.map(c => {
-              const meta = typeMeta(c.type);
+          <>
+            <div className="divide-y divide-border/60">
+              {currentCosts.map(c => {
+                const meta = typeMeta(c.type);
               const Icon = meta.icon;
               return (
                 <div key={c.id} className="flex items-center gap-4 py-3 group">
@@ -324,7 +340,43 @@ const Costs = () => {
                 </div>
               );
             })}
-          </div>
+            </div>
+            
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-1.5 mt-6 flex-wrap">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1.5 rounded-lg border border-border bg-card/30 text-xs font-semibold text-muted-foreground hover:bg-card/50 hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  Anterior
+                </button>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={cn(
+                      "min-w-[32px] h-8 px-2 flex items-center justify-center rounded-lg text-xs font-bold border transition-all",
+                      currentPage === page
+                        ? "bg-primary border-primary/50 text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.2)]"
+                        : "bg-card/30 border-border text-muted-foreground hover:bg-card/50 hover:text-foreground"
+                    )}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1.5 rounded-lg border border-border bg-card/30 text-xs font-semibold text-muted-foreground hover:bg-card/50 hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  Próxima
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 
