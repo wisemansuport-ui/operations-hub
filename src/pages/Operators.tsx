@@ -372,7 +372,7 @@ const Operators = () => {
       const userRecord = users.find((u: any) => u.username === op.id);
       const displayName = userRecord?.displayName || op.name;
       const initials = displayName.substring(0, 2).toUpperCase();
-      const netProfit = op.totalProfit - op.totalCosts;
+      const netProfit = op.totalProfit - op.salary - op.totalCosts;
       const profitPerConta = op.deps > 0 ? (netProfit / op.deps) : 0;
       let badge = 'Em progressão';
       let badgeColor = 'text-success/80 border-success/30 bg-success/5';
@@ -612,7 +612,7 @@ const Operators = () => {
                           Lucro Líquido
                         </p>
                         <p className="text-[10px] text-muted-foreground mt-1">
-                          Bruto: {formatBRL(op.totalProfit)} | Custos: {formatBRL(op.totalCosts)}
+                          Bruto: {formatBRL(op.totalProfit)} | Folha: {formatBRL(op.salary)} | Custos: {formatBRL(op.totalCosts)}
                         </p>
                       </div>
                     </div>
