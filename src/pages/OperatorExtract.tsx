@@ -91,82 +91,129 @@ export default function OperatorExtract() {
       if (rName !== 'N/A') networks.add(rName);
 
       const metaTime = new Date(meta.createdAt).getTime();
-      const isPending = !paidUntil || metaTime > paidUntil;
 
       // Apply Filters
       const matchPlatform = platformFilter === 'TODAS' || pName === platformFilter;
       const matchNetwork = networkFilter === 'TODAS' || rName === networkFilter;
 
       if (matchPlatform && matchNetwork) {
-        (meta.remessas || []).forEach((r: any) => {
-          const d = new Date(r.data || meta.createdAt);
-          if (d > lastDate) lastDate = d;
-
-          const rn = r.contasNormais || 0;
-          const rb = r.contasBaixas || 0;
-          normais += rn;
-          baixas += rb;
-
-          if (meta.modelo !== 'Recarga') {
-            if (isSameDay(d)) { 
-              newStats.HOJE.normal += rn; 
-              newStats.HOJE.depBaixo += rb; 
-              if (isPending) { newStats.HOJE.pendingNormal += rn; newStats.HOJE.pendingDepBaixo += rb; }
-            }
-            if (isThisWeek(d)) { 
-              newStats.SEMANA.normal += rn; 
-              newStats.SEMANA.depBaixo += rb; 
-              if (isPending) { newStats.SEMANA.pendingNormal += rn; newStats.SEMANA.pendingDepBaixo += rb; }
-            }
-            if (isThisMonth(d)) { 
-              newStats.MES.normal += rn; 
-              newStats.MES.depBaixo += rb; 
-              if (isPending) { newStats.MES.pendingNormal += rn; newStats.MES.pendingDepBaixo += rb; }
-            }
-          }
-
-          // Group for chart (by remessa day)
-          const dateStr = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-          if (!productionByDate[dateStr]) productionByDate[dateStr] = { date: dateStr, normal: 0, baixas: 0 };
-          productionByDate[dateStr].normal += rn;
-          productionByDate[dateStr].baixas += rb;
-        });
-
-        const totalContas = normais + baixas;
-        let pagamentoTotal = 0;
         const manualSalario = Number(meta.pagamentoOperador) || 0;
+        const remessas = meta.remessas || [];
+        const totalContasMeta = remessas.reduce((acc: number, r: any) => acc + Number(r.contas || 0), 0);
 
-        if (meta.modelo === 'Recarga') {
-          pagamentoTotal = manualSalario;
+        if (remessas.length === 0) {
+          const d = new Date(meta.createdAt);
+          const isPending = !paidUntil || metaTime > paidUntil;
+          
+          if (manualSalario > 0 && meta.modelo === 'Recarga') {
+            if (isSameDay(d)) {
+               newStats.HOJE.salarioManual += manualSalario;
+               if (isPending) newStats.HOJE.pendingSalarioManual += manualSalario;
+            }
+            if (isThisWeek(d)) {
+               newStats.SEMANA.salarioManual += manualSalario;
+               if (isPending) newStats.SEMANA.pendingSalarioManual += manualSalario;
+            }
+            if (isThisMonth(d)) {
+               newStats.MES.salarioManual += manualSalario;
+               if (isPending) newStats.MES.pendingSalarioManual += manualSalario;
+            }
+          }
+          
+          let pagamentoTotal = 0;
+          if (meta.modelo === 'Recarga') {
+            pagamentoTotal = manualSalario;
+          }
+          
+          extrato.push({
+            id: meta.id,
+            data: d.toLocaleDateString(),
+            plataforma: pName,
+            rede: rName,
+            contas: '0',
+            valor: pagamentoTotal.toFixed(2),
+            status: meta.status === 'fechada' ? 'Finalizada' : 'Em Andamento',
+            timestamp: d.getTime()
+          });
         } else {
-          pagamentoTotal = (normais * 2) + (baixas * 1) + manualSalario;
-        }
+          remessas.forEach((r: any) => {
+            const d = new Date(r.data || meta.createdAt);
+            if (d > lastDate) lastDate = d;
+            
+            const remessaTime = d.getTime();
+            const isPending = !paidUntil || remessaTime > paidUntil;
 
-        if (manualSalario > 0) {
-          if (isSameDay(lastDate)) {
-             newStats.HOJE.salarioManual += manualSalario;
-             if (isPending) newStats.HOJE.pendingSalarioManual += manualSalario;
-          }
-          if (isThisWeek(lastDate)) {
-             newStats.SEMANA.salarioManual += manualSalario;
-             if (isPending) newStats.SEMANA.pendingSalarioManual += manualSalario;
-          }
-          if (isThisMonth(lastDate)) {
-             newStats.MES.salarioManual += manualSalario;
-             if (isPending) newStats.MES.pendingSalarioManual += manualSalario;
-          }
-        }
+            const rn = Number(r.contasNormais || 0);
+            const rb = Number(r.contasBaixas || 0);
+            const rc = Number(r.contas || 0);
+            normais += rn;
+            baixas += rb;
 
-        extrato.push({
-          id: meta.id,
-          data: lastDate.toLocaleDateString(),
-          plataforma: pName,
-          rede: rName,
-          contas: totalContas.toString(),
-          valor: pagamentoTotal.toFixed(2),
-          status: meta.status === 'fechada' ? 'Finalizada' : 'Em Andamento',
-          timestamp: lastDate.getTime()
-        });
+            if (meta.modelo !== 'Recarga') {
+              if (isSameDay(d)) { 
+                newStats.HOJE.normal += rn; 
+                newStats.HOJE.depBaixo += rb; 
+                if (isPending) { newStats.HOJE.pendingNormal += rn; newStats.HOJE.pendingDepBaixo += rb; }
+              }
+              if (isThisWeek(d)) { 
+                newStats.SEMANA.normal += rn; 
+                newStats.SEMANA.depBaixo += rb; 
+                if (isPending) { newStats.SEMANA.pendingNormal += rn; newStats.SEMANA.pendingDepBaixo += rb; }
+              }
+              if (isThisMonth(d)) { 
+                newStats.MES.normal += rn; 
+                newStats.MES.depBaixo += rb; 
+                if (isPending) { newStats.MES.pendingNormal += rn; newStats.MES.pendingDepBaixo += rb; }
+              }
+            }
+
+            const prop = totalContasMeta > 0 ? rc / totalContasMeta : 1 / remessas.length;
+            let remManualSalario = 0;
+            if (meta.modelo === 'Recarga') {
+              remManualSalario = manualSalario * prop;
+            }
+
+            if (remManualSalario > 0) {
+              if (isSameDay(d)) {
+                newStats.HOJE.salarioManual += remManualSalario;
+                if (isPending) newStats.HOJE.pendingSalarioManual += remManualSalario;
+              }
+              if (isThisWeek(d)) {
+                newStats.SEMANA.salarioManual += remManualSalario;
+                if (isPending) newStats.SEMANA.pendingSalarioManual += remManualSalario;
+              }
+              if (isThisMonth(d)) {
+                newStats.MES.salarioManual += remManualSalario;
+                if (isPending) newStats.MES.pendingSalarioManual += remManualSalario;
+              }
+            }
+
+            // Group for chart (by remessa day)
+            const dateStr = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+            if (!productionByDate[dateStr]) productionByDate[dateStr] = { date: dateStr, normal: 0, baixas: 0 };
+            productionByDate[dateStr].normal += rn;
+            productionByDate[dateStr].baixas += rb;
+          });
+
+          const totalContas = normais + baixas;
+          let pagamentoTotal = 0;
+          if (meta.modelo === 'Recarga') {
+            pagamentoTotal = manualSalario;
+          } else {
+            pagamentoTotal = (normais * 2) + (baixas * 1);
+          }
+
+          extrato.push({
+            id: meta.id,
+            data: lastDate.toLocaleDateString(),
+            plataforma: pName,
+            rede: rName,
+            contas: totalContas.toString(),
+            valor: pagamentoTotal.toFixed(2),
+            status: meta.status === 'fechada' ? 'Finalizada' : 'Em Andamento',
+            timestamp: lastDate.getTime()
+          });
+        }
       }
     });
 
