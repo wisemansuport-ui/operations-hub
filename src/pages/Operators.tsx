@@ -237,27 +237,86 @@ const Operators = () => {
       const isAffiliated = (users.find(u => u.username === meta.operador)?.affiliatedTo === activeOperator);
       if (!isAffiliated) return;
 
-      const metaTime = new Date(meta.createdAt).getTime();
-
-      if (periodBounds) {
-        if (isNaN(metaTime) || metaTime < periodBounds.start.getTime() || metaTime > periodBounds.end.getTime()) return;
-      }
-
       const opName = meta.operador || 'Operador Central';
       if (!opMap[opName]) {
         opMap[opName] = { id: opName, name: opName, deps: 0, metas: 0, totalProfit: 0, normais: 0, baixas: 0, salary: 0, pendingSalary: 0, pendingNormais: 0, pendingBaixas: 0, totalCosts: 0, netProfit: 0 };
       }
 
+      const opHistory = history.filter(h => h.operatorId === opName);
+      const paidUntil = opHistory.length > 0 && opHistory[0].newPaidUntil ? new Date(opHistory[0].newPaidUntil).getTime() : 0;
+      
+      const metaTime = new Date(meta.createdAt).getTime();
+      const pagOp = Number(meta.pagamentoOperador) || 0;
+      
       let metaLucro = 0, metaNormais = 0, metaBaixas = 0, metaContas = 0;
-      (meta.remessas || []).forEach((r: any) => {
-        const normais = r.contasNormais || 0;
-        const baixas = r.contasBaixas || 0;
-        metaNormais += normais; metaBaixas += baixas;
-        metaLucro += (r.saque - r.deposito);
-        metaContas += r.contas;
-      });
+      let metaSalary = 0, pendingMetaSalary = 0, pendingMetaNormais = 0, pendingMetaBaixas = 0;
+      let hasRemessasInPeriod = false;
 
-      const metaSalary = (metaNormais * 2) + (metaBaixas * 1);
+      const remessas = meta.remessas || [];
+      const totalContasMeta = remessas.reduce((acc: number, r: any) => acc + Number(r.contas || 0), 0);
+
+      if (remessas.length === 0) {
+        if (periodBounds) {
+          if (!isNaN(metaTime) && metaTime >= periodBounds.start.getTime() && metaTime <= periodBounds.end.getTime()) {
+            hasRemessasInPeriod = true;
+          }
+        } else {
+          hasRemessasInPeriod = true;
+        }
+        
+        if (hasRemessasInPeriod) {
+          let remAutoSal = 0;
+          if (meta.modelo === 'Recarga') {
+             remAutoSal = pagOp;
+          }
+          metaSalary += remAutoSal;
+          
+          if (!paidUntil || metaTime > paidUntil) {
+             pendingMetaSalary += remAutoSal;
+          }
+        }
+      } else {
+        remessas.forEach((r: any) => {
+          const remessaTime = r.data ? new Date(r.data).getTime() : metaTime;
+          let inPeriod = true;
+          
+          if (periodBounds) {
+            if (isNaN(remessaTime) || remessaTime < periodBounds.start.getTime() || remessaTime > periodBounds.end.getTime()) {
+              inPeriod = false;
+            }
+          }
+
+          const rc = Number(r.contas || 0);
+          const normais = Number(r.contasNormais || 0);
+          const baixas = Number(r.contasBaixas || 0);
+          const prop = totalContasMeta > 0 ? rc / totalContasMeta : 1 / remessas.length;
+          
+          let remAutoSal = 0;
+          if (meta.modelo === 'Recarga') {
+            remAutoSal = pagOp * prop;
+          } else {
+            remAutoSal = (normais * 2) + (baixas * 1);
+          }
+
+          if (inPeriod) {
+            hasRemessasInPeriod = true;
+            metaNormais += normais; 
+            metaBaixas += baixas;
+            metaLucro += (Number(r.saque || 0) - Number(r.deposito || 0));
+            metaContas += rc;
+            metaSalary += remAutoSal;
+
+            if (!paidUntil || remessaTime > paidUntil) {
+              pendingMetaSalary += remAutoSal;
+              pendingMetaNormais += normais;
+              pendingMetaBaixas += baixas;
+            }
+          }
+        });
+      }
+
+      if (!hasRemessasInPeriod) return;
+
       const faturamentoExtra = meta.salarioOperador ? Number(meta.salarioOperador) : 0;
 
       opMap[opName].deps += metaContas;
@@ -266,15 +325,9 @@ const Operators = () => {
       opMap[opName].normais += metaNormais;
       opMap[opName].baixas += metaBaixas;
       opMap[opName].salary += metaSalary;
-
-      // Pending check (after paidUntil)
-      const opHistory = history.filter(h => h.operatorId === opName);
-      const paidUntil = opHistory.length > 0 && opHistory[0].newPaidUntil ? new Date(opHistory[0].newPaidUntil).getTime() : 0;
-      if (!paidUntil || metaTime > paidUntil) {
-        opMap[opName].pendingSalary += metaSalary;
-        opMap[opName].pendingNormais += metaNormais;
-        opMap[opName].pendingBaixas += metaBaixas;
-      }
+      opMap[opName].pendingSalary += pendingMetaSalary;
+      opMap[opName].pendingNormais += pendingMetaNormais;
+      opMap[opName].pendingBaixas += pendingMetaBaixas;
 
       tmpFolhaTotal += metaSalary;
       tmpTotalMetasCount += 1;
