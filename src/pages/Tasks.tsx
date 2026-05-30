@@ -962,10 +962,10 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
                   <div className="grid grid-cols-2 gap-2 p-1 bg-muted/30 border border-border/40 rounded-xl">
                     {(['Depositante', 'Recarga'] as const).map(mod => (
                       <button key={mod} type="button" onClick={() => setEditModelo(mod)}
-                        className={`h-10 rounded-lg text-sm font-semibold transition-all ${
+                        className={`h-10 rounded-lg text-sm font-semibold border transition-all ${
                           editModelo === mod
-                            ? 'bg-background text-foreground shadow-sm border border-border/60'
-                            : 'text-muted-foreground hover:text-foreground'
+                            ? 'bg-primary/15 border-primary/60 text-primary shadow-[0_0_0_3px_hsl(var(--primary)/0.08)]'
+                            : 'border-transparent text-muted-foreground hover:text-foreground'
                         }`}
                       >{mod}</button>
                     ))}
@@ -1578,10 +1578,10 @@ const Tasks = () => {
                   <div className="grid grid-cols-2 gap-2 p-1 bg-muted/30 border border-border/40 rounded-xl">
                     {(['Depositante', 'Recarga'] as const).map(mod => (
                       <button key={mod} type="button" onClick={() => setModelo(mod)}
-                        className={`h-10 rounded-lg text-sm font-semibold transition-all ${
+                        className={`h-10 rounded-lg text-sm font-semibold border transition-all ${
                           modelo === mod
-                            ? 'bg-background text-foreground shadow-sm border border-border/60'
-                            : 'text-muted-foreground hover:text-foreground'
+                            ? 'bg-primary/15 border-primary/60 text-primary shadow-[0_0_0_3px_hsl(var(--primary)/0.08)]'
+                            : 'border-transparent text-muted-foreground hover:text-foreground'
                         }`}
                       >{mod}</button>
                     ))}
