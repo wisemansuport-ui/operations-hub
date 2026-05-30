@@ -88,6 +88,23 @@ const Operators = () => {
   const [expandedHistory, setExpandedHistory] = useState<string | null>(null);
   const [confirmUndoId, setConfirmUndoId] = useState<string | null>(null);
 
+  // Payment model config (por admin)
+  type PayModel = 'fixo' | 'percent' | 'split';
+  interface PayConfig {
+    model: PayModel;
+    valorNormal: number;  // R$ por conta normal
+    valorBaixa: number;   // R$ por conta baixa
+    percent: number;      // % do lucro final
+    splitPercent: number; // % do operador no split
+  }
+  const defaultPayConfig: PayConfig = { model: 'fixo', valorNormal: 2, valorBaixa: 1, percent: 15, splitPercent: 50 };
+  const [payConfig, setPayConfig] = useLocalStorage<PayConfig>(`nytzer-paymodel-${activeOperator}`, defaultPayConfig);
+  const [pendingModel, setPendingModel] = useState<PayModel | null>(null);
+  const [draftConfig, setDraftConfig] = useState<PayConfig>(payConfig);
+
+  useEffect(() => { setDraftConfig(payConfig); }, [payConfig]);
+
+
   // Subscribe to payment history
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'operatorPaymentHistory'), snap => {
