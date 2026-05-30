@@ -966,6 +966,240 @@ const Operators = () => {
       {/* CONFIGURAÇÕES */}
       {activeTab === 'Configurações' && (
         <div className="animate-fade-in space-y-4">
+          {/* Pagamento de operadores */}
+          {(() => {
+            const MODELS: { key: PayModel; label: string; sub: string; icon: any; tint: string }[] = [
+              { key: 'fixo',    label: 'Fixo por depositante', sub: 'Ex: R$ 2,00 normal / R$ 1,00 baixa', icon: Coins,   tint: 'primary' },
+              { key: 'percent', label: '% do lucro final',     sub: 'Ex: 15% do lucro',                    icon: Percent, tint: 'primary' },
+              { key: 'split',   label: 'Divisão de resultado', sub: 'Split lucro e prejuízo',              icon: Scale,   tint: 'primary' },
+            ];
+            const current = MODELS.find(m => m.key === payConfig.model)!;
+            const next = pendingModel ? MODELS.find(m => m.key === pendingModel)! : null;
+            const selectModel = (k: PayModel) => {
+              if (k === payConfig.model) return;
+              setDraftConfig({ ...payConfig, model: k });
+              setPendingModel(k);
+            };
+            const confirmChange = () => {
+              setPayConfig(draftConfig);
+              setPendingModel(null);
+              toast.success('Modelo de pagamento atualizado. Vale apenas para novas metas.');
+            };
+            const updateField = (patch: Partial<PayConfig>) => {
+              const merged = { ...payConfig, ...patch };
+              setPayConfig(merged);
+              setDraftConfig(merged);
+            };
+
+            return (
+              <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/[0.04] via-card/40 to-card/30 overflow-hidden shadow-[0_0_40px_-20px_hsl(var(--primary)/0.4)]">
+                <div className="px-5 py-4 border-b border-border/40 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-primary/15 border border-primary/30 flex items-center justify-center">
+                    <DollarSign className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-bold text-foreground tracking-tight flex items-center gap-2">
+                      Pagamento de operadores
+                      <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded border border-primary/40 bg-primary/10 text-primary inline-flex items-center gap-1">
+                        <Sparkles className="w-2.5 h-2.5" /> Ativo: {current.label}
+                      </span>
+                    </h3>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">Define como o salário dos operadores é calculado em novas metas.</p>
+                  </div>
+                </div>
+
+                <div className="p-4 space-y-4">
+                  {/* Model cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {MODELS.map(m => {
+                      const active = payConfig.model === m.key;
+                      const Icon = m.icon;
+                      return (
+                        <button
+                          key={m.key}
+                          type="button"
+                          onClick={() => selectModel(m.key)}
+                          className={`group text-left rounded-xl border p-4 transition-all relative overflow-hidden ${
+                            active
+                              ? 'border-primary/60 bg-primary/[0.08] shadow-[0_0_30px_-10px_hsl(var(--primary)/0.5)]'
+                              : 'border-border/50 bg-card/30 hover:border-primary/30 hover:bg-primary/[0.03]'
+                          }`}
+                        >
+                          {active && (
+                            <span className="absolute top-2 right-2 inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-primary">
+                              <CheckCircle2 className="w-3 h-3" /> Ativo
+                            </span>
+                          )}
+                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center mb-3 transition-colors ${
+                            active ? 'bg-primary/20 text-primary border border-primary/40'
+                                   : 'bg-muted/20 text-muted-foreground border border-border/40 group-hover:text-primary group-hover:border-primary/30'
+                          }`}>
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <p className={`text-sm font-bold ${active ? 'text-foreground' : 'text-foreground/80'}`}>{m.label}</p>
+                          <p className="text-[11px] text-muted-foreground mt-1">{m.sub}</p>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Inputs by model */}
+                  <div className="rounded-xl border border-border/40 bg-background/40 p-4">
+                    {payConfig.model === 'fixo' && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <label className="block">
+                          <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                            <Coins className="w-3 h-3 text-primary" /> Valor por conta normal (R$)
+                          </span>
+                          <input
+                            type="number" step="0.01" min={0}
+                            value={payConfig.valorNormal}
+                            onChange={e => updateField({ valorNormal: Number(e.target.value) })}
+                            className="mt-1.5 w-full bg-background border border-border/50 focus:border-primary/60 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none transition-colors"
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                            <Coins className="w-3 h-3 text-warning" /> Valor por conta baixa (R$)
+                          </span>
+                          <input
+                            type="number" step="0.01" min={0}
+                            value={payConfig.valorBaixa}
+                            onChange={e => updateField({ valorBaixa: Number(e.target.value) })}
+                            className="mt-1.5 w-full bg-background border border-border/50 focus:border-primary/60 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none transition-colors"
+                          />
+                        </label>
+                      </div>
+                    )}
+                    {payConfig.model === 'percent' && (
+                      <label className="block max-w-xs">
+                        <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                          <Percent className="w-3 h-3 text-primary" /> Percentual do lucro (%)
+                        </span>
+                        <input
+                          type="number" step="0.5" min={0} max={100}
+                          value={payConfig.percent}
+                          onChange={e => updateField({ percent: Number(e.target.value) })}
+                          className="mt-1.5 w-full bg-background border border-border/50 focus:border-primary/60 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none transition-colors"
+                        />
+                      </label>
+                    )}
+                    {payConfig.model === 'split' && (
+                      <div className="space-y-3">
+                        <label className="block max-w-xs">
+                          <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                            <Scale className="w-3 h-3 text-primary" /> % do operador
+                          </span>
+                          <input
+                            type="number" step="1" min={0} max={100}
+                            value={payConfig.splitPercent}
+                            onChange={e => updateField({ splitPercent: Number(e.target.value) })}
+                            className="mt-1.5 w-full bg-background border border-border/50 focus:border-primary/60 rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none transition-colors"
+                          />
+                        </label>
+                        <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                          <Info className="w-3 h-3 text-primary" />
+                          Operador recebe {payConfig.splitPercent}% do lucro <span className="text-foreground/70">e</span> assume {payConfig.splitPercent}% do prejuízo.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <p className="text-[10px] text-muted-foreground flex items-center gap-1.5">
+                    <Info className="w-3 h-3 text-primary" />
+                    Alterações no modelo valem apenas para novas metas. Metas anteriores mantêm o modelo antigo.
+                  </p>
+                </div>
+
+                {/* Confirm modal */}
+                {pendingModel && next && (
+                  <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+                    <div className="w-full max-w-md rounded-2xl border border-primary/30 bg-card shadow-2xl overflow-hidden">
+                      <div className="px-5 py-4 flex items-start gap-3 border-b border-border/40">
+                        <div className="w-9 h-9 rounded-xl bg-warning/15 border border-warning/30 flex items-center justify-center shrink-0">
+                          <AlertTriangle className="w-4 h-4 text-warning" />
+                        </div>
+                        <div>
+                          <h4 className="text-base font-bold text-foreground">Confirmar alteração de modelo</h4>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">Esta ação vale apenas para novas metas.</p>
+                        </div>
+                      </div>
+
+                      <div className="p-5 space-y-3">
+                        <div className="rounded-xl border border-border/50 bg-background/50 divide-y divide-border/40">
+                          <div className="flex items-center justify-between px-4 py-3">
+                            <span className="text-xs text-muted-foreground">Modelo atual</span>
+                            <span className="text-sm font-bold text-foreground/70">{current.label}</span>
+                          </div>
+                          <div className="flex items-center justify-between px-4 py-3">
+                            <span className="text-xs text-muted-foreground">Novo modelo</span>
+                            <span className="text-sm font-bold text-primary">{next.label}</span>
+                          </div>
+                          {pendingModel === 'fixo' && (
+                            <div className="px-4 py-3 grid grid-cols-2 gap-3">
+                              <label className="block">
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Normal (R$)</span>
+                                <input type="number" step="0.01" min={0} value={draftConfig.valorNormal}
+                                  onChange={e => setDraftConfig({ ...draftConfig, valorNormal: Number(e.target.value) })}
+                                  className="mt-1 w-full bg-background border border-border/50 focus:border-primary rounded-md px-2.5 py-1.5 text-sm text-right font-bold text-foreground focus:outline-none" />
+                              </label>
+                              <label className="block">
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Baixa (R$)</span>
+                                <input type="number" step="0.01" min={0} value={draftConfig.valorBaixa}
+                                  onChange={e => setDraftConfig({ ...draftConfig, valorBaixa: Number(e.target.value) })}
+                                  className="mt-1 w-full bg-background border border-border/50 focus:border-primary rounded-md px-2.5 py-1.5 text-sm text-right font-bold text-foreground focus:outline-none" />
+                              </label>
+                            </div>
+                          )}
+                          {pendingModel === 'percent' && (
+                            <div className="flex items-center justify-between px-4 py-3 gap-3">
+                              <span className="text-xs text-muted-foreground">Percentual (%)</span>
+                              <input type="number" step="0.5" min={0} max={100} value={draftConfig.percent}
+                                onChange={e => setDraftConfig({ ...draftConfig, percent: Number(e.target.value) })}
+                                className="w-24 bg-background border border-border/50 focus:border-primary rounded-md px-2.5 py-1.5 text-sm text-right font-bold text-foreground focus:outline-none" />
+                            </div>
+                          )}
+                          {pendingModel === 'split' && (
+                            <div className="flex items-center justify-between px-4 py-3 gap-3">
+                              <span className="text-xs text-muted-foreground">% do operador</span>
+                              <input type="number" step="1" min={0} max={100} value={draftConfig.splitPercent}
+                                onChange={e => setDraftConfig({ ...draftConfig, splitPercent: Number(e.target.value) })}
+                                className="w-24 bg-background border border-border/50 focus:border-primary rounded-md px-2.5 py-1.5 text-sm text-right font-bold text-foreground focus:outline-none" />
+                            </div>
+                          )}
+                        </div>
+
+                        <ul className="space-y-1.5 text-[11px] text-muted-foreground">
+                          <li className="flex items-center gap-1.5"><Info className="w-3 h-3 text-primary" /> A mudança vale apenas para novas metas criadas.</li>
+                          <li className="flex items-center gap-1.5"><Info className="w-3 h-3 text-primary" /> Metas anteriores continuam com o modelo antigo.</li>
+                          {pendingModel === 'split' && (
+                            <li className="flex items-center gap-1.5"><Info className="w-3 h-3 text-warning" /> Operador recebe {draftConfig.splitPercent}% do lucro <b className="text-foreground/70">e</b> assume {draftConfig.splitPercent}% do prejuízo.</li>
+                          )}
+                        </ul>
+                      </div>
+
+                      <div className="px-5 py-4 border-t border-border/40 flex items-center justify-end gap-2 bg-background/40">
+                        <button
+                          onClick={() => { setPendingModel(null); setDraftConfig(payConfig); }}
+                          className="px-4 py-2 rounded-lg text-sm font-semibold text-foreground/80 hover:text-foreground bg-muted/20 hover:bg-muted/40 border border-border/50 transition-colors"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          onClick={confirmChange}
+                          className="px-4 py-2 rounded-lg text-sm font-bold text-primary-foreground bg-gradient-to-r from-primary to-primary/80 hover:from-primary hover:to-primary border border-primary/60 shadow-[0_0_20px_-6px_hsl(var(--primary)/0.6)] transition-all hover:-translate-y-0.5"
+                        >
+                          Confirmar alteração
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
+
           <div className="rounded-2xl border border-border/50 bg-card/30 overflow-hidden">
             <div className="px-5 py-4 border-b border-border/40">
               <h3 className="text-sm font-bold text-foreground tracking-tight">Gerenciar operadores</h3>
