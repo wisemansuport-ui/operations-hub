@@ -604,6 +604,16 @@ const Dashboard = () => {
         <div className="space-y-5">
            <div>
              <div className="flex justify-between items-end mb-2">
+               <span className="text-sm text-muted-foreground">Faturamento</span>
+               <span className="text-sm font-semibold text-success tabular-nums">+{formatBRL(stats.totalSalarios)} FAT</span>
+             </div>
+             <div className="w-full h-2 rounded-full bg-secondary overflow-hidden">
+               <div className="h-full rounded-full bg-gradient-to-r from-success/70 to-success transition-all duration-700" style={{ width: stats.totalSalarios ? '100%' : '5%' }} />
+             </div>
+           </div>
+
+           <div>
+             <div className="flex justify-between items-end mb-2">
                <span className="text-sm text-muted-foreground">Volume Depositado</span>
                <span className="text-sm font-semibold text-foreground tabular-nums">{formatBRL(stats.totalDepositado)}</span>
              </div>
