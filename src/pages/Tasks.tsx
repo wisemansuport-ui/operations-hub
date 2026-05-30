@@ -679,10 +679,20 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase flex items-center justify-between">Normais {!isRecarga && <span className="text-primary ml-1">(R$ 2)</span>}</label>
                   <input type="number" value={rContasNormais} onChange={e=>setRContasNormais(e.target.value)} placeholder="0" className="w-full bg-primary/5 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner font-bold text-foreground text-center" />
+                  <div className="grid grid-cols-5 gap-1 pt-0.5">
+                    {[5, 7, 10, 15, 20].map(v => (
+                      <button key={v} type="button" onClick={() => setRContasNormais(v.toString())} className="py-1 rounded bg-muted/30 text-[10px] font-bold text-muted-foreground hover:bg-primary/20 hover:text-primary transition-colors border border-transparent hover:border-primary/30">{v}</button>
+                    ))}
+                  </div>
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase flex items-center justify-between">Baixo {!isRecarga && <span className="text-muted-foreground ml-1">(R$ 1)</span>}</label>
                   <input type="number" value={rContasBaixas} onChange={e=>setRContasBaixas(e.target.value)} placeholder="0" className="w-full bg-background/50 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner font-bold text-foreground text-center" />
+                  <div className="grid grid-cols-5 gap-1 pt-0.5">
+                    {[5, 7, 10, 15, 20].map(v => (
+                      <button key={v} type="button" onClick={() => setRContasBaixas(v.toString())} className="py-1 rounded bg-muted/30 text-[10px] font-bold text-muted-foreground hover:bg-primary/20 hover:text-primary transition-colors border border-transparent hover:border-primary/30">{v}</button>
+                    ))}
+                  </div>
                 </div>
               </div>
             ) : (
@@ -834,10 +844,20 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Normais</label>
                     <input type="number" value={eContasNormais} onChange={e=>setEContasNormais(e.target.value)} className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none text-center" />
+                    <div className="grid grid-cols-5 gap-1 pt-0.5">
+                      {[5, 7, 10, 15, 20].map(v => (
+                        <button key={v} type="button" onClick={() => setEContasNormais(v.toString())} className="py-1 rounded bg-muted/30 text-[10px] font-bold text-muted-foreground hover:bg-primary/20 hover:text-primary transition-colors border border-transparent hover:border-primary/30">{v}</button>
+                      ))}
+                    </div>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Baixas</label>
                     <input type="number" value={eContasBaixas} onChange={e=>setEContasBaixas(e.target.value)} className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none text-center" />
+                    <div className="grid grid-cols-5 gap-1 pt-0.5">
+                      {[5, 7, 10, 15, 20].map(v => (
+                        <button key={v} type="button" onClick={() => setEContasBaixas(v.toString())} className="py-1 rounded bg-muted/30 text-[10px] font-bold text-muted-foreground hover:bg-primary/20 hover:text-primary transition-colors border border-transparent hover:border-primary/30">{v}</button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
