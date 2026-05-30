@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, CalendarDays, Globe, ShieldCheck,
   BarChart3, ChevronLeft, ChevronRight, Zap, CreditCard, Users, Wallet, UserCog, PlayCircle,
@@ -12,6 +12,7 @@ export const AppSidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [planModalOpen, setPlanModalOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const [role, setRole] = useLocalStorage<'ADMIN' | 'OPERADOR'>('nytzer-role', 'ADMIN');
   const [user] = useLocalStorage<any>('nytzer-user', null);
 
@@ -25,6 +26,7 @@ export const AppSidebar = () => {
     { path: "/reports", label: "Relatórios", icon: BarChart3, roles: ['ADMIN'] },
     { path: "/costs", label: "Custos", icon: Receipt, roles: ['ADMIN', 'OPERADOR'] },
     { path: "/goals", label: "Objetivos", icon: Target, roles: ['ADMIN'] },
+    { path: "/subscription", label: "Assinatura", icon: Sparkles, roles: ['ADMIN'] },
     { path: "/tutorial", label: "Tutorial", icon: PlayCircle, roles: ['ADMIN', 'OPERADOR'] },
   ].filter(item => item.roles.includes(role));
 
@@ -68,9 +70,9 @@ export const AppSidebar = () => {
         </nav>
 
         <div className="mt-auto flex flex-col gap-2 pb-2">
-          {!collapsed && (
+          {!collapsed && role === 'ADMIN' && (
             <button
-              onClick={() => setPlanModalOpen(true)}
+              onClick={() => navigate('/subscription')}
               className="mx-2 px-3 py-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 hover:border-primary/60 transition-all text-left group"
             >
               <div className="flex items-center gap-2 mb-1">
@@ -80,9 +82,9 @@ export const AppSidebar = () => {
               <p className="text-[11px] text-muted-foreground leading-tight">Desbloqueie todo o poder do NytzerVision</p>
             </button>
           )}
-          {collapsed && (
+          {collapsed && role === 'ADMIN' && (
             <button
-              onClick={() => setPlanModalOpen(true)}
+              onClick={() => navigate('/subscription')}
               className="mx-2 h-9 rounded-lg bg-primary/15 hover:bg-primary/25 border border-primary/30 flex items-center justify-center text-primary transition-colors"
             >
               <Sparkles className="w-4 h-4" />

@@ -25,6 +25,7 @@ import Costs from "./pages/Costs";
 import Goals from "./pages/Goals";
 import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
+import Subscription from "./pages/Subscription";
 
 const queryClient = new QueryClient();
 
@@ -97,6 +98,7 @@ const App = () => {
                   <Route path="/tutorial" element={<PrivateRoute><Tutorial /></PrivateRoute>} />
                   <Route path="/costs" element={<PrivateRoute><Costs /></PrivateRoute>} />
                   <Route path="/goals" element={<PrivateRoute><Goals /></PrivateRoute>} />
+                  <Route path="/subscription" element={<PrivateRoute><Subscription /></PrivateRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
             </BrowserRouter>
