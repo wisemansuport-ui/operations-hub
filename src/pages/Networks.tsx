@@ -190,7 +190,7 @@ const Networks = () => {
       }
       if (!isVisible) return;
 
-      // Acumular métricas brutas da plataforma (sem descontar salários/custos)
+      // Acumular métricas brutas da plataforma + FAT (salarioOperador)
       let metaDeposito = 0, metaSaque = 0, metaContas = 0;
       (meta.remessas || []).forEach(r => {
         metaDeposito += Number(r.deposito || 0);
@@ -198,7 +198,8 @@ const Networks = () => {
         metaContas   += Number(r.contas   || 0);
       });
 
-      const metaLucro = metaSaque - metaDeposito;
+      const sal       = Number(meta.salarioOperador) || 0;
+      const metaLucro = metaSaque - metaDeposito + sal; // inclui FAT
 
       if (!redesMap[meta.rede]) redesMap[meta.rede] = { lucro: 0, deposito: 0, saque: 0, contas: 0, metas: 0, acertos: 0 };
       redesMap[meta.rede].lucro    += metaLucro;
