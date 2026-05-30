@@ -677,7 +677,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
             {!meta.isAdminMeta ? (
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase flex items-center justify-between">Normais {!isRecarga && <span className="text-primary ml-1">(R$ 2)</span>}</label>
+                  <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase flex items-center justify-between">Depósitos na Média {!isRecarga && <span className="text-primary ml-1">(R$ 2)</span>}</label>
                   <input type="number" value={rContasNormais} onChange={e=>setRContasNormais(e.target.value)} placeholder="0" className="w-full bg-primary/5 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner font-bold text-foreground text-center" />
                   <div className="grid grid-cols-5 gap-1 pt-0.5">
                     {[5, 7, 10, 15, 20].map(v => (
@@ -686,7 +686,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase flex items-center justify-between">Baixo {!isRecarga && <span className="text-muted-foreground ml-1">(R$ 1)</span>}</label>
+                  <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase flex items-center justify-between">Depósitos Baixos {!isRecarga && <span className="text-muted-foreground ml-1">(R$ 1)</span>}</label>
                   <input type="number" value={rContasBaixas} onChange={e=>setRContasBaixas(e.target.value)} placeholder="0" className="w-full bg-background/50 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner font-bold text-foreground text-center" />
                   <div className="grid grid-cols-5 gap-1 pt-0.5">
                     {[5, 7, 10, 15, 20].map(v => (
@@ -842,7 +842,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
               {!meta.isAdminMeta && (
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Normais</label>
+                    <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Depósitos na Média</label>
                     <input type="number" value={eContasNormais} onChange={e=>setEContasNormais(e.target.value)} className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none text-center" />
                     <div className="grid grid-cols-5 gap-1 pt-0.5">
                       {[5, 7, 10, 15, 20].map(v => (
@@ -851,7 +851,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Baixas</label>
+                    <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Depósitos Baixos</label>
                     <input type="number" value={eContasBaixas} onChange={e=>setEContasBaixas(e.target.value)} className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none text-center" />
                     <div className="grid grid-cols-5 gap-1 pt-0.5">
                       {[5, 7, 10, 15, 20].map(v => (
