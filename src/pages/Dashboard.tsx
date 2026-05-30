@@ -1,5 +1,5 @@
 import { KPICard } from "@/components/dashboard/KPICard";
-import { DollarSign, Target, Activity, Users, CalendarDays, ListTodo, ShieldCheck, Wrench, BarChart3, Globe, ChartNoAxesCombined, CreditCard, PlayCircle, Wallet } from "lucide-react";
+import { DollarSign, Target, Activity, Users, CalendarDays, ListTodo, ShieldCheck, Wrench, BarChart3, Globe, ChartNoAxesCombined, CreditCard, PlayCircle, Wallet, UserCog, Receipt } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from "recharts";
 import { Link } from "react-router-dom";
 import { useLocalStorage } from "../hooks/useLocalStorage";
@@ -21,11 +21,14 @@ const areaData = [
 const pieColors = ["hsl(var(--primary))", "hsl(var(--primary) / 0.4)", "hsl(var(--muted))"];
 
 const quickLinks = [
-  { path: "/production", label: "Planilhas", icon: ChartNoAxesCombined, desc: "Cronograma", roles: ['ADMIN', 'OPERADOR'] },
-  { path: "/tasks", label: "Tarefas", icon: CalendarDays, desc: "Gestão", roles: ['ADMIN', 'OPERADOR'] },
-  { path: "/reports", label: "Relatórios", icon: BarChart3, desc: "Avançado", roles: ['ADMIN'] },
-  { path: "/pix", label: "Chaves PIX", icon: CreditCard, desc: "Financeiro", roles: ['ADMIN', 'OPERADOR'] },
-  { path: "/extrato", label: "Extrato", icon: Wallet, desc: "Produtividade", roles: ['OPERADOR'] },
+  { path: "/operators", label: "Operadores", icon: Users, desc: "Gestão de equipe", roles: ['ADMIN'] },
+  { path: "/tasks", label: "Planilhas", icon: ChartNoAxesCombined, desc: "Cronograma", roles: ['ADMIN', 'OPERADOR'] },
+  { path: "/networks", label: "Redes", icon: Globe, desc: "Plataformas ativas", roles: ['ADMIN'] },
+  { path: "/costs", label: "Custos", icon: Receipt, desc: "Operacional", roles: ['ADMIN', 'OPERADOR'] },
+  { path: "/pix", label: "PIX", icon: CreditCard, desc: "Chaves cadastradas", roles: ['ADMIN', 'OPERADOR'] },
+  { path: "/reports", label: "Relatórios", icon: BarChart3, desc: "Análise avançada", roles: ['ADMIN'] },
+  { path: "/goals", label: "Objetivos", icon: Target, desc: "Metas definidas", roles: ['ADMIN'] },
+  { path: "/me", label: "Extrato", icon: Wallet, desc: "Produtividade", roles: ['OPERADOR'] },
 ];
 
 const formatBRL = (val: number) => `R$ ${val.toFixed(2).replace('.', ',')}`;
