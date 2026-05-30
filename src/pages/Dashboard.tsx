@@ -381,6 +381,9 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* Period filter - above KPIs */}
+        <PeriodFilter value={dateFilter} onChange={setDateFilter} />
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <KPICard title="Saldo Total" value={formatBRL(stats.totalAutoSalarios)} change={`${stats.contasProcessadas} contas operadas`} changeType="positive" icon={DollarSign} color="success" tooltip="O valor total a receber (salário + comissões) baseado na sua produção validada." />
           <KPICard title="Metas Fechadas" value={`${stats.metasFechadas}/${stats.totalMetas}`} change="Registradas" changeType="positive" icon={Target} color="primary" tooltip="Quantidade de metas concluídas em relação ao total atribuído a você." />
