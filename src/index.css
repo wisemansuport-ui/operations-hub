@@ -89,15 +89,20 @@
 @layer base {
   * {
     @apply border-border;
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='24' viewBox='0 0 20 24'%3E%3Cpath d='M2 1L18 12L10 13L6 23L2 1Z' fill='%23cba54b' stroke='%23000000' stroke-width='1.2'/%3E%3C/svg%3E") 2 1, auto !important;
   }
+  
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='24' viewBox='0 0 20 24'%3E%3Cpath d='M2 1L18 12L10 13L6 23L2 1Z' fill='%23cba54b' stroke='%23000000' stroke-width='1.2'/%3E%3C/svg%3E") 2 1, auto;
   }
   
-  a, button, [role="button"], select, [type="button"], [type="submit"], .cursor-pointer {
+  a, a *, button, button *, [role="button"], [role="button"] *, select, [type="button"], [type="submit"], .cursor-pointer, .cursor-pointer *, .recharts-surface, .recharts-wrapper *, [cursor="pointer"], g[cursor="pointer"], g[cursor="pointer"] * {
     cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='24' viewBox='0 0 22 24'%3E%3Cpath d='M6 1L6 14L10 10L14 18L17 16L13 9L18 8L6 1Z' fill='%23cba54b' stroke='%23000000' stroke-width='1.2'/%3E%3C/svg%3E") 6 1, pointer !important;
+  }
+
+  input, textarea, [contenteditable="true"] {
+    cursor: text !important;
   }
 }
 
