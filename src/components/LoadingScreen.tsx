@@ -37,14 +37,37 @@ export const LoadingScreen = ({
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center bg-background overflow-hidden animate-[fade-in_0.4s_ease-out]"
-      style={{ zIndex: 9999, willChange: "opacity" }}
+      className="fixed inset-0 flex items-center justify-center bg-background overflow-hidden"
+      style={{
+        zIndex: 9999,
+        animation: "nv-loader-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both",
+        willChange: "opacity",
+        contain: "layout paint style",
+        backfaceVisibility: "hidden",
+      }}
     >
+      <style>{`
+        @keyframes nv-loader-in {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+        @keyframes nv-loader-content-in {
+          from { opacity: 0; transform: translate3d(0, 6px, 0) scale(0.985); }
+          to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+        }
+        @keyframes nv-loader-sweep {
+          from { transform: translate3d(-100%, 0, 0); }
+          to   { transform: translate3d(300%, 0, 0); }
+        }
+      `}</style>
+
       {/* Ambient gold glow — single soft layer, GPU friendly */}
       <div
         className="absolute top-1/2 left-1/2 w-[420px] h-[420px] rounded-full bg-primary/10 blur-3xl pointer-events-none"
-        style={{ transform: "translate3d(-50%, -50%, 0)" }}
+        style={{ transform: "translate3d(-50%, -50%, 0)", contain: "strict" }}
+        aria-hidden
       />
+
 
       <div className="relative z-10 flex flex-col items-center text-center px-6 max-w-md">
         {/* Favicon with halo */}
