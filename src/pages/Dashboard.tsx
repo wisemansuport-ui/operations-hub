@@ -8,6 +8,7 @@ import { OperationMeta } from "./Tasks";
 import { useMemo, useState } from "react";
 import { PeriodFilter, DateFilter, buildDateFilter, isInRange } from "@/components/ui/period-filter";
 import { startOfMonth, endOfMonth } from 'date-fns';
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 const areaData = [
   { name: "Seg", tarefas: 12 },
@@ -365,7 +366,7 @@ const Dashboard = () => {
 
   // Loading check AFTER all hooks (required by React Rules of Hooks)
   if (loading) {
-    return <DashboardSkeleton role={role} />;
+    return <LoadingScreen message="Sincronizando seus dados" />;
   }
 
   if (role === 'OPERADOR') {
