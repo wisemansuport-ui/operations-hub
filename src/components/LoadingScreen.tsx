@@ -36,26 +36,32 @@ export const LoadingScreen = ({
   }, []);
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-background overflow-hidden" style={{ zIndex: 9999 }}>
-      {/* Ambient gold glow */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/10 blur-[120px] animate-pulse" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full bg-primary/20 blur-[80px]" />
-      </div>
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-background overflow-hidden animate-[fade-in_0.4s_ease-out]"
+      style={{ zIndex: 9999, willChange: "opacity" }}
+    >
+      {/* Ambient gold glow — single soft layer, GPU friendly */}
+      <div
+        className="absolute top-1/2 left-1/2 w-[420px] h-[420px] rounded-full bg-primary/10 blur-3xl pointer-events-none"
+        style={{ transform: "translate3d(-50%, -50%, 0)" }}
+      />
 
       <div className="relative z-10 flex flex-col items-center text-center px-6 max-w-md">
         {/* Favicon with halo */}
         <div className="relative mb-8">
-          <div className="absolute inset-0 rounded-full bg-primary/30 blur-2xl animate-pulse" />
-          <div className="relative w-24 h-24 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 flex items-center justify-center shadow-[0_0_40px_hsl(var(--primary)/0.4)] backdrop-blur-sm">
+          <div className="absolute inset-0 rounded-full bg-primary/20 blur-2xl" />
+          <div className="relative w-24 h-24 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 border border-primary/25 flex items-center justify-center shadow-[0_0_30px_hsl(var(--primary)/0.25)]">
             <img
               src="/web-app-manifest-192x192.png"
               alt="Nytzer Vision"
-              className="w-14 h-14 object-contain animate-[fade-in_0.6s_ease-out]"
+              className="w-14 h-14 object-contain"
             />
           </div>
           {/* Orbiting ring */}
-          <div className="absolute inset-0 -m-3 rounded-full border border-primary/20 animate-spin [animation-duration:6s]">
+          <div
+            className="absolute inset-0 -m-3 rounded-full border border-primary/20 animate-spin"
+            style={{ animationDuration: "6s", willChange: "transform" }}
+          >
             <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary))]" />
           </div>
         </div>
@@ -69,9 +75,17 @@ export const LoadingScreen = ({
         </p>
 
         {/* Progress bar */}
-        <div className="w-56 h-[3px] rounded-full bg-primary/10 overflow-hidden mb-8">
-          <div className="h-full w-1/3 bg-gradient-to-r from-transparent via-primary to-transparent animate-[slide-in_1.4s_ease-in-out_infinite]" />
+        <div className="w-56 h-[2px] rounded-full bg-primary/10 overflow-hidden mb-8 relative">
+          <div
+            className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-primary to-transparent"
+            style={{
+              animation: "loader-sweep 1.6s ease-in-out infinite",
+              willChange: "transform",
+            }}
+          />
         </div>
+        <style>{`@keyframes loader-sweep { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }`}</style>
+
 
         {/* Quote */}
         <blockquote className="text-sm md:text-base text-muted-foreground italic leading-relaxed border-l-2 border-primary/40 pl-4 text-left">
