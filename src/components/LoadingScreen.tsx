@@ -110,12 +110,13 @@ export const LoadingScreen = ({
           <div
             className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-primary to-transparent"
             style={{
-              animation: "loader-sweep 1.6s ease-in-out infinite",
+              animation: "nv-loader-sweep 1.6s ease-in-out infinite",
               willChange: "transform",
             }}
           />
         </div>
-        <style>{`@keyframes loader-sweep { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }`}</style>
+
+
 
 
         {/* Quote */}
