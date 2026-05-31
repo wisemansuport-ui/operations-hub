@@ -13,6 +13,7 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 import { format, isSameDay, isSameMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { PeriodFilter, DateFilter, buildDateFilter, isInRange } from '@/components/ui/period-filter';
 
 type CostType = 'proxy' | 'sms' | 'instagram' | 'bot' | 'vps' | 'outros';
 
@@ -49,6 +50,8 @@ const Costs = () => {
   const [user] = useLocalStorage<any>('nytzer-user', null);
   const operatorName = user?.username || 'Operador Central';
 
+  const [dateFilter, setDateFilter] = useState<DateFilter>(buildDateFilter('MES'));
+
   // modal
   const [open, setOpen] = useState(false);
   const [formType, setFormType] = useState<CostType>('proxy');
@@ -82,10 +85,17 @@ const Costs = () => {
     [costs, operatorName, role]
   );
 
-  const totalPages = Math.ceil(myCosts.length / ITEMS_PER_PAGE);
+  const filteredCosts = useMemo(() => {
+    return myCosts.filter(c => {
+      const d = c.date ? new Date(c.date + 'T12:00:00') : new Date(c.createdAt);
+      return isInRange(d, dateFilter);
+    });
+  }, [myCosts, dateFilter]);
+
+  const totalPages = Math.ceil(filteredCosts.length / ITEMS_PER_PAGE);
   const currentCosts = useMemo(() => {
-    return myCosts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
-  }, [myCosts, currentPage]);
+    return filteredCosts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  }, [filteredCosts, currentPage]);
 
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
@@ -93,48 +103,37 @@ const Costs = () => {
     }
   }, [totalPages, currentPage]);
 
-  // Lucro bruto do dia (a partir de metas concluídas hoje)
-  const lucroBrutoHoje = useMemo(() => {
+  // Lucro bruto no período
+  const lucroBrutoPeriodo = useMemo(() => {
     let total = 0;
     metas.forEach((m: any) => {
       if (role !== 'ADMIN' && m.operador !== operatorName) return;
       if (!m.createdAt) return;
       const d = new Date(m.createdAt);
-      if (!isSameDay(d, today)) return;
+      if (!isInRange(d, dateFilter)) return;
       const profit = Number(m.profit ?? m.lucro ?? 0);
       total += profit;
     });
     return total;
-  }, [metas, role, operatorName]);
+  }, [metas, role, operatorName, dateFilter]);
 
-  const custoDia = useMemo(
-    () => myCosts.filter(c => c.date === format(today, 'yyyy-MM-dd'))
-                .reduce((s, c) => s + Number(c.amount || 0), 0),
-    [myCosts]
+  const custoPeriodo = useMemo(
+    () => filteredCosts.reduce((s, c) => s + Number(c.amount || 0), 0),
+    [filteredCosts]
   );
 
-  const custoMes = useMemo(
-    () => myCosts.filter(c => {
-      const d = new Date(c.date + 'T00:00:00');
-      return isSameMonth(d, today);
-    }).reduce((s, c) => s + Number(c.amount || 0), 0),
-    [myCosts]
-  );
-
-  const lucroLiquidoHoje = lucroBrutoHoje - custoDia;
-  const diasNoMes = today.getDate();
-  const mediaDia = diasNoMes > 0 ? custoMes / diasNoMes : 0;
+  const lucroLiquidoPeriodo = lucroBrutoPeriodo - custoPeriodo;
 
   const porTipo = useMemo(() => {
     const map = new Map<CostType, number>();
     COST_TYPES.forEach(t => map.set(t.key, 0));
-    myCosts.forEach(c => {
+    filteredCosts.forEach(c => {
       map.set(c.type, (map.get(c.type) || 0) + Number(c.amount || 0));
     });
     const arr = COST_TYPES.map(t => ({ ...t, value: map.get(t.key) || 0 }));
     arr.sort((a, b) => b.value - a.value);
     return arr;
-  }, [myCosts]);
+  }, [filteredCosts]);
 
   const maxTipo = Math.max(1, ...porTipo.map(p => p.value));
 
@@ -198,17 +197,20 @@ const Costs = () => {
             </p>
           </div>
         </div>
-        <button
-          onClick={() => setOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-b from-secondary to-card border border-border hover:border-primary/40 text-sm font-medium text-foreground transition-all hover:shadow-[0_0_20px_hsl(var(--primary)/0.15)]"
-        >
-          <Plus className="w-4 h-4" />
-          Adicionar custo
-        </button>
+        <div className="flex items-center gap-3">
+          <PeriodFilter value={dateFilter} onChange={setDateFilter} />
+          <button
+            onClick={() => setOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-b from-secondary to-card border border-border hover:border-primary/40 text-sm font-medium text-foreground transition-all hover:shadow-[0_0_20px_hsl(var(--primary)/0.15)]"
+          >
+            <Plus className="w-4 h-4" />
+            Adicionar custo
+          </button>
+        </div>
       </div>
 
       {/* Aviso quando vazio */}
-      {!loading && myCosts.length === 0 && lucroBrutoHoje === 0 && (
+      {!loading && filteredCosts.length === 0 && lucroBrutoPeriodo === 0 && (
         <div className="rounded-xl border border-primary/30 bg-gradient-to-r from-primary/5 to-transparent px-4 py-3 flex items-center gap-3">
           <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
           <p className="text-sm text-muted-foreground">
@@ -220,41 +222,41 @@ const Costs = () => {
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <KpiCard
-          label="Custo do dia"
-          value={formatBRL(custoDia)}
-          hint={lucroBrutoHoje === 0 ? 'sem lucro registrado hoje' : `de ${formatBRL(lucroBrutoHoje)} bruto`}
+          label="Custo do período"
+          value={formatBRL(custoPeriodo)}
+          hint={lucroBrutoPeriodo === 0 ? 'sem lucro registrado' : `de ${formatBRL(lucroBrutoPeriodo)} bruto`}
           icon={TrendingDown}
         />
         <div className="rounded-2xl border border-border bg-gradient-to-br from-card to-secondary/40 p-5 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
           <div className="relative">
-            <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">Lucro vs custo (hoje)</div>
+            <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">Lucro vs custo (Período)</div>
             <div className="mt-3 space-y-1.5 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Lucro bruto</span>
-                <span className="text-foreground font-medium">{formatBRL(lucroBrutoHoje)}</span>
+                <span className="text-foreground font-medium">{formatBRL(lucroBrutoPeriodo)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Custos</span>
-                <span className="text-destructive font-medium">- {formatBRL(custoDia)}</span>
+                <span className="text-destructive font-medium">- {formatBRL(custoPeriodo)}</span>
               </div>
               <div className="border-t border-border my-2" />
               <div className="flex justify-between items-center">
                 <span className="font-semibold text-foreground">Lucro líquido</span>
                 <span className={cn(
                   'text-lg font-bold tabular-nums',
-                  lucroLiquidoHoje >= 0 ? 'text-primary' : 'text-destructive'
+                  lucroLiquidoPeriodo >= 0 ? 'text-primary' : 'text-destructive'
                 )}>
-                  {formatBRL(lucroLiquidoHoje)}
+                  {formatBRL(lucroLiquidoPeriodo)}
                 </span>
               </div>
             </div>
           </div>
         </div>
         <KpiCard
-          label="Custo do mês"
-          value={formatBRL(custoMes)}
-          hint={`Média de ${formatBRL(mediaDia)}/dia`}
+          label="Registros no período"
+          value={String(filteredCosts.length)}
+          hint={`${myCosts.length} no total histórico`}
           icon={Wallet}
         />
       </div>
@@ -298,9 +300,9 @@ const Costs = () => {
         <h2 className="text-base font-semibold text-foreground mb-4">Histórico de custos</h2>
         {loading ? (
           <div className="text-sm text-muted-foreground py-8 text-center">Carregando…</div>
-        ) : myCosts.length === 0 ? (
+        ) : filteredCosts.length === 0 ? (
           <div className="text-sm text-muted-foreground py-8 text-center">
-            Nenhum custo registrado. Clique em <span className="text-primary">"Adicionar custo"</span> para começar.
+            Nenhum custo encontrado para o período. Clique em <span className="text-primary">"Adicionar custo"</span>.
           </div>
         ) : (
           <>

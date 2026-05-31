@@ -314,36 +314,56 @@ export default function Goals() {
       if (!isVisible) continue;
       
       const remessas = meta.remessas || [];
-      let lastDate = new Date(meta.createdAt);
-      remessas.forEach(r => {
-        const rd = new Date(r.data || meta.createdAt);
-        if (rd > lastDate) lastDate = rd;
-      });
-      const isMetaInPeriod = isInRange(lastDate, dateFilter);
-      if (!isMetaInPeriod) continue;
-
       const sal = Number(meta.salarioOperador) || 0;
       const pagOp = Number(meta.pagamentoOperador) || 0;
 
-      let metaAutoSalarios = 0;
-      remessas.forEach(r => {
-        totalDepositado += Number(r.deposito || 0);
-        totalSacado += Number(r.saque || 0);
+      // Total contas in the meta (used for proportional salary split)
+      const totalContasMeta = remessas.reduce((acc: any, r: any) => acc + Number(r.contas || 0), 0);
+
+      remessas.forEach((r: any) => {
+        const dep = Number(r.deposito || 0);
+        const saq = Number(r.saque || 0);
+        let rc = Number(r.contas || 0);
+        let normais = Number((r as any).contasNormais || 0);
+        let baixas = Number((r as any).contasBaixas || 0);
         
-        const normais = (r as any).contasNormais || 0;
-        const baixas = (r as any).contasBaixas || 0;
-        
-        if (!meta.isAdminMeta && meta.modelo !== 'Recarga') {
-          metaAutoSalarios += (normais * 2) + (baixas * 1);
+        const originalRc = rc;
+        if (meta.modelo === 'Recarga') {
+          rc = 0;
+          normais = 0;
+          baixas = 0;
+        }
+
+        const prop = totalContasMeta > 0 ? originalRc / totalContasMeta : (remessas.length > 0 ? 1 / remessas.length : 1);
+        const remSal = sal * prop;
+        let remAutoSal = 0;
+        if (!meta.isAdminMeta) {
+          if (meta.modelo === 'Recarga') {
+            remAutoSal = pagOp * prop;
+          } else {
+            remAutoSal = (normais * 2) + (baixas * 1);
+          }
+        }
+
+        const remessaDate = new Date(r.data || meta.createdAt);
+        const inPeriod = isInRange(remessaDate, dateFilter);
+
+        if (inPeriod) {
+          totalDepositado += dep;
+          totalSacado += saq;
+          totalSalarios += remSal;
+          totalAutoSalarios += remAutoSal;
         }
       });
-      
-      totalSalarios += sal;
-      if (!meta.isAdminMeta) {
-        if (meta.modelo === 'Recarga') {
-          totalAutoSalarios += pagOp;
-        } else {
-          totalAutoSalarios += metaAutoSalarios;
+
+      // Handle metas with 0 contas (no remessas counted) — put full amount on createdAt date
+      if (totalContasMeta === 0 && remessas.length === 0) {
+        const metaDate = new Date(meta.createdAt);
+        if (isInRange(metaDate, dateFilter)) {
+          totalSalarios += sal;
+          if (!meta.isAdminMeta && meta.modelo === 'Recarga') {
+            totalAutoSalarios += pagOp;
+          }
         }
       }
     }
