@@ -8,6 +8,7 @@ import { OperationMeta } from "./Tasks";
 import { useMemo, useState } from "react";
 import { PeriodFilter, DateFilter, buildDateFilter, isInRange } from "@/components/ui/period-filter";
 import { startOfMonth, endOfMonth } from 'date-fns';
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 const areaData = [
   { name: "Seg", tarefas: 12 },
