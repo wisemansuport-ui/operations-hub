@@ -69,7 +69,15 @@ export const LoadingScreen = ({
       />
 
 
-      <div className="relative z-10 flex flex-col items-center text-center px-6 max-w-md">
+      <div
+        className="relative z-10 flex flex-col items-center text-center px-6 max-w-md"
+        style={{
+          animation: "nv-loader-content-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both",
+          animationDelay: "60ms",
+          willChange: "opacity, transform",
+        }}
+      >
+
         {/* Favicon with halo */}
         <div className="relative mb-8">
           <div className="absolute inset-0 rounded-full bg-primary/20 blur-2xl" />
