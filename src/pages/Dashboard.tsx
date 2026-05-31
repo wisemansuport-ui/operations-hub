@@ -366,7 +366,7 @@ const Dashboard = () => {
 
   // Loading check AFTER all hooks (required by React Rules of Hooks)
   if (loading) {
-    return <DashboardSkeleton role={role} />;
+    return <LoadingScreen message="Sincronizando seus dados" />;
   }
 
   if (role === 'OPERADOR') {
