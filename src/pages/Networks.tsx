@@ -245,7 +245,21 @@ const Networks = () => {
     return data;
   }, [metas, users, role, activeOperator]);
 
+  // Auto-select top-ranked network when list changes (or first selection invalidates)
+  useEffect(() => {
+    if (networkData.length === 0) {
+      if (selectedNetworkId !== null) setSelectedNetworkId(null);
+      return;
+    }
+    if (!selectedNetworkId || !networkData.find(n => n.id === selectedNetworkId)) {
+      setSelectedNetworkId(networkData[0].id);
+    }
+  }, [networkData, selectedNetworkId]);
+
+  const selectedNetwork = networkData.find(n => n.id === selectedNetworkId) || null;
+
   // ── KPIs de resumo ──────────────────────────────────────────────────────────
+
   const totalRedes      = networkData.length;
   const redesLucrativas = networkData.filter(n => n.totalProfit > 0).length;
   const lucroTotal      = networkData.reduce((a, n) => a + n.totalProfit, 0);
