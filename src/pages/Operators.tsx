@@ -102,6 +102,11 @@ const Operators = () => {
   const [pendingModel, setPendingModel] = useState<PayModel | null>(null);
   const [draftConfig, setDraftConfig] = useState<PayConfig>(payConfig);
 
+  // Per-operator overrides — each operator can have its own pay model or inherit the global
+  type PerOpEntry = { useGlobal: boolean } & Partial<PayConfig>;
+  const [perOpConfig, setPerOpConfig] = useLocalStorage<Record<string, PerOpEntry>>(`nytzer-paymodel-perop-${activeOperator}`, {});
+  const [expandedOpCfg, setExpandedOpCfg] = useState<string | null>(null);
+
   useEffect(() => { setDraftConfig(payConfig); }, [payConfig]);
 
 
@@ -536,27 +541,33 @@ const Operators = () => {
         </div>
       )}
 
-      {/* RANKING */}
+      {/* RANKING — redesigned: executive leaderboard */}
       {activeTab === 'Ranking' && (
-        <div className="space-y-6 animate-fade-in">
+        <div className="space-y-8 animate-fade-in">
 
-          {/* KPI strip */}
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-            {[
-              { icon: UserCheck, label: 'Operadores', value: String(operatorData.length), tone: 'text-foreground' },
-              { icon: Target, label: 'Metas', value: String(totalMetas), tone: 'text-foreground' },
-              { icon: TrendingUp, label: 'Depositantes', value: String(totalContas), tone: 'text-foreground' },
-              { icon: DollarSign, label: 'Lucro Bruto Equipe', value: formatBRL(totalLucroEquipe), tone: totalLucroEquipe >= 0 ? 'text-success' : 'text-destructive' },
-              { icon: Wallet, label: 'Líquido (desc. folha + custos)', value: formatBRL(totalLucroEquipe - folhaTotal - custoTotal), tone: (totalLucroEquipe - folhaTotal - custoTotal) >= 0 ? 'text-success' : 'text-destructive' },
-            ].map((k) => (
-              <div key={k.label} className="rounded-xl border border-border/50 bg-card/30 hover:bg-card/50 hover:border-border transition-all p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">{k.label}</p>
-                  <k.icon className="w-3.5 h-3.5 text-muted-foreground/60" />
+          {/* Executive summary band */}
+          <div className="relative rounded-3xl border border-border/50 bg-gradient-to-br from-card/60 via-card/30 to-background/40 backdrop-blur-sm overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,hsl(var(--primary)/0.08),transparent_60%)] pointer-events-none" />
+            <div className="relative grid grid-cols-2 lg:grid-cols-5 divide-y lg:divide-y-0 lg:divide-x divide-border/40">
+              {[
+                { icon: UserCheck, label: 'Operadores ativos', value: String(operatorData.length), sub: 'no período', tone: 'text-foreground' },
+                { icon: Target, label: 'Metas executadas', value: String(totalMetas), sub: 'fechadas', tone: 'text-foreground' },
+                { icon: TrendingUp, label: 'Contas geradas', value: totalContas.toLocaleString('pt-BR'), sub: 'depositantes', tone: 'text-foreground' },
+                { icon: DollarSign, label: 'Receita bruta', value: formatBRL(totalLucroEquipe), sub: 'antes de descontos', tone: totalLucroEquipe >= 0 ? 'text-success' : 'text-destructive' },
+                { icon: Wallet, label: 'Resultado líquido', value: formatBRL(totalLucroEquipe - folhaTotal - custoTotal), sub: 'pós folha + custos', tone: (totalLucroEquipe - folhaTotal - custoTotal) >= 0 ? 'text-success' : 'text-destructive' },
+              ].map((k) => (
+                <div key={k.label} className="p-5 group">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-7 h-7 rounded-lg border border-border/40 bg-background/40 flex items-center justify-center group-hover:border-primary/40 transition-colors">
+                      <k.icon className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
+                    </div>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.18em]">{k.label}</p>
+                  </div>
+                  <p className={`text-2xl font-bold tracking-tight ${k.tone}`}>{k.value}</p>
+                  <p className="text-[10px] text-muted-foreground/70 mt-1">{k.sub}</p>
                 </div>
-                <p className={`text-2xl font-bold tracking-tight ${k.tone}`}>{k.value}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
           {operatorData.length === 0 ? (
@@ -568,76 +579,194 @@ const Operators = () => {
               <p className="text-xs text-muted-foreground mt-1.5">Use o botão acima para gerar um link de cadastro.</p>
             </div>
           ) : (
-            <div className="rounded-2xl border border-border/50 bg-card/20 divide-y divide-border/40 overflow-hidden">
-              {operatorData.map((op) => {
-                const widthPct = op.netProfit > 0 ? Math.max(8, (op.netProfit / maxProfit) * 100) : 8;
-                const isTop = op.rank === 1;
-                return (
-                  <div
-                    key={op.id}
-                    className="group relative px-5 py-4 hover:bg-foreground/[0.02] transition-colors"
-                  >
-                    <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4">
-                      <div className="flex items-center gap-4 flex-1 w-full min-w-0">
-                        <div className="flex items-center justify-center w-10 shrink-0">
-                          {op.rank <= 3 ? (
-                            <span className={`inline-flex items-center gap-1 text-sm font-black ${
-                              isTop ? 'text-primary' : op.rank === 2 ? 'text-foreground' : 'text-amber-700/80'
-                            }`}>
-                              {rankIcon(op.rank)}{op.rank}
+            <>
+              {/* Podium — top 3 */}
+              {operatorData.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h2 className="text-xs font-bold uppercase tracking-[0.25em] text-primary">Pódio</h2>
+                      <p className="text-sm text-muted-foreground mt-0.5">Destaques de performance no período</p>
+                    </div>
+                    <span className="hidden sm:inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      <Sparkles className="w-3 h-3 text-primary" /> Ranked by lucro líquido
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {operatorData.slice(0, 3).map((op) => {
+                      const podium: Record<number, { ring: string; chip: string; glow: string; medal: any; label: string; bg: string }> = {
+                        1: { ring: 'border-primary/50', chip: 'bg-primary/15 text-primary border-primary/40', glow: 'shadow-[0_0_60px_-20px_hsl(var(--primary)/0.6)]', medal: Crown, label: '1º Lugar', bg: 'from-primary/[0.12] via-primary/[0.04] to-transparent' },
+                        2: { ring: 'border-foreground/30', chip: 'bg-foreground/10 text-foreground border-foreground/30', glow: '', medal: Trophy, label: '2º Lugar', bg: 'from-foreground/[0.06] via-foreground/[0.02] to-transparent' },
+                        3: { ring: 'border-amber-700/40', chip: 'bg-amber-700/15 text-amber-600 border-amber-700/30', glow: '', medal: Medal, label: '3º Lugar', bg: 'from-amber-700/[0.08] via-amber-700/[0.02] to-transparent' },
+                      };
+                      const p = podium[op.rank];
+                      const MedalIcon = p.medal;
+                      return (
+                        <div key={op.id} className={`relative rounded-2xl border ${p.ring} bg-gradient-to-br ${p.bg} p-5 ${p.glow} hover:-translate-y-0.5 transition-transform`}>
+                          <div className="flex items-start justify-between mb-4">
+                            <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md border ${p.chip}`}>
+                              <MedalIcon className="w-3 h-3" /> {p.label}
                             </span>
-                          ) : (
-                            <span className="text-sm font-bold text-muted-foreground/60">#{op.rank}</span>
-                          )}
-                        </div>
-
-                        <div className={`relative w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
-                          isTop
-                            ? 'bg-primary/15 border border-primary/40 text-primary'
-                            : 'bg-muted/30 border border-border/60 text-foreground'
-                        }`}>
-                          {op.initials}
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="text-sm font-bold text-foreground truncate">{op.name}</h3>
                             <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${op.badgeColor}`}>
                               {op.badge}
                             </span>
                           </div>
-                          <div className="flex items-center gap-x-4 gap-y-0.5 text-[11px] text-muted-foreground flex-wrap mt-1">
-                            <span><span className="font-bold text-foreground">{op.deps}</span> deps</span>
-                            <span><span className="font-bold text-foreground">{op.metas}</span> metas</span>
-                            <span><span className="font-bold text-primary">{formatBRL(op.profitPerConta)}</span>/conta</span>
+
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-base border ${op.rank === 1 ? 'bg-primary/15 border-primary/40 text-primary' : 'bg-muted/20 border-border/50 text-foreground'}`}>
+                              {op.initials}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-bold text-foreground text-base truncate tracking-tight">{op.name}</p>
+                              <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-0.5">@{op.id}</p>
+                            </div>
                           </div>
-                          <div className="mt-2 h-[3px] w-full max-w-md rounded-full bg-border/40 overflow-hidden">
-                            <div
-                              className={`h-full rounded-full transition-all duration-700 ${
-                                op.netProfit >= 0 ? 'bg-success' : 'bg-destructive'
-                              }`}
-                              style={{ width: `${widthPct}%` }}
-                            />
+
+                          <div className="space-y-1 pt-3 border-t border-border/40">
+                            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.2em]">Lucro líquido</p>
+                            <p className={`text-3xl font-bold tracking-tight ${op.netProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
+                              {op.netProfit >= 0 ? '+' : ''}{formatBRL(op.netProfit)}
+                            </p>
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-border/40">
+                            <div>
+                              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Deps</p>
+                              <p className="text-sm font-bold text-foreground mt-0.5">{op.deps}</p>
+                            </div>
+                            <div>
+                              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Metas</p>
+                              <p className="text-sm font-bold text-foreground mt-0.5">{op.metas}</p>
+                            </div>
+                            <div>
+                              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">R$/Conta</p>
+                              <p className="text-sm font-bold text-primary mt-0.5">{formatBRL(op.profitPerConta)}</p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-
-                      <div className="flex justify-between lg:flex-col lg:items-end w-full lg:w-auto lg:min-w-[160px] lg:text-right">
-                        <p className={`text-xl font-bold tracking-tight ${op.netProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
-                          {op.netProfit >= 0 ? '+' : ''}{formatBRL(op.netProfit)}
-                        </p>
-                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-                          Lucro Líquido
-                        </p>
-                        <p className="text-[10px] text-muted-foreground mt-1">
-                          Bruto: {formatBRL(op.totalProfit)} | Folha: {formatBRL(op.salary)} | Custos: {formatBRL(op.totalCosts)}
-                        </p>
-                      </div>
-                    </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              )}
+
+              {/* Leaderboard table — all operators */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h2 className="text-xs font-bold uppercase tracking-[0.25em] text-primary">Leaderboard</h2>
+                    <p className="text-sm text-muted-foreground mt-0.5">Visão analítica completa da equipe</p>
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    {operatorData.length} operador{operatorData.length !== 1 ? 'es' : ''}
+                  </span>
+                </div>
+
+                <div className="rounded-2xl border border-border/50 bg-card/20 overflow-hidden">
+                  {/* Header columns — desktop only */}
+                  <div className="hidden lg:grid grid-cols-[60px_1fr_100px_100px_120px_180px] gap-4 px-5 py-3 border-b border-border/40 bg-background/30">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">#</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Operador</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground text-right">Deps</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground text-right">Metas</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground text-right">R$/Conta</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground text-right">Lucro líquido</span>
+                  </div>
+
+                  <div className="divide-y divide-border/30">
+                    {operatorData.map((op) => {
+                      const widthPct = op.netProfit > 0 ? Math.max(6, (op.netProfit / maxProfit) * 100) : 6;
+                      const isTop = op.rank === 1;
+                      return (
+                        <div
+                          key={op.id}
+                          className="group relative px-5 py-4 hover:bg-foreground/[0.025] transition-colors"
+                        >
+                          {/* Lateral accent */}
+                          <span className={`absolute left-0 top-3 bottom-3 w-[2px] rounded-r ${
+                            op.rank === 1 ? 'bg-primary' : op.netProfit >= 0 ? 'bg-success/60' : 'bg-destructive/60'
+                          } ${op.rank <= 3 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity`} />
+
+                          <div className="lg:grid lg:grid-cols-[60px_1fr_100px_100px_120px_180px] lg:gap-4 lg:items-center flex flex-col gap-3">
+                            {/* Rank */}
+                            <div className="flex items-center gap-2">
+                              {op.rank <= 3 ? (
+                                <span className={`inline-flex items-center gap-1 text-sm font-black ${
+                                  isTop ? 'text-primary' : op.rank === 2 ? 'text-foreground' : 'text-amber-600'
+                                }`}>
+                                  {rankIcon(op.rank)}{op.rank}
+                                </span>
+                              ) : (
+                                <span className="text-xs font-bold text-muted-foreground/60 tabular-nums">#{op.rank}</span>
+                              )}
+                            </div>
+
+                            {/* Operator */}
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
+                                isTop
+                                  ? 'bg-primary/15 border border-primary/40 text-primary'
+                                  : 'bg-muted/30 border border-border/60 text-foreground'
+                              }`}>
+                                {op.initials}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <h3 className="text-sm font-bold text-foreground truncate tracking-tight">{op.name}</h3>
+                                  <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${op.badgeColor}`}>
+                                    {op.badge}
+                                  </span>
+                                </div>
+                                <div className="mt-1.5 h-[2px] w-full max-w-[260px] rounded-full bg-border/40 overflow-hidden">
+                                  <div
+                                    className={`h-full rounded-full transition-all duration-700 ${
+                                      op.netProfit >= 0 ? 'bg-gradient-to-r from-success/60 to-success' : 'bg-destructive'
+                                    }`}
+                                    style={{ width: `${widthPct}%` }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Mobile inline stats */}
+                            <div className="lg:hidden grid grid-cols-3 gap-3 pt-2 border-t border-border/30">
+                              <div>
+                                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Deps</p>
+                                <p className="text-sm font-bold text-foreground tabular-nums">{op.deps}</p>
+                              </div>
+                              <div>
+                                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Metas</p>
+                                <p className="text-sm font-bold text-foreground tabular-nums">{op.metas}</p>
+                              </div>
+                              <div>
+                                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">R$/Conta</p>
+                                <p className="text-sm font-bold text-primary tabular-nums">{formatBRL(op.profitPerConta)}</p>
+                              </div>
+                            </div>
+
+                            {/* Desktop stats columns */}
+                            <p className="hidden lg:block text-sm font-bold text-foreground text-right tabular-nums">{op.deps}</p>
+                            <p className="hidden lg:block text-sm font-bold text-foreground text-right tabular-nums">{op.metas}</p>
+                            <p className="hidden lg:block text-sm font-bold text-primary text-right tabular-nums">{formatBRL(op.profitPerConta)}</p>
+
+                            {/* Profit */}
+                            <div className="lg:text-right">
+                              <p className={`text-lg font-bold tracking-tight tabular-nums ${op.netProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
+                                {op.netProfit >= 0 ? '+' : ''}{formatBRL(op.netProfit)}
+                              </p>
+                              <p className="text-[9px] font-semibold text-muted-foreground/70 uppercase tracking-widest leading-tight">
+                                Bruto {formatBRL(op.totalProfit)} · Folha {formatBRL(op.salary)} · Custos {formatBRL(op.totalCosts)}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </>
           )}
         </div>
       )}
@@ -1198,6 +1327,198 @@ const Operators = () => {
               </div>
             );
           })()}
+
+          {/* Per-operator payment overrides */}
+          <div className="rounded-2xl border border-border/50 bg-card/30 overflow-hidden">
+            <div className="px-5 py-4 border-b border-border/40 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center">
+                <UserCheck className="w-4 h-4 text-primary" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-bold text-foreground tracking-tight">Pagamento individual por operador</h3>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Personalize o modelo de remuneração de cada operador. Por padrão, todos seguem a regra global acima.</p>
+              </div>
+            </div>
+
+            <div className="p-3 space-y-2">
+              {affiliatedUsers.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-12">Nenhum operador vinculado ainda.</p>
+              )}
+
+              {affiliatedUsers.map(u => {
+                const username = u.username;
+                const displayName = u.displayName || username;
+                const initials = displayName.substring(0, 2).toUpperCase();
+                const entry: PerOpEntry = perOpConfig[username] || { useGlobal: true };
+                const effective: PayConfig = entry.useGlobal
+                  ? payConfig
+                  : { ...payConfig, ...entry } as PayConfig;
+                const isOpen = expandedOpCfg === username;
+
+                const updateEntry = (patch: Partial<PerOpEntry>) => {
+                  const next = { ...(perOpConfig[username] || { useGlobal: true }), ...patch };
+                  setPerOpConfig({ ...perOpConfig, [username]: next });
+                };
+                const resetToGlobal = () => {
+                  const clone = { ...perOpConfig };
+                  delete clone[username];
+                  setPerOpConfig(clone);
+                  toast.success(`${displayName} agora segue a regra global.`);
+                };
+
+                const modelLabel = entry.useGlobal
+                  ? 'Segue regra global'
+                  : effective.model === 'fixo'
+                    ? `Fixo · R$${effective.valorNormal}/normal · R$${effective.valorBaixa}/baixa`
+                    : effective.model === 'percent'
+                      ? `${effective.percent}% do lucro`
+                      : `Split ${effective.splitPercent}%`;
+
+                return (
+                  <div key={u.id} className={`rounded-xl border transition-all ${
+                    entry.useGlobal
+                      ? 'border-border/40 bg-card/20'
+                      : 'border-primary/30 bg-primary/[0.03] shadow-[0_0_30px_-15px_hsl(var(--primary)/0.4)]'
+                  }`}>
+                    <button
+                      type="button"
+                      onClick={() => setExpandedOpCfg(isOpen ? null : username)}
+                      className="w-full flex items-center gap-3 p-3 text-left"
+                    >
+                      <div className={`w-9 h-9 rounded-full border flex items-center justify-center font-bold text-xs shrink-0 ${
+                        entry.useGlobal ? 'bg-muted/30 border-border/50 text-foreground' : 'bg-primary/15 border-primary/40 text-primary'
+                      }`}>
+                        {initials}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-bold text-foreground text-sm truncate">{displayName}</p>
+                          {!entry.useGlobal && (
+                            <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border border-primary/40 bg-primary/10 text-primary">
+                              Personalizado
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{modelLabel}</p>
+                      </div>
+                      <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {isOpen && (
+                      <div className="border-t border-border/40 p-4 space-y-4 bg-background/30">
+                        {/* Use global toggle */}
+                        <div className="flex items-center justify-between gap-3 p-3 rounded-lg border border-border/40 bg-card/30">
+                          <div>
+                            <p className="text-xs font-bold text-foreground">Usar regra global</p>
+                            <p className="text-[10px] text-muted-foreground mt-0.5">Quando ativo, este operador segue a configuração definida acima.</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => entry.useGlobal ? updateEntry({ useGlobal: false, model: payConfig.model }) : updateEntry({ useGlobal: true })}
+                            className={`relative w-11 h-6 rounded-full transition-colors ${entry.useGlobal ? 'bg-primary' : 'bg-muted'}`}
+                          >
+                            <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-background shadow transition-all ${entry.useGlobal ? 'left-[22px]' : 'left-0.5'}`} />
+                          </button>
+                        </div>
+
+                        {!entry.useGlobal && (
+                          <>
+                            {/* Model picker */}
+                            <div className="grid grid-cols-3 gap-2">
+                              {[
+                                { key: 'fixo' as PayModel, label: 'Fixo/conta', icon: Coins },
+                                { key: 'percent' as PayModel, label: '% lucro', icon: Percent },
+                                { key: 'split' as PayModel, label: 'Split', icon: Scale },
+                              ].map(m => {
+                                const active = effective.model === m.key;
+                                const Icon = m.icon;
+                                return (
+                                  <button
+                                    key={m.key}
+                                    type="button"
+                                    onClick={() => updateEntry({ model: m.key })}
+                                    className={`flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-lg border text-xs font-bold transition-all ${
+                                      active
+                                        ? 'border-primary/60 bg-primary/15 text-primary'
+                                        : 'border-border/40 bg-card/30 text-muted-foreground hover:text-foreground hover:border-primary/30'
+                                    }`}
+                                  >
+                                    <Icon className="w-3.5 h-3.5" /> {m.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+
+                            {/* Inputs by model */}
+                            {effective.model === 'fixo' && (
+                              <div className="grid grid-cols-2 gap-3">
+                                <label className="block">
+                                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Normal (R$)</span>
+                                  <input
+                                    type="number" step="0.01" min={0}
+                                    value={effective.valorNormal}
+                                    onChange={e => updateEntry({ valorNormal: Number(e.target.value) })}
+                                    className="mt-1 w-full bg-background border border-border/50 focus:border-primary rounded-md px-2.5 py-1.5 text-sm font-bold text-foreground focus:outline-none"
+                                  />
+                                </label>
+                                <label className="block">
+                                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Baixa (R$)</span>
+                                  <input
+                                    type="number" step="0.01" min={0}
+                                    value={effective.valorBaixa}
+                                    onChange={e => updateEntry({ valorBaixa: Number(e.target.value) })}
+                                    className="mt-1 w-full bg-background border border-border/50 focus:border-primary rounded-md px-2.5 py-1.5 text-sm font-bold text-foreground focus:outline-none"
+                                  />
+                                </label>
+                              </div>
+                            )}
+                            {effective.model === 'percent' && (
+                              <label className="block max-w-xs">
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Percentual (%)</span>
+                                <input
+                                  type="number" step="0.5" min={0} max={100}
+                                  value={effective.percent}
+                                  onChange={e => updateEntry({ percent: Number(e.target.value) })}
+                                  className="mt-1 w-full bg-background border border-border/50 focus:border-primary rounded-md px-2.5 py-1.5 text-sm font-bold text-foreground focus:outline-none"
+                                />
+                              </label>
+                            )}
+                            {effective.model === 'split' && (
+                              <label className="block max-w-xs">
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">% do operador</span>
+                                <input
+                                  type="number" step="1" min={0} max={100}
+                                  value={effective.splitPercent}
+                                  onChange={e => updateEntry({ splitPercent: Number(e.target.value) })}
+                                  className="mt-1 w-full bg-background border border-border/50 focus:border-primary rounded-md px-2.5 py-1.5 text-sm font-bold text-foreground focus:outline-none"
+                                />
+                              </label>
+                            )}
+
+                            <div className="flex items-center justify-end">
+                              <button
+                                onClick={resetToGlobal}
+                                className="text-[11px] font-semibold text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-muted/30 transition-colors"
+                              >
+                                <Undo2 className="w-3 h-3" /> Restaurar regra global
+                              </button>
+                            </div>
+                          </>
+                        )}
+
+                        <p className="text-[10px] text-muted-foreground flex items-center gap-1.5">
+                          <Info className="w-3 h-3 text-primary" />
+                          Alterações valem apenas para novas metas deste operador.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+
 
 
           <div className="rounded-2xl border border-border/50 bg-card/30 overflow-hidden">
