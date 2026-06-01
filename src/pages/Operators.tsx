@@ -102,6 +102,11 @@ const Operators = () => {
   const [pendingModel, setPendingModel] = useState<PayModel | null>(null);
   const [draftConfig, setDraftConfig] = useState<PayConfig>(payConfig);
 
+  // Per-operator overrides — each operator can have its own pay model or inherit the global
+  type PerOpEntry = { useGlobal: boolean } & Partial<PayConfig>;
+  const [perOpConfig, setPerOpConfig] = useLocalStorage<Record<string, PerOpEntry>>(`nytzer-paymodel-perop-${activeOperator}`, {});
+  const [expandedOpCfg, setExpandedOpCfg] = useState<string | null>(null);
+
   useEffect(() => { setDraftConfig(payConfig); }, [payConfig]);
 
 
