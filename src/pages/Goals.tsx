@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSyncedState } from '../hooks/useSyncedState';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import { PeriodFilter, DateFilter, buildDateFilter, isInRange } from '@/components/ui/period-filter';
-import { Target, Rocket, Edit3, Plus, Trash2, Check, TrendingUp, Trophy } from 'lucide-react';
+import { Target, Edit3, Plus, Trash2, Check, TrendingUp, Trophy, Sparkles, BrainCircuit, Calendar, Infinity as InfinityIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNotifications } from '../contexts/NotificationContext';
 import { pushNotify } from '../lib/notifications';
@@ -13,8 +12,10 @@ interface Goal {
   id: string;
   title: string;
   target: number;
-  current: number; // will be ignored and synced to receitaMensal
+  current: number; // legacy, no longer used for live calc
+  type: 'monthly' | 'custom';
   createdAt: number;
+  closedAt?: number;
   notified?: boolean;
 }
 
@@ -282,27 +283,32 @@ export default function Goals() {
   const [goals, setGoals] = useSyncedState<Goal[]>('nytzer-goals', []);
   const [title, setTitle] = useState('');
   const [target, setTarget] = useState('');
+  const [goalType, setGoalType] = useState<'monthly' | 'custom'>('monthly');
+
   const { addNotification } = useNotifications();
   const { metas, costs, users } = useFirestoreData();
   const [role] = useLocalStorage<'ADMIN' | 'OPERADOR'>('nytzer-role', 'ADMIN');
   const [user] = useLocalStorage<any>('nytzer-user', null);
   const operatorName = user?.username || 'Operador Central';
 
-  const [dateFilter, setDateFilter] = useState<DateFilter>(buildDateFilter('MES'));
   const notifiedRef = useRef<Set<string>>(new Set());
 
-  const receitaMensal = useMemo(() => {
-    let totalDepositado = 0;
-    let totalSacado = 0;
-    let totalSalarios = 0;
-    let totalAutoSalarios = 0;
+  // Function to determine if a date is within a given range
+  const isDateInRange = (date: Date, start: Date, end: Date | null) => {
+    if (date < start) return false;
+    if (end && date > end) return false;
+    return true;
+  };
+
+  // Memoize all transactions (net results mapped by date) for faster calculation per goal
+  const transactions = useMemo(() => {
+    const list: { date: Date, amount: number }[] = [];
 
     for (const meta of metas) {
       if (meta.status === 'lixeira') continue;
       const isFechada = meta.status === 'fechada';
       if (!isFechada) continue;
 
-      // Same visibility logic as Dashboard
       let isVisible = false;
       if (role === 'ADMIN') {
         isVisible = meta.operador === operatorName ||
@@ -316,8 +322,6 @@ export default function Goals() {
       const remessas = meta.remessas || [];
       const sal = Number(meta.salarioOperador) || 0;
       const pagOp = Number(meta.pagamentoOperador) || 0;
-
-      // Total contas in the meta (used for proportional salary split)
       const totalContasMeta = remessas.reduce((acc: any, r: any) => acc + Number(r.contas || 0), 0);
 
       remessas.forEach((r: any) => {
@@ -346,44 +350,89 @@ export default function Goals() {
         }
 
         const remessaDate = new Date(r.data || meta.createdAt);
-        const inPeriod = isInRange(remessaDate, dateFilter);
+        const lucroBruto = saq - dep;
+        const lucroOp = lucroBruto + remSal - remAutoSal;
 
-        if (inPeriod) {
-          totalDepositado += dep;
-          totalSacado += saq;
-          totalSalarios += remSal;
-          totalAutoSalarios += remAutoSal;
-        }
+        list.push({ date: remessaDate, amount: lucroOp });
       });
 
-      // Handle metas with 0 contas (no remessas counted) — put full amount on createdAt date
       if (totalContasMeta === 0 && remessas.length === 0) {
         const metaDate = new Date(meta.createdAt);
-        if (isInRange(metaDate, dateFilter)) {
-          totalSalarios += sal;
-          if (!meta.isAdminMeta && meta.modelo === 'Recarga') {
-            totalAutoSalarios += pagOp;
-          }
+        let lucroOp = sal;
+        if (!meta.isAdminMeta && meta.modelo === 'Recarga') {
+          lucroOp -= pagOp;
         }
+        list.push({ date: metaDate, amount: lucroOp });
       }
     }
 
-    let totalCustos = 0;
     for (const cost of costs) {
        const costDate = cost.date ? new Date(cost.date + 'T12:00:00') : new Date(cost.createdAt);
-       if (isInRange(costDate, dateFilter)) {
-         totalCustos += Number(cost.amount || 0);
-       }
+       list.push({ date: costDate, amount: -Number(cost.amount || 0) });
     }
 
-    const lucroBruto = totalSacado - totalDepositado;
-    const lucroOperacional = lucroBruto + totalSalarios - totalAutoSalarios;
-    return lucroOperacional - totalCustos;
-  }, [metas, costs, users, role, operatorName, dateFilter]);
+    // sort by date ascending for easier cumulative operations
+    list.sort((a, b) => a.date.getTime() - b.date.getTime());
+    return list;
+  }, [metas, costs, users, role, operatorName]);
+
+  // Function to compute progress for a specific goal
+  const computeGoalProgress = (g: Goal) => {
+    let start: Date;
+    let end: Date | null = null;
+    
+    // Fallback if type is missing (legacy)
+    const type = g.type || 'monthly';
+
+    if (type === 'monthly') {
+      const gDate = new Date(g.createdAt);
+      start = new Date(gDate.getFullYear(), gDate.getMonth(), 1);
+      end = new Date(gDate.getFullYear(), gDate.getMonth() + 1, 0, 23, 59, 59, 999);
+    } else {
+      start = new Date(g.createdAt);
+      // until closed
+      end = g.closedAt ? new Date(g.closedAt) : null;
+    }
+
+    let progress = 0;
+    for (const tx of transactions) {
+      if (isDateInRange(tx.date, start, end)) {
+        progress += tx.amount;
+      }
+    }
+    return progress;
+  };
+
+  const calculateAIForecast = (g: Goal, currentProgress: number) => {
+    if (currentProgress <= 0 || currentProgress >= g.target) return null;
+    
+    const start = g.type === 'monthly' ? new Date(new Date(g.createdAt).getFullYear(), new Date(g.createdAt).getMonth(), 1).getTime() : g.createdAt;
+    const now = Date.now();
+    const daysActive = Math.max(1, (now - start) / (1000 * 60 * 60 * 24));
+    
+    const avgPerDay = currentProgress / daysActive;
+    if (avgPerDay <= 0) return null; // No progress or negative
+
+    const remaining = g.target - currentProgress;
+    const daysLeft = Math.ceil(remaining / avgPerDay);
+    return daysLeft;
+  };
+
+  // Map goals to their progress
+  const goalsWithProgress = useMemo(() => {
+    return goals.map(g => {
+      const progress = computeGoalProgress(g);
+      const forecastDays = calculateAIForecast(g, progress);
+      return { ...g, progress, forecastDays };
+    });
+  }, [goals, transactions]);
 
   useEffect(() => {
-    goals.forEach(g => {
-      const reached = g.target > 0 && receitaMensal >= g.target;
+    let updated = false;
+    const newGoals = [...goals];
+
+    goalsWithProgress.forEach(g => {
+      const reached = g.target > 0 && g.progress >= g.target;
       if (reached && !g.notified && !notifiedRef.current.has(g.id)) {
         notifiedRef.current.add(g.id);
         toast.success(`🎯 Meta atingida: ${g.title}!`, {
@@ -396,10 +445,19 @@ export default function Goals() {
           targetRole: 'ALL',
         });
         pushNotify('🎯 Meta atingida!', `${g.title} — ${formatBRL(g.target)} alcançados.`);
-        setGoals(prev => prev.map(x => (x.id === g.id ? { ...x, notified: true } : x)));
+        
+        const idx = newGoals.findIndex(x => x.id === g.id);
+        if (idx >= 0) {
+          newGoals[idx] = { ...newGoals[idx], notified: true };
+          updated = true;
+        }
       }
     });
-  }, [goals, receitaMensal, addNotification, setGoals]);
+
+    if (updated) {
+      setGoals(newGoals);
+    }
+  }, [goalsWithProgress, addNotification, setGoals, goals]);
 
   const addGoal = () => {
     const t = parseFloat(target.replace(',', '.'));
@@ -408,7 +466,7 @@ export default function Goals() {
       return;
     }
     setGoals(prev => [
-      { id: crypto.randomUUID(), title: title.trim(), target: t, current: 0, createdAt: Date.now() },
+      { id: crypto.randomUUID(), title: title.trim(), target: t, current: 0, type: goalType, createdAt: Date.now() },
       ...prev,
     ]);
     setTitle('');
@@ -421,40 +479,46 @@ export default function Goals() {
   };
 
   const totals = useMemo(() => {
-    const target = goals.reduce((s, g) => s + g.target, 0);
-    // current is now the dashboard's receitaMensal
-    const current = receitaMensal;
-    const reached = goals.filter(g => receitaMensal >= g.target).length;
+    const target = goalsWithProgress.reduce((s, g) => s + g.target, 0);
+    const current = goalsWithProgress.reduce((s, g) => s + Math.max(0, g.progress), 0);
+    const reached = goalsWithProgress.filter(g => g.progress >= g.target).length;
     return { target, current, reached, pct: target ? (current / target) * 100 : 0 };
-  }, [goals, receitaMensal]);
+  }, [goalsWithProgress]);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-fade-in relative z-10 w-full text-foreground">
       {/* Header */}
-      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5 flex items-center justify-between gap-4 flex-wrap">
+      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5 flex items-center justify-between gap-4 flex-wrap shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-            <Target className="w-5 h-5 text-primary" />
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center relative overflow-hidden">
+            <div className="absolute inset-0 bg-primary/10 blur-xl"></div>
+            <Target className="w-6 h-6 text-primary relative z-10 drop-shadow-md" />
           </div>
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Objetivos</h1>
-            <p className="text-sm text-muted-foreground mt-1">Defina metas e acompanhe o progresso em tempo real.</p>
+            <h1 className="text-3xl font-extrabold tracking-tight text-foreground bg-clip-text">
+              Objetivos Inteligentes
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5">
+              <BrainCircuit className="w-3.5 h-3.5 text-primary/70" />
+              Previsão algorítmica IA ativada em tempo real.
+            </p>
           </div>
         </div>
-        <PeriodFilter value={dateFilter} onChange={setDateFilter} />
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Metas ativas', value: goals.length, tone: 'text-foreground' },
-          { label: 'Concluídas', value: totals.reached, tone: 'text-success' },
-          { label: 'Total acumulado', value: formatBRL(totals.current), tone: 'text-primary' },
-          { label: 'Total alvo', value: formatBRL(totals.target), tone: 'text-warning' },
+          { label: 'Metas ativas', value: goals.length, tone: 'text-foreground', bg: 'bg-card/60' },
+          { label: 'Concluídas', value: totals.reached, tone: 'text-success', bg: 'bg-success/5' },
+          { label: 'Soma dos Progressos', value: formatBRL(totals.current), tone: 'text-primary', bg: 'bg-primary/5' },
+          { label: 'Total Alvo (Soma)', value: formatBRL(totals.target), tone: 'text-warning', bg: 'bg-warning/5' },
         ].map(s => (
-          <div key={s.label} className="rounded-2xl border border-border bg-card/60 backdrop-blur p-4">
-            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">{s.label}</p>
-            <p className={`text-xl font-bold tabular-nums tracking-tight ${s.tone}`}>{s.value}</p>
+          <div key={s.label} className={`rounded-2xl border border-border ${s.bg} backdrop-blur p-5 shadow-sm transition-all hover:shadow-md`}>
+            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-2 flex items-center gap-2">
+              {s.label}
+            </p>
+            <p className={`text-2xl font-bold tabular-nums tracking-tight drop-shadow-sm ${s.tone}`}>{s.value}</p>
           </div>
         ))}
       </div>
@@ -462,107 +526,181 @@ export default function Goals() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Create */}
         <div className="lg:col-span-4">
-          <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
-                <Plus className="w-4 h-4 text-primary" />
+          <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-6 sticky top-6 shadow-sm">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <Plus className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-foreground">Nova meta</h3>
-                <p className="text-[11px] text-muted-foreground mt-0.5">Estipule um valor para atingir</p>
+                <h3 className="text-base font-bold text-foreground">Nova meta</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Estipule um objetivo inteligente</p>
               </div>
             </div>
 
-            <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-1.5">Título</label>
-            <input
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              placeholder="Ex: Faturamento de Maio"
-              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/40 mb-3"
-            />
+            <div className="space-y-4">
+              <div>
+                <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">Título da Meta</label>
+                <input
+                  value={title}
+                  onChange={e => setTitle(e.target.value)}
+                  placeholder="Ex: Faturamento de Maio"
+                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/40 transition-all placeholder:text-muted-foreground/50 shadow-inner"
+                />
+              </div>
 
-            <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-1.5">Valor da meta (R$)</label>
-            <input
-              value={target}
-              onChange={e => setTarget(e.target.value)}
-              placeholder="10000"
-              inputMode="decimal"
-              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/40 mb-4"
-            />
+              <div>
+                <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">Valor Alvo (R$)</label>
+                <input
+                  value={target}
+                  onChange={e => setTarget(e.target.value)}
+                  placeholder="10000"
+                  inputMode="decimal"
+                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm font-medium tabular-nums text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/40 transition-all shadow-inner"
+                />
+              </div>
 
-            <button
-              onClick={addGoal}
-              className="w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Criar meta
-            </button>
+              <div>
+                <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">Período de Apuração</label>
+                <div className="grid grid-cols-2 gap-2 p-1 bg-background rounded-xl border border-border shadow-inner">
+                  <button
+                    onClick={() => setGoalType('monthly')}
+                    className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all ${goalType === 'monthly' ? 'bg-primary text-primary-foreground shadow-md' : 'text-muted-foreground hover:bg-muted/50'}`}
+                  >
+                    <Calendar className="w-3.5 h-3.5" />
+                    Mensal
+                  </button>
+                  <button
+                    onClick={() => setGoalType('custom')}
+                    className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all ${goalType === 'custom' ? 'bg-primary text-primary-foreground shadow-md' : 'text-muted-foreground hover:bg-muted/50'}`}
+                  >
+                    <InfinityIcon className="w-3.5 h-3.5" />
+                    Contínua
+                  </button>
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-2 px-1">
+                  {goalType === 'monthly' ? 'A meta reinicia todo mês. Calcula apenas os resultados do mês atual.' : 'A meta acumula continuamente até atingir o alvo (fechar como batida).'}
+                </p>
+              </div>
+
+              <button
+                onClick={addGoal}
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-3.5 mt-2 rounded-xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-sm font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all"
+              >
+                <Target className="w-4 h-4" />
+                Lançar Meta Inteligente
+              </button>
+            </div>
           </div>
         </div>
 
         {/* List */}
-        <div className="lg:col-span-8 space-y-4">
-          {goals.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-border bg-card/30 p-12 text-center">
-              <Target className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">Nenhuma meta criada. Comece estipulando um objetivo ao lado.</p>
+        <div className="lg:col-span-8 space-y-5">
+          {goalsWithProgress.length === 0 && (
+            <div className="rounded-3xl border border-dashed border-border bg-card/30 p-16 text-center flex flex-col items-center">
+              <div className="w-16 h-16 rounded-full bg-muted/20 flex items-center justify-center mb-4">
+                <Target className="w-8 h-8 text-muted-foreground/40" />
+              </div>
+              <p className="text-base font-semibold text-foreground mb-1">Nenhum objetivo traçado</p>
+              <p className="text-sm text-muted-foreground">Comece criando sua primeira meta para ativar a previsão IA.</p>
             </div>
           )}
 
-          {goals.map(g => {
-            const pct = g.target > 0 ? (receitaMensal / g.target) * 100 : 0;
+          {goalsWithProgress.map(g => {
+            const pct = g.target > 0 ? (g.progress / g.target) * 100 : 0;
             const reached = pct >= 100;
+            
             return (
-              <div key={g.id} className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5">
-                <div className="flex items-start justify-between gap-3 mb-4">
+              <div key={g.id} className="rounded-3xl border border-border bg-card/60 backdrop-blur p-6 shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none group-hover:bg-primary/10 transition-all"></div>
+                
+                <div className="flex items-start justify-between gap-3 mb-5 relative z-10">
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-base font-bold text-foreground truncate">{g.title}</h3>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <h3 className="text-lg font-extrabold text-foreground truncate drop-shadow-sm">{g.title}</h3>
                       {reached && <Trophy className="w-4 h-4 text-success shrink-0" />}
+                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${g.type === 'monthly' ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-secondary text-secondary-foreground border border-border'}`}>
+                        {g.type === 'monthly' ? 'Mensal' : 'Contínua'}
+                      </span>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {formatBRL(Math.min(receitaMensal, g.target))} de {formatBRL(g.target)}
+                    <p className="text-xs text-muted-foreground font-medium">
+                      Progresso real filtrado em tempo real
                     </p>
                   </div>
                   <button
                     onClick={() => removeGoal(g.id)}
-                    className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                    className="p-2.5 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors bg-background border border-border shadow-sm"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 relative z-10">
                   <RocketProgress percent={pct} />
 
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-1.5">
-                        Progresso atual
-                      </label>
-                      <div className="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-background transition-colors text-sm">
-                        <span className="font-semibold text-foreground tabular-nums">{formatBRL(receitaMensal)}</span>
-                        <TrendingUp className="w-3.5 h-3.5 text-primary" />
-                      </div>
-                    </div>
-
-                    <div className="rounded-lg border border-border bg-background p-3 mt-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">
-                          Restante
+                  <div className="space-y-4 flex flex-col justify-center">
+                    
+                    {/* IA Forecast Badge */}
+                    <div className="rounded-xl border border-border bg-background/50 p-4 relative overflow-hidden group/ai">
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent pointer-events-none"></div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Sparkles className="w-4 h-4 text-primary animate-pulse" />
+                        <span className="text-[10px] font-bold text-primary uppercase tracking-widest drop-shadow-sm">
+                          Previsão Inteligente IA
                         </span>
-                        <TrendingUp className="w-3.5 h-3.5 text-muted-foreground" />
                       </div>
-                      <p className={`text-lg font-bold tabular-nums ${reached ? 'text-success' : 'text-foreground'}`}>
-                        {reached ? 'Meta atingida!' : formatBRL(Math.max(0, g.target - receitaMensal))}
+                      <p className="text-sm font-medium text-foreground relative z-10">
+                        {reached ? (
+                          <span className="text-success font-bold flex items-center gap-1.5">
+                            <Check className="w-4 h-4" /> Alvo alcançado com sucesso!
+                          </span>
+                        ) : g.forecastDays !== null ? (
+                          <span className="flex items-center gap-1.5">
+                            Estimativa para bater a meta: <strong className="text-primary text-base">~{g.forecastDays} dias</strong>
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">Coletando dados suficientes para prever...</span>
+                        )}
                       </p>
                     </div>
 
-                    <div className="h-2 rounded-full bg-border/50 overflow-hidden">
-                      <div
-                        className={`h-full transition-all duration-1000 ease-out ${reached ? 'bg-success' : 'bg-primary'}`}
-                        style={{ width: `${Math.min(100, pct)}%` }}
-                      />
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="rounded-xl border border-border bg-background p-3.5 shadow-sm">
+                        <label className="block text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-1.5">
+                          Atualmente
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <span className="text-base font-bold text-foreground tabular-nums">{formatBRL(g.progress)}</span>
+                          <TrendingUp className="w-3.5 h-3.5 text-primary opacity-70" />
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl border border-border bg-background p-3.5 shadow-sm">
+                        <label className="block text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-1.5">
+                          Alvo Restante
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-base font-bold tabular-nums ${reached ? 'text-success' : 'text-foreground'}`}>
+                            {reached ? 'Batida!' : formatBRL(Math.max(0, g.target - g.progress))}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-2">
+                      <div className="h-2.5 rounded-full bg-muted overflow-hidden shadow-inner border border-border/50">
+                        <div
+                          className={`h-full transition-all duration-1000 ease-out relative ${reached ? 'bg-success shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)]'}`}
+                          style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
+                        >
+                          <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center mt-1.5 px-0.5">
+                        <span className="text-[10px] font-semibold text-muted-foreground">0%</span>
+                        <span className={`text-[11px] font-bold tabular-nums ${reached ? 'text-success' : 'text-primary'}`}>
+                          {pct.toFixed(1)}%
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
