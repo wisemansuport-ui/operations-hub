@@ -1,10 +1,12 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   Radio, TrendingUp, TrendingDown, Minus, Trophy, Activity, Target, DollarSign,
-  Sparkles, Eye, CheckCircle, AlertTriangle, XCircle, BarChart2, LayoutGrid
+  Sparkles, Eye, CheckCircle, AlertTriangle, XCircle, BarChart2, LayoutGrid,
+  ChevronRight, MousePointerClick
 } from "lucide-react";
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useFirestoreData } from '../hooks/useFirestoreData';
+
 
 interface NetworkStats {
   id: string;
@@ -165,6 +167,8 @@ const Networks = () => {
   const [user] = useLocalStorage<any>('nytzer-user', null);
   const activeOperator = user?.username || 'admin';
   const role           = user?.role     || 'ADMIN';
+  const [selectedNetworkId, setSelectedNetworkId] = useState<string | null>(null);
+
 
   const networkData = useMemo((): NetworkStats[] => {
     type RMap = Record<string, {
@@ -241,7 +245,21 @@ const Networks = () => {
     return data;
   }, [metas, users, role, activeOperator]);
 
+  // Auto-select top-ranked network when list changes (or first selection invalidates)
+  useEffect(() => {
+    if (networkData.length === 0) {
+      if (selectedNetworkId !== null) setSelectedNetworkId(null);
+      return;
+    }
+    if (!selectedNetworkId || !networkData.find(n => n.id === selectedNetworkId)) {
+      setSelectedNetworkId(networkData[0].id);
+    }
+  }, [networkData, selectedNetworkId]);
+
+  const selectedNetwork = networkData.find(n => n.id === selectedNetworkId) || null;
+
   // ── KPIs de resumo ──────────────────────────────────────────────────────────
+
   const totalRedes      = networkData.length;
   const redesLucrativas = networkData.filter(n => n.totalProfit > 0).length;
   const lucroTotal      = networkData.reduce((a, n) => a + n.totalProfit, 0);
@@ -379,155 +397,247 @@ const Networks = () => {
         </div>
       )}
 
-      {/* ── Ranking completo ─────────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5">
-        <div className="flex items-end justify-between mb-4 pb-3 border-b border-border/60">
+      {/* ── Ranking por Network Score (redesign profissional) ──────────────── */}
+      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur overflow-hidden">
+        <div className="flex items-end justify-between px-6 pt-5 pb-4 border-b border-border/60">
           <div className="flex items-center gap-2.5">
             <Trophy className="w-4 h-4 text-primary" />
             <h2 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">Ranking por Network Score</h2>
           </div>
-          <span className="text-[11px] font-semibold text-muted-foreground tabular-nums">
-            {networkData.length} {networkData.length === 1 ? 'rede' : 'redes'}
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="hidden sm:inline-flex items-center gap-1.5 text-[10px] text-muted-foreground/80">
+              <MousePointerClick className="w-3 h-3" />
+              clique em uma rede
+            </span>
+            <span className="text-[11px] font-semibold text-muted-foreground tabular-nums">
+              {networkData.length} {networkData.length === 1 ? 'rede' : 'redes'}
+            </span>
+          </div>
         </div>
 
-        <div className="divide-y divide-border/60">
+        {/* Cabeçalho colunar (desktop) */}
+        <div className="hidden lg:grid grid-cols-[60px_1.6fr_repeat(4,minmax(0,1fr))_140px] gap-4 px-6 py-2.5 text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-widest bg-black/10 border-b border-border/40">
+          <span className="text-center">Rank</span>
+          <span>Rede</span>
+          <span className="text-right">Metas / Contas</span>
+          <span className="text-right">Win · ROI</span>
+          <span className="text-right">R$ / Conta</span>
+          <span className="text-right">Capital → Retorno</span>
+          <span className="text-right">Lucro</span>
+        </div>
+
+        <div className="divide-y divide-border/40">
           {networkData.map(network => {
-            const rec    = recConfig[network.recommendationType];
-            const RecIcon = rec.Icon;
+            const isSelected = selectedNetworkId === network.id;
+            const profitPositive = network.totalProfit >= 0;
             return (
-              <div key={network.id} className="group relative py-4 first:pt-1 last:pb-1 hover:bg-accent/5 -mx-5 px-5 transition-colors">
-                {/* barra lateral colorida */}
-                <div className={`absolute top-3 bottom-3 left-0 w-[2px] rounded-r ${network.totalProfit > 0 ? 'bg-success/70' : 'bg-destructive/70'}`} />
+              <button
+                key={network.id}
+                type="button"
+                onClick={() => setSelectedNetworkId(network.id)}
+                aria-pressed={isSelected}
+                className={`group relative w-full text-left px-6 py-4 transition-all duration-200 ${
+                  isSelected
+                    ? 'bg-primary/[0.06]'
+                    : 'hover:bg-accent/5'
+                }`}
+              >
+                {/* indicador lateral */}
+                <span
+                  className={`absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full transition-all duration-300 ${
+                    isSelected
+                      ? 'bg-primary shadow-[0_0_12px_hsl(var(--primary))]'
+                      : profitPositive
+                        ? 'bg-success/40 group-hover:bg-success/70'
+                        : 'bg-destructive/40 group-hover:bg-destructive/70'
+                  }`}
+                />
 
-                <div className="flex flex-col lg:flex-row items-start lg:items-center gap-5 pl-3">
-                  {/* Rank + Score + Info */}
-                  <div className="flex items-center gap-4 flex-1 w-full">
-                    <div className="flex flex-col items-center gap-0.5 min-w-[36px]">
-                      <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">Rank</span>
-                      <span className={`text-xl font-bold tabular-nums ${network.rank === 1 ? 'text-primary' : 'text-foreground/70'}`}>
-                        #{network.rank}
-                      </span>
+                {/* Layout desktop em grid */}
+                <div className="hidden lg:grid grid-cols-[60px_1.6fr_repeat(4,minmax(0,1fr))_140px] gap-4 items-center">
+                  {/* Rank */}
+                  <div className="flex flex-col items-center">
+                    <span className={`text-[9px] font-semibold uppercase tracking-widest ${isSelected ? 'text-primary/80' : 'text-muted-foreground/60'}`}>Rank</span>
+                    <span className={`text-lg font-bold tabular-nums leading-tight ${
+                      network.rank === 1 ? 'text-primary' : isSelected ? 'text-foreground' : 'text-foreground/80'
+                    }`}>
+                      #{network.rank}
+                    </span>
+                  </div>
+
+                  {/* Rede + score chip + trend */}
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className={`flex items-center justify-center w-11 h-11 rounded-xl border tabular-nums font-bold text-sm shrink-0 transition-colors ${
+                      network.score >= 70
+                        ? 'border-primary/30 bg-primary/10 text-primary'
+                        : network.score >= 40
+                          ? 'border-warning/30 bg-warning/10 text-warning'
+                          : 'border-destructive/30 bg-destructive/10 text-destructive'
+                    }`}>
+                      {network.score}
                     </div>
-
-                    <RingScore score={network.score} />
-
-                    <div className="flex-1 min-w-0">
-                      {/* Nome + badges */}
-                      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                        <h3 className="text-base font-bold text-foreground tracking-tight">{network.name}</h3>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-bold text-foreground tracking-tight truncate">{network.name}</h3>
                         <TrendBadge trend={network.trend} />
-                        <span className={`inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md border ${rec.cls}`}>
-                          <RecIcon className="w-3 h-3" />{rec.label}
-                        </span>
                       </div>
-
-                      {/* Métricas inline */}
-                      <div className="flex items-center gap-x-4 gap-y-1 text-xs text-muted-foreground flex-wrap tabular-nums">
-                        <span><span className="font-semibold text-foreground">{network.metas}</span> metas</span>
-                        <span className="text-border">·</span>
-                        <span><span className="font-semibold text-foreground">{network.contas}</span> contas</span>
-                        <span className="text-border">·</span>
-                        <span><span className="font-semibold text-foreground">{network.mmPorMeta}</span> mm/meta</span>
-                        <span className="text-border">·</span>
-                        <span>win <span className="font-semibold text-primary">{network.winRate}%</span></span>
-                        <span className="text-border">·</span>
-                        <span>ROI <span className={`font-semibold ${network.roi >= 0 ? 'text-success' : 'text-destructive'}`}>{fPerc(network.roi)}</span></span>
-                      </div>
-
-                      {/* Capital alocado → retorno */}
-                      <div className="flex items-center gap-2 mt-1.5 text-[11px] text-muted-foreground">
-                        <span>Capital: <span className="text-foreground font-medium">{fBRL(network.totalDeposito)}</span></span>
-                        <span className="text-border">→</span>
-                        <span>Retorno: <span className="text-foreground font-medium">{fBRL(network.totalSaque)}</span></span>
-                      </div>
-
-                      {/* Barra de score */}
-                      <div className="mt-2.5 h-1.5 w-full rounded-full bg-secondary overflow-hidden">
+                      <div className="mt-1 h-1 w-full max-w-[180px] rounded-full bg-secondary/60 overflow-hidden">
                         <div
-                          className={`h-full rounded-full transition-all duration-1000 ${network.totalProfit >= 0 ? 'bg-gradient-to-r from-primary/70 to-primary' : 'bg-gradient-to-r from-destructive/60 to-destructive'}`}
+                          className={`h-full rounded-full transition-all duration-700 ${profitPositive ? 'bg-gradient-to-r from-primary/60 to-primary' : 'bg-gradient-to-r from-destructive/60 to-destructive'}`}
                           style={{ width: `${network.score}%` }}
                         />
                       </div>
                     </div>
                   </div>
 
-                  {/* Lucro + Eficiência */}
-                  <div className="flex flex-row lg:flex-col items-end justify-between w-full lg:w-auto lg:min-w-[160px] lg:text-right gap-2 pt-3 lg:pt-0 border-t lg:border-t-0 border-border/60">
-                    <div className="lg:order-2">
-                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-0.5">Eficiência</p>
-                      <p className="text-xs font-semibold text-foreground tabular-nums">
-                        {fBRL(network.profitPerConta)}<span className="text-muted-foreground font-normal">/conta</span>
-                      </p>
-                    </div>
-                    <div className="lg:order-1">
-                      <p className={`text-xl font-bold tracking-tight tabular-nums ${network.totalProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
-                        {network.totalProfit >= 0 ? '+' : ''}{fBRL(network.totalProfit)}
-                      </p>
-                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mt-0.5">Lucro Total</p>
-                    </div>
+                  {/* Metas / Contas */}
+                  <div className="text-right tabular-nums">
+                    <p className="text-sm font-semibold text-foreground">{network.metas} <span className="text-[10px] font-normal text-muted-foreground uppercase tracking-wider">metas</span></p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{network.contas} contas</p>
+                  </div>
+
+                  {/* Win · ROI */}
+                  <div className="text-right tabular-nums">
+                    <p className="text-sm font-semibold text-primary">{network.winRate}%<span className="text-[10px] font-normal text-muted-foreground ml-1">win</span></p>
+                    <p className={`text-[11px] mt-0.5 font-medium ${network.roi >= 0 ? 'text-success' : 'text-destructive'}`}>ROI {fPerc(network.roi)}</p>
+                  </div>
+
+                  {/* R$/cta */}
+                  <div className="text-right tabular-nums">
+                    <p className="text-sm font-semibold text-foreground">{fBRL(network.profitPerConta)}</p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">por conta</p>
+                  </div>
+
+                  {/* Capital → Retorno */}
+                  <div className="text-right tabular-nums">
+                    <p className="text-[11px] text-muted-foreground">Cap <span className="text-foreground/90 font-medium">{fBRL(network.totalDeposito)}</span></p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">Ret <span className="text-foreground/90 font-medium">{fBRL(network.totalSaque)}</span></p>
+                  </div>
+
+                  {/* Lucro */}
+                  <div className="text-right">
+                    <p className={`text-lg font-bold tracking-tight tabular-nums ${profitPositive ? 'text-success' : 'text-destructive'}`}>
+                      {profitPositive ? '+' : ''}{fBRL(network.totalProfit)}
+                    </p>
+                    <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest mt-0.5">Lucro Total</p>
                   </div>
                 </div>
-              </div>
+
+                {/* Layout mobile/tablet */}
+                <div className="lg:hidden flex items-center gap-4">
+                  <div className="flex flex-col items-center min-w-[40px]">
+                    <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">Rank</span>
+                    <span className={`text-lg font-bold tabular-nums ${network.rank === 1 ? 'text-primary' : 'text-foreground/80'}`}>#{network.rank}</span>
+                  </div>
+                  <div className={`flex items-center justify-center w-12 h-12 rounded-xl border tabular-nums font-bold text-sm shrink-0 ${
+                    network.score >= 70 ? 'border-primary/30 bg-primary/10 text-primary' :
+                    network.score >= 40 ? 'border-warning/30 bg-warning/10 text-warning' :
+                    'border-destructive/30 bg-destructive/10 text-destructive'
+                  }`}>{network.score}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-sm font-bold text-foreground tracking-tight truncate">{network.name}</h3>
+                      <TrendBadge trend={network.trend} />
+                    </div>
+                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground tabular-nums">
+                      <span>{network.metas} metas</span>
+                      <span>{network.contas} contas</span>
+                      <span>win <span className="text-primary font-semibold">{network.winRate}%</span></span>
+                      <span>ROI <span className={`font-semibold ${network.roi >= 0 ? 'text-success' : 'text-destructive'}`}>{fPerc(network.roi)}</span></span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-base font-bold tabular-nums ${profitPositive ? 'text-success' : 'text-destructive'}`}>
+                      {profitPositive ? '+' : ''}{fBRL(network.totalProfit)}
+                    </p>
+                    <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">Lucro</p>
+                  </div>
+                  <ChevronRight className={`w-4 h-4 transition-colors ${isSelected ? 'text-primary' : 'text-muted-foreground/40'}`} />
+                </div>
+              </button>
             );
           })}
         </div>
       </div>
 
-      {/* ── Recomendações Automatizadas ──────────────────────────────────────── */}
+      {/* ── Recomendação Automatizada (rede selecionada) ───────────────────── */}
       {networkData.length > 0 && (
-        <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5">
-          <div className="flex items-center gap-2.5 mb-5 pb-3 border-b border-border/60">
+        <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-6 relative overflow-hidden">
+          <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="flex items-center gap-2.5 mb-5 pb-3 border-b border-border/60 relative">
             <Sparkles className="w-4 h-4 text-primary" />
-            <h2 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">Recomendações Automatizadas</h2>
-            <span className="ml-auto text-[10px] text-muted-foreground">
-              Geradas pelo score inteligente
+            <h2 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">Recomendação Automatizada</h2>
+            <span className="ml-auto text-[10px] text-muted-foreground hidden sm:inline">
+              Gerada pelo score inteligente
             </span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {networkData.map(n => {
-              const rec     = recConfig[n.recommendationType];
-              const RecIcon = rec.Icon;
 
-              // borda/bg dinâmicos baseados no tipo
-              const borderCls =
-                n.recommendationType === 'increase' ? 'border-success/20 bg-success/5'       :
-                n.recommendationType === 'maintain' ? 'border-primary/20 bg-primary/5'       :
-                n.recommendationType === 'monitor'  ? 'border-warning/20 bg-warning/5'       :
-                n.recommendationType === 'reduce'   ? 'border-orange-400/20 bg-orange-400/5' :
-                'border-destructive/20 bg-destructive/5';
+          {!selectedNetwork && (
+            <div className="flex flex-col items-center justify-center py-12 text-center gap-2">
+              <MousePointerClick className="w-6 h-6 text-muted-foreground/60" />
+              <p className="text-sm text-muted-foreground">Clique em uma rede no ranking acima para ver sua recomendação.</p>
+            </div>
+          )}
 
-              return (
-                <div key={n.id} className={`rounded-xl border p-4 flex items-start gap-3 hover:bg-accent/5 transition-colors ${borderCls}`}>
-                  <div className={`w-8 h-8 rounded-lg border flex items-center justify-center shrink-0 ${rec.cls}`}>
-                    <RecIcon className="w-4 h-4" />
+          {selectedNetwork && (() => {
+            const rec = recConfig[selectedNetwork.recommendationType];
+            const RecIcon = rec.Icon;
+            const tone =
+              selectedNetwork.recommendationType === 'increase' ? 'from-success/15 to-success/[0.02] border-success/25' :
+              selectedNetwork.recommendationType === 'maintain' ? 'from-primary/15 to-primary/[0.02] border-primary/25' :
+              selectedNetwork.recommendationType === 'monitor'  ? 'from-warning/15 to-warning/[0.02] border-warning/25' :
+              selectedNetwork.recommendationType === 'reduce'   ? 'from-orange-400/15 to-orange-400/[0.02] border-orange-400/25' :
+              'from-destructive/15 to-destructive/[0.02] border-destructive/25';
+
+            return (
+              <div key={selectedNetwork.id} className={`rounded-xl border bg-gradient-to-br p-5 sm:p-6 animate-fade-in ${tone}`}>
+                <div className="flex items-start gap-4">
+                  <div className={`w-11 h-11 rounded-xl border flex items-center justify-center shrink-0 ${rec.cls}`}>
+                    <RecIcon className="w-5 h-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="font-bold text-foreground text-sm">{n.name}</span>
-                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${rec.cls}`}>
+                    <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                      <span className="text-base font-bold text-foreground tracking-tight">{selectedNetwork.name}</span>
+                      <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md border ${rec.cls}`}>
                         {rec.label}
                       </span>
+                      <span className="text-[10px] text-muted-foreground">Score <span className="text-foreground font-semibold">{selectedNetwork.score}</span></span>
                     </div>
-                    <p className="text-[12px] text-muted-foreground leading-relaxed">{n.recommendationDetail}</p>
-                    <div className="flex items-center gap-3 mt-2 text-[11px] tabular-nums flex-wrap">
-                      <span className={`font-bold ${n.roi >= 0 ? 'text-success' : 'text-destructive'}`}>
-                        ROI {fPerc(n.roi)}
-                      </span>
-                      <span className="text-muted-foreground">·</span>
-                      <span className="text-muted-foreground">Win {n.winRate}%</span>
-                      <span className="text-muted-foreground">·</span>
-                      <span className="text-muted-foreground">{fBRL(n.profitPerConta)}/cta</span>
-                      <span className="text-muted-foreground">·</span>
-                      <span className="text-muted-foreground">Score <span className="text-foreground font-semibold">{n.score}</span></span>
+                    <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
+                      {selectedNetwork.recommendationDetail}
+                    </p>
+
+                    <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                      <div className="rounded-lg border border-border/50 bg-card/40 px-3 py-2">
+                        <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">ROI</p>
+                        <p className={`text-sm font-bold tabular-nums mt-0.5 ${selectedNetwork.roi >= 0 ? 'text-success' : 'text-destructive'}`}>
+                          {fPerc(selectedNetwork.roi)}
+                        </p>
+                      </div>
+                      <div className="rounded-lg border border-border/50 bg-card/40 px-3 py-2">
+                        <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">Win Rate</p>
+                        <p className="text-sm font-bold tabular-nums mt-0.5 text-primary">{selectedNetwork.winRate}%</p>
+                      </div>
+                      <div className="rounded-lg border border-border/50 bg-card/40 px-3 py-2">
+                        <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">R$ / Conta</p>
+                        <p className="text-sm font-bold tabular-nums mt-0.5 text-foreground">{fBRL(selectedNetwork.profitPerConta)}</p>
+                      </div>
+                      <div className="rounded-lg border border-border/50 bg-card/40 px-3 py-2">
+                        <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">Lucro Total</p>
+                        <p className={`text-sm font-bold tabular-nums mt-0.5 ${selectedNetwork.totalProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
+                          {selectedNetwork.totalProfit >= 0 ? '+' : ''}{fBRL(selectedNetwork.totalProfit)}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })()}
         </div>
       )}
+
     </div>
   );
 };
