@@ -167,6 +167,8 @@ const Networks = () => {
   const [user] = useLocalStorage<any>('nytzer-user', null);
   const activeOperator = user?.username || 'admin';
   const role           = user?.role     || 'ADMIN';
+  const [selectedNetworkId, setSelectedNetworkId] = useState<string | null>(null);
+
 
   const networkData = useMemo((): NetworkStats[] => {
     type RMap = Record<string, {
