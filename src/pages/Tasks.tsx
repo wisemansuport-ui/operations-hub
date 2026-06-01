@@ -436,8 +436,8 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
         const receitaEstimada = totalCompletedContas * 20;
         const lucroReal = receitaEstimada + resultadoLiquido;
 
-        const ultimaR = remessas[remessas.length - 1];
-        const penultimaR = remessas[remessas.length - 2];
+        const ultimaR = remessas[0];
+        const penultimaR = remessas[1];
         const ultResult = ultimaR.saque - ultimaR.deposito;
         
         const ultRatio = ultimaR ? (ultimaR.saque - ultimaR.deposito) / (ultimaR.contas || 1) : 0;
