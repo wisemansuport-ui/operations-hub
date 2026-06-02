@@ -587,7 +587,7 @@ const Networks = () => {
               selectedNetwork.recommendationType === 'increase' ? 'from-success/15 to-success/[0.02] border-success/25' :
               selectedNetwork.recommendationType === 'maintain' ? 'from-primary/15 to-primary/[0.02] border-primary/25' :
               selectedNetwork.recommendationType === 'monitor'  ? 'from-warning/15 to-warning/[0.02] border-warning/25' :
-              selectedNetwork.recommendationType === 'reduce'   ? 'from-orange-400/15 to-orange-400/[0.02] border-orange-400/25' :
+              selectedNetwork.recommendationType === 'reduce'   ? 'from-warning/15 to-warning/[0.02] border-warning/25' :
               'from-destructive/15 to-destructive/[0.02] border-destructive/25';
 
             return (
