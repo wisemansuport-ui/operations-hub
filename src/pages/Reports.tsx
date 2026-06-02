@@ -55,7 +55,8 @@ const Reports = () => {
     }
 
     metas.forEach(meta => {
-      if (meta.status === 'lixeira') return;
+      // Only process fully closed metas (not lixeira, not aberta)
+      if (meta.status !== 'fechada') return;
       
       let isVisible = false;
       if (role === 'ADMIN') {
@@ -75,13 +76,18 @@ const Reports = () => {
       
       totais.previsaoContas += meta.contas;
 
-      const isFechada = meta.status === 'fechada';
       const sal = Number(meta.salarioOperador) || 0;
       const pagOp = Number(meta.pagamentoOperador) || 0;
       
       const remessas = meta.remessas || [];
       const totalContasMeta = remessas.reduce((acc, r) => acc + Number(r.contas || 0), 0);
       let metaTotalDep = 0, metaTotalSaq = 0;
+
+      // Use closedAt if available, otherwise fallback to createdAt for weekly grouping
+      const metaClosedAt = (meta as any).closedAt || meta.createdAt;
+      const metaClosedDate = new Date(metaClosedAt);
+      const metaClosedDateStr = metaClosedDate.toLocaleDateString('pt-BR');
+      const metaWeekIndex = getWeekKey(metaClosedDate);
 
       remessas.forEach(r => {
         const dep = Number(r.deposito || 0);
@@ -121,41 +127,34 @@ const Reports = () => {
         
         const remLucroLiquido = (saq - dep) + remSal - (!meta.isAdminMeta ? remAutoSal : 0);
 
+        // Operator performance: filter by selected date period (use remessa date)
         if (isInRange(d, dateFilter)) {
           opMap[opName].contas += rc;
           opMap[opName].diasSet.add(dateStr);
-          
-          if (isFechada) {
-            opMap[opName].lucro += remLucroLiquido;
-          }
+          opMap[opName].lucro += remLucroLiquido;
         }
 
-        if (isFechada) {
-          const wIndex = getWeekKey(d);
-          if (weekMap[wIndex] !== undefined) {
-             weekMap[wIndex].contas += rc;
-             weekMap[wIndex].diasSet.add(dateStr);
-             weekMap[wIndex].lucro += remLucroLiquido;
-          }
+        // Weekly chart: group by the week the META was closed, not individual remessa dates
+        if (weekMap[metaWeekIndex] !== undefined) {
+           weekMap[metaWeekIndex].contas += rc;
+           weekMap[metaWeekIndex].diasSet.add(metaClosedDateStr);
+           weekMap[metaWeekIndex].lucro += remLucroLiquido;
         }
       });
       
-      // Handle closed metas with 0 remessas (safeguard)
-      if (isFechada && totalContasMeta === 0 && remessas.length === 0) {
-         const metaDate = new Date(meta.createdAt);
-         const dateStr = metaDate.toLocaleDateString('pt-BR');
+      // Handle closed metas with 0 remessas (safeguard: use meta-level totals)
+      if (totalContasMeta === 0 && remessas.length === 0) {
          const metaAutoSal = !meta.isAdminMeta ? (meta.modelo === 'Recarga' ? pagOp : 0) : 0;
          const metaLucroLiquido = (metaTotalSaq - metaTotalDep) + sal - metaAutoSal;
 
-         if (isInRange(metaDate, dateFilter)) {
+         if (isInRange(metaClosedDate, dateFilter)) {
            opMap[opName].lucro += metaLucroLiquido;
-           opMap[opName].diasSet.add(dateStr);
+           opMap[opName].diasSet.add(metaClosedDateStr);
          }
          
-         const wIndex = getWeekKey(metaDate);
-         if (weekMap[wIndex] !== undefined) {
-            weekMap[wIndex].lucro += metaLucroLiquido;
-            weekMap[wIndex].diasSet.add(dateStr);
+         if (weekMap[metaWeekIndex] !== undefined) {
+            weekMap[metaWeekIndex].lucro += metaLucroLiquido;
+            weekMap[metaWeekIndex].diasSet.add(metaClosedDateStr);
          }
       }
     });
