@@ -270,8 +270,9 @@ const Operators = () => {
       
       const metaTime = new Date(meta.createdAt).getTime();
       const pagOp = Number(meta.pagamentoOperador) || 0;
+      const sal = Number(meta.salarioOperador) || 0;
       
-      let metaLucro = 0, metaNormais = 0, metaBaixas = 0, metaContas = 0;
+      let metaTotalProfit = 0, metaNormais = 0, metaBaixas = 0, metaContas = 0;
       let metaSalary = 0, pendingMetaSalary = 0, pendingMetaNormais = 0, pendingMetaBaixas = 0;
       let hasRemessasInPeriod = false;
 
@@ -293,6 +294,9 @@ const Operators = () => {
              remAutoSal = pagOp;
           }
           metaSalary += remAutoSal;
+          
+          // Profit includes full salary when there are no remessas, minus deposit/saque if there were any general meta values? No, metas without remessas rely only on salary
+          metaTotalProfit += sal;
           
           if (!paidUntil || metaTime > paidUntil) {
              pendingMetaSalary += remAutoSal;
@@ -321,6 +325,7 @@ const Operators = () => {
           }
 
           const prop = totalContasMeta > 0 ? originalRc / totalContasMeta : 1 / remessas.length;
+          const remSal = sal * prop;
           
           let remAutoSal = 0;
           if (meta.modelo === 'Recarga') {
@@ -333,7 +338,9 @@ const Operators = () => {
             hasRemessasInPeriod = true;
             metaNormais += normais; 
             metaBaixas += baixas;
-            metaLucro += (Number(r.saque || 0) - Number(r.deposito || 0));
+            
+            metaTotalProfit += (Number(r.saque || 0) - Number(r.deposito || 0)) + remSal;
+            
             metaContas += rc;
             metaSalary += remAutoSal;
 
@@ -348,11 +355,9 @@ const Operators = () => {
 
       if (!hasRemessasInPeriod) return;
 
-      const faturamentoExtra = meta.salarioOperador ? Number(meta.salarioOperador) : 0;
-
       opMap[opName].deps += metaContas;
       opMap[opName].metas += 1;
-      opMap[opName].totalProfit += (metaLucro + faturamentoExtra);
+      opMap[opName].totalProfit += metaTotalProfit;
       opMap[opName].normais += metaNormais;
       opMap[opName].baixas += metaBaixas;
       opMap[opName].salary += metaSalary;
@@ -363,7 +368,7 @@ const Operators = () => {
       tmpFolhaTotal += metaSalary;
       tmpTotalMetasCount += 1;
       tmpTotalContasCount += metaContas;
-      tmpTotalLucroEquipe += (metaLucro + faturamentoExtra);
+      tmpTotalLucroEquipe += metaTotalProfit;
     });
 
     costs.forEach(cost => {
@@ -372,7 +377,7 @@ const Operators = () => {
 
       let costTime = 0;
       if (cost.date) {
-        costTime = new Date(cost.date + 'T00:00:00').getTime();
+        costTime = new Date(cost.date + 'T12:00:00').getTime(); // Use noon to avoid timezone shift
       } else if (cost.createdAt) {
         costTime = new Date(cost.createdAt).getTime();
       }
