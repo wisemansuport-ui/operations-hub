@@ -340,7 +340,7 @@ const Reports = () => {
                     op.status === 'Em Alta' ? 'text-primary border-primary/30' : 
                     op.status === 'Consistente' ? 'text-blue-400 border-blue-500/30' : 
                     op.status === 'Estável' ? 'text-primary/80 border-primary/30' :
-                    'text-orange-400 border-orange-500/30'
+                    'text-warning border-warning/30'
                   }`}>
                     {op.status}
                   </span>
