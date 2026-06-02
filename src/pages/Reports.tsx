@@ -21,11 +21,20 @@ const Reports = () => {
   const { operatorPerformance, kpis, weeklyData } = useMemo(() => {
     const now = new Date();
     
+    const getStartOfWeek = (d: Date) => {
+        const date = new Date(d);
+        date.setHours(0, 0, 0, 0);
+        date.setDate(date.getDate() - date.getDay()); // Sunday
+        return date;
+    };
+    const currentWeekStart = getStartOfWeek(now);
+
     const getWeekKey = (d: Date) => {
-        const diffMs = now.getTime() - d.getTime();
-        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-        return Math.floor(diffDays / 7);
-    }
+        const dStart = getStartOfWeek(d);
+        const diffMs = currentWeekStart.getTime() - dStart.getTime();
+        if (diffMs < 0) return 0; // future to this week
+        return Math.floor(diffMs / (1000 * 60 * 60 * 24 * 7));
+    };
 
     const opMap: Record<string, { name: string, contas: number, lucro: number, diasSet: Set<string> }> = {};
     
@@ -50,7 +59,6 @@ const Reports = () => {
       
       let isVisible = false;
       if (role === 'ADMIN') {
-        // Mirror Dashboard exactly: include metas the admin operates directly + affiliated operators + no-operator (wiseman)
         isVisible = meta.operador === activeOperator ||
                     (users.find(u => u.username === meta.operador)?.affiliatedTo === activeOperator) ||
                     (!meta.operador && activeOperator === 'wiseman');
@@ -73,60 +81,56 @@ const Reports = () => {
       
       const remessas = meta.remessas || [];
       const totalContasMeta = remessas.reduce((acc, r) => acc + Number(r.contas || 0), 0);
+      let metaTotalDep = 0, metaTotalSaq = 0;
 
       remessas.forEach(r => {
-        const rc = Number(r.contas || 0);
+        const dep = Number(r.deposito || 0);
+        const saq = Number(r.saque || 0);
+        let rc = Number(r.contas || 0);
+        let normais = Number((r as any).contasNormais || 0);
+        let baixas = Number((r as any).contasBaixas || 0);
+        
+        const originalRc = rc;
+        if (meta.modelo === 'Recarga') {
+          rc = 0;
+          normais = 0;
+          baixas = 0;
+        }
+
+        metaTotalDep += dep;
+        metaTotalSaq += saq;
+
         const d = new Date(r.data || meta.createdAt);
         const dateStr = d.toLocaleDateString('pt-BR');
         
         totais.executadas += rc;
-        const dep = Number(r.deposito || 0);
-        const saq = Number(r.saque || 0);
         const eLucro = (saq - dep) >= 0;
         if (eLucro) totais.remessasBoas++;
         else totais.remessasRuins++;
 
-        // Only count towards Operator Performance if the remessa matches the selected dateFilter
+        const prop = totalContasMeta > 0 ? originalRc / totalContasMeta : (remessas.length > 0 ? 1 / remessas.length : 1);
+        const remSal = sal * prop;
+        let remAutoSal = 0;
+        if (!meta.isAdminMeta) {
+          if (meta.modelo === 'Recarga') {
+            remAutoSal = pagOp * prop;
+          } else {
+            remAutoSal = (normais * 2) + (baixas * 1);
+          }
+        }
+        
+        const remLucroLiquido = (saq - dep) + remSal - (!meta.isAdminMeta ? remAutoSal : 0);
+
         if (isInRange(d, dateFilter)) {
           opMap[opName].contas += rc;
           opMap[opName].diasSet.add(dateStr);
           
           if (isFechada) {
-            const normais = Number((r as any).contasNormais || 0);
-            const baixas = Number((r as any).contasBaixas || 0);
-            const prop = totalContasMeta > 0 ? rc / totalContasMeta : (remessas.length > 0 ? 1 / remessas.length : 1);
-            const remSal = sal * prop;
-            let remAutoSal = 0;
-            if (!meta.isAdminMeta) {
-              if (meta.modelo === 'Recarga') {
-                remAutoSal = pagOp * prop;
-              } else {
-                remAutoSal = (normais * 2) + (baixas * 1);
-              }
-            }
-            
-            // Lucro for this remessa exactly matches the Dashboard chart contribution
-            const remLucroLiquido = (saq - dep) + remSal - (!meta.isAdminMeta ? remAutoSal : 0);
             opMap[opName].lucro += remLucroLiquido;
           }
         }
 
-        // Weekly chart always shows history (no date filter applied)
         if (isFechada) {
-          const normais = Number((r as any).contasNormais || 0);
-          const baixas = Number((r as any).contasBaixas || 0);
-          const prop = totalContasMeta > 0 ? rc / totalContasMeta : (remessas.length > 0 ? 1 / remessas.length : 1);
-          const remSal = sal * prop;
-          let remAutoSal = 0;
-          if (!meta.isAdminMeta) {
-            if (meta.modelo === 'Recarga') {
-              remAutoSal = pagOp * prop;
-            } else {
-              remAutoSal = (normais * 2) + (baixas * 1);
-            }
-          }
-          const remLucroLiquido = (saq - dep) + remSal - (!meta.isAdminMeta ? remAutoSal : 0);
-          
           const wIndex = getWeekKey(d);
           if (weekMap[wIndex] !== undefined) {
              weekMap[wIndex].contas += rc;
@@ -139,14 +143,19 @@ const Reports = () => {
       // Handle closed metas with 0 remessas (safeguard)
       if (isFechada && totalContasMeta === 0 && remessas.length === 0) {
          const metaDate = new Date(meta.createdAt);
+         const dateStr = metaDate.toLocaleDateString('pt-BR');
+         const metaAutoSal = !meta.isAdminMeta ? (meta.modelo === 'Recarga' ? pagOp : 0) : 0;
+         const metaLucroLiquido = (metaTotalSaq - metaTotalDep) + sal - metaAutoSal;
+
          if (isInRange(metaDate, dateFilter)) {
-           const metaAutoSal = !meta.isAdminMeta ? (meta.modelo === 'Recarga' ? pagOp : 0) : 0;
-           opMap[opName].lucro += sal - metaAutoSal;
+           opMap[opName].lucro += metaLucroLiquido;
+           opMap[opName].diasSet.add(dateStr);
          }
+         
          const wIndex = getWeekKey(metaDate);
          if (weekMap[wIndex] !== undefined) {
-            const metaAutoSal = !meta.isAdminMeta ? (meta.modelo === 'Recarga' ? pagOp : 0) : 0;
-            weekMap[wIndex].lucro += sal - metaAutoSal;
+            weekMap[wIndex].lucro += metaLucroLiquido;
+            weekMap[wIndex].diasSet.add(dateStr);
          }
       }
     });
