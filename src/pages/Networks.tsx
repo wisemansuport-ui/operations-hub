@@ -157,7 +157,7 @@ const recConfig = {
   increase: { label: 'Aumentar',  cls: 'text-success border-success/30 bg-success/10',         Icon: TrendingUp   },
   maintain: { label: 'Manter',    cls: 'text-primary border-primary/30 bg-primary/10',          Icon: CheckCircle  },
   monitor:  { label: 'Monitorar', cls: 'text-warning border-warning/30 bg-warning/10',          Icon: Eye          },
-  reduce:   { label: 'Revisar',   cls: 'text-orange-400 border-orange-400/30 bg-orange-400/10', Icon: AlertTriangle },
+  reduce:   { label: 'Revisar',   cls: 'text-warning border-warning/30 bg-warning/10',          Icon: AlertTriangle },
   suspend:  { label: 'Suspender', cls: 'text-destructive border-destructive/30 bg-destructive/10', Icon: XCircle   },
 } as const;
 
