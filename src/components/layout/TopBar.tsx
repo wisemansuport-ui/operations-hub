@@ -1,4 +1,4 @@
-import { Bell, Sun, Moon, User, Check, Trash2, Info, AlertTriangle, XCircle, CheckCircle2, Zap, RefreshCw } from "lucide-react";
+import { Bell, Sun, Moon, User, Check, Trash2, Info, AlertTriangle, XCircle, CheckCircle2, Zap, RefreshCw, ArrowDownRight, ArrowUpRight, Trophy, PlayCircle, Megaphone, Receipt } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useNotifications, AppNotification } from "@/contexts/NotificationContext";
 import { useState, useRef, useEffect, useMemo } from "react";
@@ -9,45 +9,8 @@ import OneSignal from "react-onesignal";
 import { toast } from "sonner";
 import { registerDeviceTag, testPushToAdmin } from "@/lib/notifications";
 
-// ─── Type config ───────────────────────────────────────────────────────────────
+// ─── Types & Tabs ──────────────────────────────────────────────────────────────
 type FilterTab = "all" | AppNotification["type"];
-
-const TYPE_META: Record<AppNotification["type"], {
-  label: string;
-  icon: React.ElementType;
-  pillClass: string;
-  glowClass: string;
-  badgeClass: string;
-}> = {
-  info: {
-    label: "Info",
-    icon: Info,
-    pillClass: "bg-blue-500/15 text-blue-400 border-blue-500/30",
-    glowClass: "shadow-blue-500/10",
-    badgeClass: "bg-blue-500/20 text-blue-300",
-  },
-  success: {
-    label: "Sucesso",
-    icon: CheckCircle2,
-    pillClass: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
-    glowClass: "shadow-emerald-500/10",
-    badgeClass: "bg-emerald-500/20 text-emerald-300",
-  },
-  warning: {
-    label: "Aviso",
-    icon: AlertTriangle,
-    pillClass: "bg-amber-500/15 text-amber-400 border-amber-500/30",
-    glowClass: "shadow-amber-500/10",
-    badgeClass: "bg-amber-500/20 text-amber-300",
-  },
-  error: {
-    label: "Erro",
-    icon: XCircle,
-    pillClass: "bg-red-500/15 text-red-400 border-red-500/30",
-    glowClass: "shadow-red-500/10",
-    badgeClass: "bg-red-500/20 text-red-300",
-  },
-};
 
 const TABS: { key: FilterTab; label: string }[] = [
   { key: "all", label: "Todas" },
@@ -61,14 +24,87 @@ const TABS: { key: FilterTab; label: string }[] = [
 const formatRelativeTime = (ts: string | Date) => {
   const d = typeof ts === "string" ? new Date(ts) : ts;
   const mins = Math.floor((Date.now() - d.getTime()) / 60000);
-  if (mins < 1) return "agora mesmo";
-  if (mins < 60) return `${mins} min atrás`;
-  if (mins < 1440) return `${Math.floor(mins / 60)}h atrás`;
+  if (mins < 1) return "agora";
+  if (mins < 60) return `${mins}m`;
+  if (mins < 1440) return `${Math.floor(mins / 60)}h`;
   const days = Math.floor(mins / 1440);
   if (days === 1) return "ontem";
-  if (days < 7) return `${days} dias atrás`;
+  if (days < 7) return `${days}d`;
   return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
 };
+
+const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+const formatCount = (n: number) => (n > 99 ? "99+" : String(n));
+
+type Category = "remessa" | "meta_finalizada" | "meta_iniciada" | "info_oficial" | "generic";
+
+interface ParsedNotif {
+  category: Category;
+  operator?: string;
+  value?: number;
+  detail?: string;
+  headline: string;
+}
+
+const parseValue = (text: string): number | undefined => {
+  const m = text.match(/R\$\s*(-?[\d.,]+)/i);
+  if (!m) return undefined;
+  let raw = m[1];
+  if (/,\d{2}$/.test(raw)) raw = raw.replace(/\./g, "").replace(",", ".");
+  else raw = raw.replace(/,/g, "");
+  const v = parseFloat(raw);
+  return isNaN(v) ? undefined : v;
+};
+
+const parseOperator = (text: string): string | undefined => {
+  const m = text.match(/\[([^\]]+)\]/);
+  return m ? m[1].trim() : undefined;
+};
+
+const parseNotif = (n: AppNotification): ParsedNotif => {
+  const title = (n.title || "").toLowerCase();
+  const msg = n.message || "";
+  const operator = parseOperator(msg) || parseOperator(n.title || "");
+  const value = parseValue(msg);
+
+  let category: Category = "generic";
+  let headline = n.title || "Notificação";
+
+  if (title.includes("remessa")) {
+    category = "remessa";
+    headline = "Remessa registrada";
+  } else if (title.includes("meta") && (title.includes("final") || title.includes("conclu"))) {
+    category = "meta_finalizada";
+    headline = "Meta finalizada";
+  } else if (title.includes("meta") && (title.includes("inici") || title.includes("nova"))) {
+    category = "meta_iniciada";
+    headline = "Meta iniciada";
+  } else if (n.type === "info") {
+    category = "info_oficial";
+    headline = n.title || "Comunicado oficial";
+  }
+
+  const detail = msg
+    .replace(/\[[^\]]+\]\s*/, "")
+    .replace(/Operador registrou:?\s*/i, "")
+    .replace(/Lucro\/Prej\.\s*R\$\s*-?[\d.,]+/i, "")
+    .replace(/R\$\s*-?[\d.,]+/i, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
+  return { category, operator, value, detail, headline };
+};
+
+const CATEGORY_META: Record<Category, { icon: React.ElementType; tint: string; bar: string; chip: string; label: string }> = {
+  remessa:         { icon: Receipt,    tint: "text-amber-300",        bar: "bg-amber-400/70",   chip: "bg-amber-500/10 text-amber-300 border-amber-500/20",     label: "Remessa" },
+  meta_finalizada: { icon: Trophy,     tint: "text-emerald-300",      bar: "bg-emerald-400/70", chip: "bg-emerald-500/10 text-emerald-300 border-emerald-500/20", label: "Meta finalizada" },
+  meta_iniciada:   { icon: PlayCircle, tint: "text-sky-300",          bar: "bg-sky-400/70",     chip: "bg-sky-500/10 text-sky-300 border-sky-500/20",           label: "Meta iniciada" },
+  info_oficial:    { icon: Megaphone,  tint: "text-violet-300",       bar: "bg-violet-400/70",  chip: "bg-violet-500/10 text-violet-300 border-violet-500/20",   label: "Comunicado" },
+  generic:         { icon: Info,       tint: "text-muted-foreground", bar: "bg-white/20",       chip: "bg-white/5 text-muted-foreground border-white/10",       label: "Aviso" },
+};
+
+const fmtBRL = (v: number) =>
+  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 });
 
 // ─── Notification Card ─────────────────────────────────────────────────────────
 const NotifCard = ({
@@ -80,55 +116,77 @@ const NotifCard = ({
   onRead: (id: string) => void;
   onDelete: (id: string) => void;
 }) => {
-  const meta = TYPE_META[n.type] ?? TYPE_META.info;
+  const p = useMemo(() => parseNotif(n), [n]);
+  const meta = CATEGORY_META[p.category];
   const Icon = meta.icon;
+  const isNeg = typeof p.value === "number" && p.value < 0;
+  const isPos = typeof p.value === "number" && p.value > 0;
 
   return (
     <div
-      className={`
-        group relative flex gap-3 px-4 py-3.5 border-b border-white/[0.04] last:border-0
-        transition-all duration-200
-        ${!n.read ? "bg-white/[0.03]" : "hover:bg-white/[0.015]"}
-      `}
       onClick={() => !n.read && onRead(n.id)}
+      className={`group relative flex gap-3 pl-4 pr-3 py-3 border-b border-white/[0.04] last:border-0 transition-colors
+        ${!n.read ? "bg-white/[0.025]" : "hover:bg-white/[0.015]"}`}
       style={{ cursor: !n.read ? "pointer" : "default" }}
     >
-      {/* Unread accent bar */}
-      {!n.read && (
-        <div className="absolute left-0 top-2 bottom-2 w-[2px] rounded-r-full bg-primary/70" />
-      )}
+      <span
+        aria-hidden
+        className={`absolute left-0 top-3 bottom-3 w-[2px] rounded-r-full transition-opacity
+          ${!n.read ? "opacity-100" : "opacity-30"} ${meta.bar}`}
+      />
 
-      {/* Icon */}
-      <div className={`mt-0.5 flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center border ${meta.pillClass}`}>
-        <Icon className="w-3.5 h-3.5" />
+      <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center border border-white/[0.06] bg-white/[0.03] ${meta.tint}`}>
+        <Icon className="w-4 h-4" />
       </div>
 
-      {/* Content */}
       <div className="flex-1 min-w-0">
-        {/* Type pill + title row */}
-        <div className="flex items-center gap-2 mb-0.5">
-          <span className={`inline-flex text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded border ${meta.pillClass}`}>
-            {meta.label}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className={`text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded border ${meta.chip}`}>
+              {meta.label}
+            </span>
+            {!n.read && <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />}
+          </div>
+          <span className="text-[10px] text-muted-foreground/60 tabular-nums flex-shrink-0">
+            {formatRelativeTime(n.timestamp)}
           </span>
-          {!n.read && (
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
-          )}
         </div>
-        <p className={`text-[13px] font-bold leading-snug truncate ${!n.read ? "text-foreground" : "text-foreground/70"}`}>
-          {n.title}
+
+        <p className={`mt-1 text-[13px] font-semibold leading-tight ${!n.read ? "text-foreground" : "text-foreground/80"}`}>
+          {p.headline}
         </p>
-        <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">
-          {n.message}
-        </p>
-        <p className="text-[10px] text-muted-foreground/60 mt-1.5 font-medium">
-          {formatRelativeTime(n.timestamp)}
-        </p>
+
+        {(p.operator || typeof p.value === "number") && (
+          <div className="mt-1.5 flex items-center justify-between gap-2">
+            {p.operator ? (
+              <span className="inline-flex items-center gap-1.5 text-[11px] min-w-0">
+                <span className="w-4 h-4 rounded-full bg-primary/15 text-primary text-[9px] font-bold flex items-center justify-center flex-shrink-0">
+                  {p.operator.charAt(0).toUpperCase()}
+                </span>
+                <span className="font-medium text-foreground/80 truncate">{cap(p.operator)}</span>
+              </span>
+            ) : <span />}
+
+            {typeof p.value === "number" && (
+              <span className={`inline-flex items-center gap-1 text-[12px] font-bold tabular-nums flex-shrink-0
+                ${isNeg ? "text-red-400" : isPos ? "text-emerald-400" : "text-foreground/80"}`}>
+                {isNeg ? <ArrowDownRight className="w-3 h-3" /> : isPos ? <ArrowUpRight className="w-3 h-3" /> : null}
+                {fmtBRL(p.value)}
+              </span>
+            )}
+          </div>
+        )}
+
+        {p.detail && p.category === "info_oficial" && (
+          <p className="mt-1.5 text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">
+            {p.detail}
+          </p>
+        )}
       </div>
 
-      {/* Delete button */}
       <button
         onClick={(e) => { e.stopPropagation(); onDelete(n.id); }}
-        className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 flex items-center justify-center rounded-md hover:bg-red-500/15 text-muted-foreground/40 hover:text-red-400 mt-0.5"
+        className="self-start flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 flex items-center justify-center rounded-md hover:bg-red-500/15 text-muted-foreground/40 hover:text-red-400"
         title="Remover"
       >
         <Trash2 className="w-3 h-3" />
@@ -148,7 +206,6 @@ export const TopBar = () => {
   const [role, setRole] = useLocalStorage<"ADMIN" | "OPERADOR">("nytzer-role", "ADMIN");
   const navigate = useNavigate();
 
-  // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setShowNotifs(false);
@@ -157,7 +214,6 @@ export const TopBar = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Reset tab when panel opens
   useEffect(() => {
     if (showNotifs) setActiveTab("all");
   }, [showNotifs]);
@@ -167,16 +223,26 @@ export const TopBar = () => {
     navigate("/login");
   };
 
+  // Refined filtering — Sucesso = somente metas finalizadas; Info = somente comunicados oficiais
   const filtered = useMemo(() => {
     if (activeTab === "all") return notifications;
+    if (activeTab === "success") {
+      return notifications.filter((n) => parseNotif(n).category === "meta_finalizada");
+    }
+    if (activeTab === "info") {
+      return notifications.filter((n) => parseNotif(n).category === "info_oficial");
+    }
     return notifications.filter((n) => n.type === activeTab);
   }, [notifications, activeTab]);
 
   const tabCount = useMemo(() => {
-    const counts: Partial<Record<FilterTab, number>> = { all: notifications.filter(n => !n.read).length };
-    (["info", "success", "warning", "error"] as AppNotification["type"][]).forEach(t => {
-      counts[t] = notifications.filter(n => n.type === t && !n.read).length;
-    });
+    const counts: Partial<Record<FilterTab, number>> = {
+      all: notifications.filter((n) => !n.read).length,
+      success: notifications.filter((n) => !n.read && parseNotif(n).category === "meta_finalizada").length,
+      info: notifications.filter((n) => !n.read && parseNotif(n).category === "info_oficial").length,
+      warning: notifications.filter((n) => !n.read && n.type === "warning").length,
+      error: notifications.filter((n) => !n.read && n.type === "error").length,
+    };
     return counts;
   }, [notifications]);
 
@@ -248,16 +314,13 @@ export const TopBar = () => {
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
       <div className="h-14 flex items-center justify-between px-4 md:px-6">
-        {/* Left: status pill */}
         <div className="flex items-center gap-2">
           <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-success/10 text-success">
             ● Sistema ativo
           </span>
         </div>
 
-        {/* Right: actions */}
         <div className="flex items-center gap-1">
-          {/* Theme toggle */}
           <button
             onClick={toggleTheme}
             className="w-9 h-9 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-muted transition-colors"
@@ -278,10 +341,9 @@ export const TopBar = () => {
             >
               <Bell className={`w-4 h-4 transition-transform duration-300 ${showNotifs ? "scale-90" : ""}`} />
 
-              {/* Badge */}
               {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-0.5 text-[9px] font-extrabold bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg shadow-primary/40 animate-in zoom-in-75 duration-200">
-                  {unreadCount > 99 ? "99+" : unreadCount}
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 text-[9px] font-extrabold bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg shadow-primary/40 animate-in zoom-in-75 duration-200">
+                  {formatCount(unreadCount)}
                 </span>
               )}
             </button>
@@ -289,33 +351,36 @@ export const TopBar = () => {
             {/* ── Notification Panel ── */}
             {showNotifs && (
               <div
-                className="absolute -right-14 sm:-right-4 md:right-0 top-12 w-[340px] sm:w-[380px]
-                  bg-[#0D0D0F]/95 backdrop-blur-2xl border border-white/[0.08] rounded-2xl
+                className="absolute -right-14 sm:-right-4 md:right-0 top-12 w-[360px] sm:w-[400px]
+                  bg-[#0B0B0D]/95 backdrop-blur-2xl border border-white/[0.08] rounded-2xl
                   shadow-2xl shadow-black/60 overflow-hidden
                   animate-in fade-in-0 slide-in-from-top-2 duration-200 z-50"
               >
-                {/* ── Panel Header ── */}
+                {/* Header */}
                 <div className="px-4 pt-4 pb-3 border-b border-white/[0.06]">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-md bg-primary/15 flex items-center justify-center">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-7 h-7 rounded-lg bg-primary/15 flex items-center justify-center">
                         <Bell className="w-3.5 h-3.5 text-primary" />
                       </div>
-                      <span className="text-sm font-bold text-foreground tracking-tight">Notificações</span>
-                      {unreadCount > 0 && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary/15 text-primary">
-                          {unreadCount} nova{unreadCount > 1 ? "s" : ""}
-                        </span>
-                      )}
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-foreground tracking-tight leading-none">Central de alertas</p>
+                        <p className="text-[10px] text-muted-foreground/70 mt-0.5">
+                          {unreadCount > 0
+                            ? `${formatCount(unreadCount)} pendente${unreadCount > 1 ? "s" : ""} de leitura`
+                            : "Tudo em dia"}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
                       {role === "ADMIN" && user?.username && (
                         <button
                           onClick={handleTestPush}
                           className="text-[9px] font-bold text-amber-400 border border-amber-500/25 bg-amber-500/8 px-2 py-1 rounded-lg hover:bg-amber-500/15 transition-colors flex items-center gap-1"
+                          title="Enviar push de teste"
                         >
                           <Zap className="w-2.5 h-2.5" />
-                          Testar Push
+                          Teste
                         </button>
                       )}
                       {unreadCount > 0 && (
@@ -330,16 +395,15 @@ export const TopBar = () => {
                     </div>
                   </div>
 
-                  {/* Activate alerts button */}
                   <button
                     onClick={handleActivateAlerts}
-                    className="w-full flex items-center gap-2 text-[11px] font-semibold text-primary/80 hover:text-primary transition-colors py-1.5 px-2 rounded-lg hover:bg-primary/5"
+                    className="w-full flex items-center justify-center gap-2 text-[11px] font-semibold text-primary/80 hover:text-primary transition-colors py-1.5 px-2 rounded-lg hover:bg-primary/5 border border-dashed border-primary/20"
                   >
                     <RefreshCw className="w-3 h-3" />
                     Ativar alertas neste dispositivo
                   </button>
 
-                  {/* ── Filter Tabs ── */}
+                  {/* Tabs */}
                   <div className="flex items-center gap-1 mt-3 overflow-x-auto pb-0.5 no-scrollbar">
                     {TABS.map((tab) => {
                       const count = tabCount[tab.key] ?? 0;
@@ -356,9 +420,9 @@ export const TopBar = () => {
                         >
                           {tab.label}
                           {count > 0 && (
-                            <span className={`text-[9px] font-bold px-1 py-0.5 rounded-full leading-none
+                            <span className={`text-[9px] font-bold px-1 py-0.5 rounded-full leading-none tabular-nums
                               ${isActive ? "bg-white/20 text-white" : "bg-primary/15 text-primary"}`}>
-                              {count}
+                              {formatCount(count)}
                             </span>
                           )}
                         </button>
@@ -367,15 +431,15 @@ export const TopBar = () => {
                   </div>
                 </div>
 
-                {/* ── Notification List ── */}
-                <div className="max-h-[420px] overflow-y-auto overscroll-contain">
+                {/* List */}
+                <div className="max-h-[440px] overflow-y-auto overscroll-contain">
                   {filtered.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 px-4 gap-3">
                       <div className="w-12 h-12 rounded-2xl bg-muted/30 border border-white/[0.06] flex items-center justify-center">
                         <Bell className="w-5 h-5 text-muted-foreground/40" />
                       </div>
                       <p className="text-sm font-semibold text-muted-foreground/60">
-                        {activeTab === "all" ? "Nenhuma notificação" : `Sem notificações de "${TABS.find(t => t.key === activeTab)?.label}"`}
+                        {activeTab === "all" ? "Nenhuma notificação" : `Sem registros em "${TABS.find(t => t.key === activeTab)?.label}"`}
                       </p>
                       <p className="text-[11px] text-muted-foreground/40 text-center">
                         {activeTab === "all"
@@ -395,11 +459,11 @@ export const TopBar = () => {
                   )}
                 </div>
 
-                {/* ── Panel Footer ── */}
+                {/* Footer */}
                 {filtered.length > 0 && (
-                  <div className="px-4 py-2.5 border-t border-white/[0.05] flex items-center justify-between">
-                    <span className="text-[10px] text-muted-foreground/50">
-                      {filtered.length} notificaç{filtered.length === 1 ? "ão" : "ões"}
+                  <div className="px-4 py-2.5 border-t border-white/[0.05] flex items-center justify-between bg-white/[0.015]">
+                    <span className="text-[10px] text-muted-foreground/60 tabular-nums">
+                      {formatCount(filtered.length)} {filtered.length === 1 ? "registro" : "registros"}
                     </span>
                     <button
                       onClick={markAllRead}
@@ -425,7 +489,6 @@ export const TopBar = () => {
               <p className="text-[11px] text-muted-foreground leading-tight">{user?.role || "Operador"}</p>
             </div>
 
-            {/* Dropdown */}
             <div className="absolute right-0 top-full pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 min-w-[160px]">
               <div className="bg-[#0A0A0B]/95 backdrop-blur-xl border border-border/60 rounded-xl shadow-2xl p-1.5 flex flex-col transform origin-top-right transition-transform group-hover:scale-100 scale-95">
                 <div className="px-3 py-2 mb-1 border-b border-border/50 sm:hidden">
