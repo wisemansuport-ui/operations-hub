@@ -157,7 +157,7 @@ const recConfig = {
   increase: { label: 'Aumentar',  cls: 'text-success border-success/30 bg-success/10',         Icon: TrendingUp   },
   maintain: { label: 'Manter',    cls: 'text-primary border-primary/30 bg-primary/10',          Icon: CheckCircle  },
   monitor:  { label: 'Monitorar', cls: 'text-warning border-warning/30 bg-warning/10',          Icon: Eye          },
-  reduce:   { label: 'Revisar',   cls: 'text-orange-400 border-orange-400/30 bg-orange-400/10', Icon: AlertTriangle },
+  reduce:   { label: 'Revisar',   cls: 'text-warning border-warning/30 bg-warning/10',          Icon: AlertTriangle },
   suspend:  { label: 'Suspender', cls: 'text-destructive border-destructive/30 bg-destructive/10', Icon: XCircle   },
 } as const;
 
@@ -587,7 +587,7 @@ const Networks = () => {
               selectedNetwork.recommendationType === 'increase' ? 'from-success/15 to-success/[0.02] border-success/25' :
               selectedNetwork.recommendationType === 'maintain' ? 'from-primary/15 to-primary/[0.02] border-primary/25' :
               selectedNetwork.recommendationType === 'monitor'  ? 'from-warning/15 to-warning/[0.02] border-warning/25' :
-              selectedNetwork.recommendationType === 'reduce'   ? 'from-orange-400/15 to-orange-400/[0.02] border-orange-400/25' :
+              selectedNetwork.recommendationType === 'reduce'   ? 'from-warning/15 to-warning/[0.02] border-warning/25' :
               'from-destructive/15 to-destructive/[0.02] border-destructive/25';
 
             return (
