@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
-import { collection, onSnapshot, addDoc, updateDoc, doc, writeBatch, query, orderBy, limit } from "firebase/firestore";
+import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, writeBatch, query, orderBy, limit } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 
@@ -20,12 +20,14 @@ const NotificationContext = createContext<{
   addNotification: (n: Omit<AppNotification, "id" | "read" | "timestamp">) => void;
   markAsRead: (id: string) => void;
   markAllRead: () => void;
+  deleteNotification: (id: string) => void;
 }>({
   notifications: [],
   unreadCount: 0,
   addNotification: () => {},
   markAsRead: () => {},
   markAllRead: () => {},
+  deleteNotification: () => {},
 });
 
 export const useNotifications = () => useContext(NotificationContext);
@@ -94,8 +96,16 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [notifications]);
 
+  const deleteNotification = useCallback(async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'notifications', id));
+    } catch (e) {
+      console.error("Erro ao excluir notificação:", e);
+    }
+  }, []);
+
   return (
-    <NotificationContext.Provider value={{ notifications, unreadCount, addNotification, markAsRead, markAllRead }}>
+    <NotificationContext.Provider value={{ notifications, unreadCount, addNotification, markAsRead, markAllRead, deleteNotification }}>
       {children}
     </NotificationContext.Provider>
   );
