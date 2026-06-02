@@ -310,7 +310,7 @@ const Reports = () => {
                   <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${
                     i === 0 ? 'bg-yellow-500/20 text-yellow-500 ring-1 ring-yellow-500/30' : 
                     i === 1 ? 'bg-slate-300/20 text-slate-300 ring-1 ring-slate-300/30' : 
-                    i === 2 ? 'bg-orange-700/20 text-orange-500 ring-1 ring-orange-500/30' : 
+                    i === 2 ? 'bg-warning/20 text-warning ring-1 ring-warning/30' : 
                     'bg-muted/50 text-muted-foreground'
                   }`}>
                     {op.rank}
