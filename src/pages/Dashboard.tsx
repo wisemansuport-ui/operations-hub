@@ -209,13 +209,17 @@ const Dashboard = () => {
           normais = 0;
           baixas = 0;
         }
+        if ((r as any).naoContabilizarSalario) {
+          normais = 0;
+          baixas = 0;
+        }
 
         metaTotalDep += dep;
         metaTotalSaq += saq;
 
         // Proportional share of this remessa for salary
         const prop = totalContasMeta > 0 ? originalRc / totalContasMeta : (remessas.length > 0 ? 1 / remessas.length : 1);
-        const remSal = sal * prop;
+        let remSal = sal * prop;
         let remAutoSal = 0;
         if (!meta.isAdminMeta) {
           if (meta.modelo === 'Recarga') {
@@ -223,6 +227,10 @@ const Dashboard = () => {
           } else {
             remAutoSal = (normais * 2) + (baixas * 1);
           }
+        }
+        if ((r as any).naoContabilizarSalario) {
+          remSal = 0;
+          remAutoSal = 0;
         }
 
         const remessaDate = new Date(r.data || meta.createdAt);

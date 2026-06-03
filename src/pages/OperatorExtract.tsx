@@ -157,6 +157,10 @@ export default function OperatorExtract() {
               rb = 0;
               rc = 0;
             }
+            if (r.naoContabilizarSalario) {
+              rn = 0;
+              rb = 0;
+            }
 
             normais += rn;
             baixas += rb;
@@ -183,6 +187,9 @@ export default function OperatorExtract() {
             let remManualSalario = 0;
             if (meta.modelo === 'Recarga') {
               remManualSalario = manualSalario * prop;
+            }
+            if (r.naoContabilizarSalario) {
+              remManualSalario = 0;
             }
 
             if (remManualSalario > 0) {

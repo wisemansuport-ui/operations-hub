@@ -23,6 +23,7 @@ export interface Remessa {
   notas: string;
   data: string;
   apv?: number;
+  naoContabilizarSalario?: boolean;
 }
 
 export interface OperationMeta {
@@ -125,6 +126,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
   const [rStatus, setRStatus] = useState('Normal');
   const [rNotas, setRNotas] = useState('');
   const [rApv, setRApv] = useState('');
+  const [rNaoContabilizar, setRNaoContabilizar] = useState(false);
 
   const [editingRemessaId, setEditingRemessaId] = useState<string | null>(null);
   const [eTitulo, setETitulo] = useState('');
@@ -137,6 +139,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
   const [eStatus, setEStatus] = useState('Normal');
   const [eNotas, setENotas] = useState('');
   const [eApv, setEApv] = useState('');
+  const [eNaoContabilizar, setENaoContabilizar] = useState(false);
 
   const remessas = meta.remessas || [];
   
@@ -213,7 +216,8 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
       status: rStatus,
       notas: rNotas,
       data: new Date().toISOString(),
-      apv: parseBrlNumber(rApv)
+      apv: parseBrlNumber(rApv),
+      naoContabilizarSalario: rNaoContabilizar
     };
     
     onUpdateMeta({ ...meta, remessas: [newR, ...remessas] });
@@ -240,6 +244,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
     setRSaque('');
     setRNotas('');
     setRApv('');
+    setRNaoContabilizar(false);
   };
 
   const curDep = Number(rDeposito) || 0;
@@ -260,6 +265,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
     setEStatus(rem.status || 'Normal');
     setENotas(rem.notas || '');
     setEApv(rem.apv ? String(rem.apv) : '');
+    setENaoContabilizar(rem.naoContabilizarSalario || false);
   };
 
   const onSaveEdit = (e: React.FormEvent) => {
@@ -273,7 +279,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
     const updatedRemessas = remessas.map(r => {
       if (r.id === editingRemessaId) {
         return {
-          ...r, titulo: eTitulo, tipo: eTipo, saldoIni: Number(eSaldoIni || 0), contas: numTotal, contasNormais: numNormais, contasBaixas: numBaixas, deposito: Number(eDeposito), saque: Number(eSaque), status: eStatus, notas: eNotas, apv: parseBrlNumber(eApv),
+          ...r, titulo: eTitulo, tipo: eTipo, saldoIni: Number(eSaldoIni || 0), contas: numTotal, contasNormais: numNormais, contasBaixas: numBaixas, deposito: Number(eDeposito), saque: Number(eSaque), status: eStatus, notas: eNotas, apv: parseBrlNumber(eApv), naoContabilizarSalario: eNaoContabilizar
         };
       }
       return r;
@@ -630,7 +636,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
         {meta.montante ? (
           <div>
             <div className="flex justify-between items-center mb-3">
-              <span className="text-sm font-bold text-foreground">Progresso Montante: R$ {depositoTotal} / R$ {meta.montante}</span>
+              <span className="text-sm font-bold text-foreground">Progresso Montante: R$ {depositoTotal} / R$ ${meta.montante}</span>
               <span className="text-sm font-bold text-primary">{Math.min(100, Math.floor((depositoTotal / meta.montante) * 100))}%</span>
             </div>
             <div className="w-full bg-muted/30 rounded-full h-2.5 overflow-hidden">
@@ -737,7 +743,11 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
              </div>
              <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Notas</label>
-                <input type="text" value={rNotas} onChange={e=>setRNotas(e.target.value)} placeholder="Opcional..." className="w-full bg-background/50 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner text-foreground" />
+                <textarea value={rNotas} onChange={e=>setRNotas(e.target.value)} placeholder="Opcional..." rows={2} className="w-full bg-background/50 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner text-foreground resize-none" />
+             </div>
+             <div className="flex items-center gap-2 pt-2">
+               <input type="checkbox" id="rNaoContabilizar" checked={rNaoContabilizar} onChange={e=>setRNaoContabilizar(e.target.checked)} className="w-4 h-4 rounded border-border/50 bg-background/50 text-primary focus:ring-primary focus:ring-offset-background" />
+               <label htmlFor="rNaoContabilizar" className="text-[11px] font-medium text-muted-foreground cursor-pointer select-none uppercase tracking-widest">Não contabilizar remessa (sem salário ao operador)</label>
              </div>
           </div>
 
@@ -771,6 +781,14 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
                    <div>
                      <div className="flex items-center gap-2 flex-wrap">
                        <h4 className="font-extrabold text-foreground text-sm">{rem.titulo}</h4>
+                       <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest border ${rem.status === 'Normal' ? 'border-border/50 text-muted-foreground bg-muted/20' : rem.status === 'Pendente' ? 'border-amber-900/50 text-amber-500 bg-amber-950/30' : rem.status === 'Bloqueada' ? 'border-red-900/50 text-red-500 bg-red-950/30' : 'border-blue-900/50 text-blue-500 bg-blue-950/30'}`}>
+                         {rem.status || 'Normal'}
+                       </span>
+                       {rem.naoContabilizarSalario && (
+                         <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest border border-red-900/50 text-red-500 bg-red-950/30">
+                           N/C Salário
+                         </span>
+                       )}
                        <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest border ${isWin ? 'bg-emerald-950/30 border-emerald-900/50 text-emerald-500' : 'bg-red-950/30 border-red-900/50 text-red-500'}`}>
                          {isWin ? '+ Lucro' : '- Prejuízo'}
                        </span>
