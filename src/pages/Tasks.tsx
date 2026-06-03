@@ -1058,16 +1058,38 @@ const Tasks = () => {
   const [link, setLink] = useState('');
   const [redeCustom, setRedeCustom] = useState('');
 
+  // Auto-calculation fields
+  const [mediaDeposito, setMediaDeposito] = useState<number | ''>('');
+  const [apvMult, setApvMult] = useState<number | 'NA' | ''>('NA');
+  const [apvMultCustom, setApvMultCustom] = useState('');
+
+  const computedMontante = contas && mediaDeposito ? Number(contas) * Number(mediaDeposito) : null;
+  const effectiveMult = apvMult === 'NA' ? null : apvMult !== '' ? Number(apvMult) : (apvMultCustom ? Number(apvMultCustom) : null);
+  const computedTotalApv = computedMontante && effectiveMult ? computedMontante * effectiveMult : null;
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     const activeOperator = user?.username || 'Operador Desconhecido';
     const redeValue = rede === 'OUTRAS' ? (redeCustom.trim() || 'OUTRAS') : rede;
-    if (!plataforma || rede === 'Selecione' || !titulo || !contas || !activeOperator) return;
+    if (!plataforma || rede === 'Selecione' || !contas || !activeOperator) return;
     if (rede === 'OUTRAS' && !redeCustom.trim()) return;
+
+    const finalMontante = computedMontante ?? parseBrlNumber(montante);
+    const finalTotalApv = computedTotalApv ?? parseBrlNumber(totalApv);
+    
+    // Auto-generate title
+    let autoTitulo = 'Nova Operação';
+    if (modelo === 'Depositante' && mediaDeposito) {
+      autoTitulo = `Média ${mediaDeposito}`;
+      if (effectiveMult) autoTitulo += ` ${effectiveMult}x`;
+    } else if (modelo === 'Recarga') {
+      autoTitulo = `Recarga`;
+    }
+
     const newMeta = {
-      plataforma, rede: redeValue, titulo, contas: Number(contas), modelo, operador: activeOperator,
-      totalApv: parseBrlNumber(totalApv),
-      montante: parseBrlNumber(montante),
+      plataforma, rede: redeValue, titulo: autoTitulo, contas: Number(contas), modelo, operador: activeOperator,
+      totalApv: finalTotalApv,
+      montante: finalMontante,
       createdAt: new Date().toISOString(),
       status: 'ativa',
       remessas: [],
@@ -1110,7 +1132,7 @@ const Tasks = () => {
       targetRole: 'ADMIN'
     });
 
-    setPlataforma(''); setRede('Selecione'); setRedeCustom(''); setTitulo(''); setContas(''); setTotalApv(''); setMontante(''); setLink('');
+    setPlataforma(''); setRede('Selecione'); setRedeCustom(''); setTitulo(''); setContas(''); setTotalApv(''); setMontante(''); setLink(''); setMediaDeposito(''); setApvMult('NA'); setApvMultCustom('');
   };
 
   const onUpdateMeta = async (updatedMeta: OperationMeta) => {
@@ -1516,23 +1538,23 @@ const Tasks = () => {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Plataforma *</label>
-                    <input type="text" value={plataforma} onChange={e => setPlataforma(e.target.value)} placeholder="Ex. Scorpionpg" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" required />
+                    <label className="text-[10px] font-bold text-muted-foreground tracking-[0.14em] uppercase">Plataforma *</label>
+                    <input type="text" value={plataforma} onChange={e => setPlataforma(e.target.value)} placeholder="Nome da plataforma" className="w-full h-11 bg-[#0a0a0a] border border-white/[0.05] rounded-xl px-3.5 text-sm text-foreground font-bold placeholder:text-muted-foreground/30 focus:outline-none focus:border-amber-500/50 transition-colors" required />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Rede *</label>
+                    <label className="text-[10px] font-bold text-muted-foreground tracking-[0.14em] uppercase">Rede *</label>
                     <select
                       value={rede}
                       onChange={e => { setRede(e.target.value); if (e.target.value !== 'OUTRAS') setRedeCustom(''); }}
-                      className={`w-full h-11 bg-muted/30 border rounded-lg px-3.5 text-sm text-foreground focus:outline-none focus:bg-muted/50 transition-colors appearance-none cursor-pointer ${
-                        rede === 'Selecione' ? 'border-border/50 text-muted-foreground/70' :
-                        rede === 'OUTRAS' ? 'border-primary/60 text-primary font-semibold' :
-                        'border-border/50 focus:border-primary/60'
+                      className={`w-full h-11 bg-[#0a0a0a] border rounded-xl px-3.5 text-sm font-bold text-foreground focus:outline-none transition-colors appearance-none cursor-pointer ${
+                        rede === 'Selecione' ? 'border-white/[0.05] text-muted-foreground/50' :
+                        rede === 'OUTRAS' ? 'border-amber-500/50 text-amber-500' :
+                        'border-white/[0.05] focus:border-amber-500/50'
                       }`}
                       required
                     >
                       {redes.map(r => (
-                        <option key={r} value={r} style={{ background: '#1a1a2e', color: r === 'OUTRAS' ? '#d4a017' : '#e2e8f0', fontWeight: r === 'OUTRAS' ? '700' : '400' }}>
+                        <option key={r} value={r} style={{ background: '#0a0a0a', color: r === 'OUTRAS' ? '#d4a017' : '#e2e8f0', fontWeight: 'bold' }}>
                           {r === 'OUTRAS' ? '✏️ OUTRAS' : r}
                         </option>
                       ))}
@@ -1543,10 +1565,10 @@ const Tasks = () => {
                           type="text"
                           value={redeCustom}
                           onChange={e => setRedeCustom(e.target.value.toUpperCase())}
-                          placeholder="Nome do grupo (ex: BETMAX)"
+                          placeholder="Nome do grupo..."
                           maxLength={20}
                           autoFocus
-                          className="w-full h-10 bg-primary/5 border border-primary/40 rounded-lg px-3.5 text-sm text-primary font-semibold placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:bg-primary/10 transition-colors tracking-widest uppercase"
+                          className="w-full h-10 bg-[#1a1500] border border-[#a17a15]/50 rounded-xl px-3.5 text-sm text-[#eab308] font-black placeholder:text-[#eab308]/30 focus:outline-none focus:border-[#eab308] transition-colors tracking-widest uppercase mt-2"
                           required
                         />
                       </div>
@@ -1554,53 +1576,103 @@ const Tasks = () => {
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Requisitos *</label>
-                  <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="Ex. Media 80 3,5x" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" required />
-                </div>
-
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">{modelo === 'Recarga' ? 'Valor da Recarga (R$) *' : 'Contas *'}</label>
-                    <input type="number" value={contas} onChange={e => setContas(e.target.value ? Number(e.target.value) : '')} placeholder={modelo === 'Recarga' ? 'Ex. 5000' : 'Ex. 70'} className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 font-semibold transition-colors" min="1" required />
+                    <label className="text-[10px] font-bold text-muted-foreground tracking-[0.14em] uppercase">{modelo === 'Recarga' ? 'Valor da Recarga (R$) *' : 'Contas *'}</label>
+                    <input type="number" value={contas} onChange={e => setContas(e.target.value ? Number(e.target.value) : '')} placeholder={modelo === 'Recarga' ? '5000' : '70'} className="w-full h-11 bg-[#0a0a0a] border border-white/[0.05] rounded-xl px-3.5 text-sm text-foreground font-bold placeholder:text-muted-foreground/30 focus:outline-none focus:border-amber-500/50 transition-colors" min="1" required />
                   </div>
-                  <div className={`grid ${modelo === 'Depositante' ? 'grid-cols-2' : 'grid-cols-1'} gap-2`}>
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase" title="Apostas Válidas">Total AP.V</label>
-                      <input type="text" inputMode="decimal" value={totalApv} onChange={e => setTotalApv(e.target.value)} placeholder="Ex. 20.000" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" />
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-bold text-muted-foreground tracking-[0.14em] uppercase">Média de Depósito (R$)</label>
                     </div>
-                    {modelo === 'Depositante' && (
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Montante</label>
-                        <input type="text" inputMode="decimal" value={montante} onChange={e => setMontante(e.target.value)} placeholder="Ex. 5.000" className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors" />
-                      </div>
-                    )}
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={mediaDeposito}
+                        onChange={e => setMediaDeposito(e.target.value ? Number(e.target.value) : '')}
+                        placeholder="80"
+                        className="w-full h-11 bg-[#0a0a0a] border border-white/[0.05] rounded-xl px-3.5 text-sm text-foreground font-bold placeholder:text-muted-foreground/30 focus:outline-none focus:border-amber-500/50 transition-colors"
+                        min="0"
+                      />
+                    </div>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Seleção Rápida</label>
+                  <label className="text-[10px] font-bold text-muted-foreground tracking-[0.14em] uppercase">Seleção Rápida de Contas</label>
                   <div className="grid grid-cols-4 gap-2">
                     {(modelo === 'Recarga' ? [2500, 5000, 7000, 10000] : [20, 30, 50, 60]).map(val => (
                       <button key={val} type="button" onClick={() => setContas(val)}
-                        className={`h-10 rounded-lg text-sm font-semibold border transition-all ${
+                        className={`h-10 rounded-lg text-sm font-bold border transition-all ${
                           contas === val
-                            ? 'bg-primary/15 border-primary/60 text-primary shadow-[0_0_0_3px_hsl(var(--primary)/0.08)]'
-                            : 'bg-muted/20 border-border/40 text-muted-foreground hover:text-foreground hover:border-border'
+                            ? 'bg-[#1a1500] border-[#856514] text-[#eab308]'
+                            : 'bg-[#0a0a0a] border-white/[0.05] text-muted-foreground hover:text-foreground hover:border-white/[0.1]'
                         }`}
                       >{val}</button>
                     ))}
                   </div>
                 </div>
 
+                {modelo === 'Depositante' && (
+                  <div className="space-y-2.5 pt-2 border-t border-white/[0.05]">
+                    <label className="text-[10px] font-bold text-muted-foreground tracking-[0.14em] uppercase">Apostas Válidas (Multiplicador)</label>
+                    <div className="flex items-center gap-2">
+                      {(['NA', 2, 2.5, 3] as (number | 'NA')[]).map(v => (
+                        <button key={String(v)} type="button"
+                          onClick={() => { setApvMult(v); setApvMultCustom(''); }}
+                          className={`h-10 px-4 rounded-xl text-sm font-bold border transition-all flex-shrink-0 ${
+                            apvMult === v
+                              ? 'bg-[#1a1500] text-[#eab308] border-[#856514]'
+                              : 'bg-[#0a0a0a] border-white/[0.05] text-muted-foreground hover:text-foreground hover:border-white/[0.1]'
+                          }`}
+                        >
+                          {v === 'NA' ? 'N/A' : `${v}x`}
+                        </button>
+                      ))}
+                      <div className="relative flex-1">
+                        <input
+                          type="number"
+                          value={apvMultCustom}
+                          onChange={e => { setApvMultCustom(e.target.value); setApvMult(''); }}
+                          placeholder="Ex: 4"
+                          min="0"
+                          step="0.1"
+                          className={`w-full h-10 bg-[#0a0a0a] border rounded-xl pl-3 pr-6 text-sm text-foreground font-bold placeholder:text-muted-foreground/30 focus:outline-none transition-colors ${
+                            apvMultCustom ? 'bg-[#1a1500] border-[#856514] text-[#eab308]' : 'border-white/[0.05] focus:border-amber-500/50'
+                          }`}
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-muted-foreground/50 pointer-events-none">x</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {computedTotalApv !== null && apvMult !== 'NA' && modelo === 'Depositante' && (
+                  <div className="flex items-center justify-between px-4 py-3 bg-[#0a0700] border border-[#332500] rounded-xl mt-2">
+                    <span className="text-[10px] text-muted-foreground/60 uppercase font-black tracking-widest">Apostas Válidas Calculadas</span>
+                    <span className="text-base font-black text-[#eab308]">
+                      R$ {computedTotalApv.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                )}
+
+                {computedMontante !== null && apvMult === 'NA' && modelo === 'Depositante' && (
+                  <div className="flex items-center justify-between px-4 py-3 bg-primary/5 border border-primary/20 rounded-xl mt-2">
+                    <span className="text-[10px] text-muted-foreground/80 uppercase font-bold tracking-widest">Montante Calculado</span>
+                    <span className="text-base font-black text-primary">
+                      R$ {computedMontante.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Modelo da Meta</label>
-                  <div className="grid grid-cols-2 gap-2 p-1 bg-muted/30 border border-border/40 rounded-xl">
+                  <div className="grid grid-cols-2 gap-2 p-1 bg-[#111111] border border-white/[0.06] rounded-xl">
                     {(['Depositante', 'Recarga'] as const).map(mod => (
                       <button key={mod} type="button" onClick={() => setModelo(mod)}
                         className={`h-10 rounded-lg text-sm font-semibold border transition-all ${
                           modelo === mod
-                            ? 'bg-primary/15 border-primary/60 text-primary shadow-[0_0_0_3px_hsl(var(--primary)/0.08)]'
+                            ? 'bg-primary/20 text-primary border-primary/50'
                             : 'border-transparent text-muted-foreground hover:text-foreground'
                         }`}
                       >{mod}</button>
@@ -1624,7 +1696,7 @@ const Tasks = () => {
                 <div className="pt-2">
                   <button
                     type="submit"
-                    disabled={!plataforma || rede === 'Selecione' || !titulo || !contas}
+                    disabled={!plataforma || rede === 'Selecione' || !contas}
                     className="w-full h-12 bg-primary text-primary-foreground font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 text-sm tracking-tight"
                   >
                     <Target className="w-4 h-4" /> Iniciar Operação

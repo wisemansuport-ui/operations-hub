@@ -23,8 +23,8 @@ interface PeriodFilterProps {
 
 const PRESETS: { key: PeriodPreset; label: string }[] = [
   { key: 'HOJE', label: 'Hoje' },
-  { key: 'SEMANA', label: 'Semana' },
-  { key: 'MES', label: 'Mês' },
+  { key: 'SEMANA', label: '7 Dias' },
+  { key: 'MES', label: '30 Dias' },
   { key: 'TODOS', label: 'Todos' },
 ];
 
@@ -34,13 +34,13 @@ export function buildDateFilter(preset: PeriodPreset): DateFilter {
     case 'HOJE':
       return { preset, from: startOfDay(now), to: endOfDay(now) };
     case 'SEMANA':
-      return { preset, from: startOfWeek(now, { weekStartsOn: 0 }), to: endOfWeek(now, { weekStartsOn: 0 }) };
+      return { preset, from: startOfDay(subDays(now, 6)), to: endOfDay(now) };
     case 'MES':
-      return { preset, from: startOfMonth(now), to: endOfMonth(now) };
+      return { preset, from: startOfDay(subDays(now, 29)), to: endOfDay(now) };
     case 'TODOS':
       return { preset, from: null, to: null };
     default:
-      return { preset: 'MES', from: startOfMonth(now), to: endOfMonth(now) };
+      return { preset: 'MES', from: startOfDay(subDays(now, 29)), to: endOfDay(now) };
   }
 }
 
@@ -79,10 +79,8 @@ export function PeriodFilter({ value, onChange, className }: PeriodFilterProps) 
   const label = React.useMemo(() => {
     if (value.preset === 'TODOS') return 'Todos';
     if (value.preset === 'HOJE') return 'Hoje';
-    if (value.preset === 'SEMANA') return 'Esta semana';
-    if (value.preset === 'MES') {
-      return format(value.from!, 'MMMM yyyy', { locale: ptBR });
-    }
+    if (value.preset === 'SEMANA') return 'Últimos 7 dias';
+    if (value.preset === 'MES') return 'Últimos 30 dias';
     if (value.preset === 'CUSTOM' && value.from && value.to) {
       if (format(value.from, 'dd/MM') === format(value.to, 'dd/MM')) {
         return format(value.from, 'dd/MM/yyyy');

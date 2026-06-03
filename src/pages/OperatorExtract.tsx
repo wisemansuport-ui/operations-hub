@@ -7,7 +7,7 @@ import { useFirestoreData } from "../hooks/useFirestoreData";
 import { OperationMeta } from "./Tasks";
 import { collection, onSnapshot, doc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { format } from "date-fns";
+import { format, startOfDay, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 interface PaymentHistoryEntry {
@@ -58,9 +58,13 @@ export default function OperatorExtract() {
 
   const { stats, extratoData, chartData, availablePlatforms, availableNetworks } = useMemo(() => {
     const now = new Date();
-    const isSameDay = (d: Date) => d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-    const isThisWeek = (d: Date) => (now.getTime() - d.getTime()) <= 7 * 24 * 60 * 60 * 1000;
-    const isThisMonth = (d: Date) => d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    const startOfToday = startOfDay(now).getTime();
+    const startOf7Days = startOfDay(subDays(now, 6)).getTime();
+    const startOf30Days = startOfDay(subDays(now, 29)).getTime();
+    
+    const isSameDay = (d: Date) => d.getTime() >= startOfToday;
+    const isThisWeek = (d: Date) => d.getTime() >= startOf7Days;
+    const isThisMonth = (d: Date) => d.getTime() >= startOf30Days;
 
     const newStats = {
       HOJE: { normal: 0, depBaixo: 0, salarioManual: 0, pendingNormal: 0, pendingDepBaixo: 0, pendingSalarioManual: 0 },
