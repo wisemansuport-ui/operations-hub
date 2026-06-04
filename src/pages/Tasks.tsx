@@ -177,11 +177,9 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
       const totalContas = (meta.remessas || []).reduce((acc, r) => acc + r.contas, 0);
       // Use resultadoLiquido (already computed in scope) which includes FAT (salarioOperador)
       // and discounts autoSalario — this is the true final result shown on screen.
-      const fatValue = meta.salarioOperador || 0;
-      const fatSuffix = fatValue > 0 ? ` | FAT: +R$ ${fatValue.toFixed(2)}` : '';
       pushNotify(
         `🏁 ${operatorName} • ${meta.plataforma}`,
-        `Meta finalizada com ${totalContas} contas | L/P: ${resultadoLiquido >= 0 ? '+' : ''}R$ ${resultadoLiquido.toFixed(2)}${fatSuffix}`,
+        `Meta finalizada com ${totalContas} contas | L/P: ${resultadoLiquido >= 0 ? '+' : ''}R$ ${resultadoLiquido.toFixed(2)}`,
         targetAdmins
       );
       setIsFinishing(false);
