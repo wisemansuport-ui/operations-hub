@@ -1527,31 +1527,30 @@ const Tasks = () => {
           onClick={(e) => { if (e.target === e.currentTarget) setIsModalOpen(false); }}
         >
           <div
-            className="relative flex flex-col w-full md:max-w-xl md:rounded-2xl md:border md:border-border/60 bg-card md:shadow-2xl md:shadow-primary/5 overflow-hidden"
+            className="relative flex flex-col w-full md:max-w-lg md:rounded-2xl md:border md:border-border/50 bg-card md:shadow-2xl md:shadow-black/40 overflow-hidden"
             style={{ maxHeight: '100dvh' }}
           >
-            {/* subtle gradient accent */}
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-            <div className="pointer-events-none absolute -top-24 -right-24 w-64 h-64 rounded-full bg-primary/10 blur-3xl" />
+            {/* subtle gold hairline */}
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
 
             {/* Header */}
             <div
-              className="relative flex items-center justify-between px-6 py-5 border-b border-border/50 shrink-0"
-              style={{ paddingTop: `max(env(safe-area-inset-top), 20px)` }}
+              className="relative flex items-center justify-between px-6 py-4 border-b border-border/40 shrink-0"
+              style={{ paddingTop: `max(env(safe-area-inset-top), 16px)` }}
             >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
                   <Target className="w-4 h-4 text-primary" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-foreground tracking-tight">Nova Operação</h2>
-                  <p className="text-[11px] text-muted-foreground">Configure e inicie sua meta</p>
+                  <h2 className="text-[15px] font-semibold text-foreground tracking-tight leading-tight">Nova Operação</h2>
+                  <p className="text-[11px] text-muted-foreground/80 mt-0.5">Configure e inicie sua meta</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1563,23 +1562,23 @@ const Tasks = () => {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-muted-foreground tracking-[0.14em] uppercase">Plataforma *</label>
-                    <input type="text" value={plataforma} onChange={e => setPlataforma(e.target.value)} placeholder="Nome da plataforma" className="w-full h-11 bg-[#0a0a0a] border border-white/[0.05] rounded-xl px-3.5 text-sm text-foreground font-bold placeholder:text-muted-foreground/30 focus:outline-none focus:border-amber-500/50 transition-colors" required />
+                    <label className="text-[10px] font-semibold text-muted-foreground/80 tracking-[0.16em] uppercase">Plataforma *</label>
+                    <input type="text" value={plataforma} onChange={e => setPlataforma(e.target.value)} placeholder="Nome da plataforma" className="w-full h-11 bg-muted/20 border border-border/50 rounded-lg px-3.5 text-sm text-foreground font-medium placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50 focus:bg-muted/30 transition-colors" required />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-muted-foreground tracking-[0.14em] uppercase">Rede *</label>
+                    <label className="text-[10px] font-semibold text-muted-foreground/80 tracking-[0.16em] uppercase">Rede *</label>
                     <select
                       value={rede}
                       onChange={e => { setRede(e.target.value); if (e.target.value !== 'OUTRAS') setRedeCustom(''); }}
-                      className={`w-full h-11 bg-[#0a0a0a] border rounded-xl px-3.5 text-sm font-bold text-foreground focus:outline-none transition-colors appearance-none cursor-pointer ${
-                        rede === 'Selecione' ? 'border-white/[0.05] text-muted-foreground/50' :
-                        rede === 'OUTRAS' ? 'border-amber-500/50 text-amber-500' :
-                        'border-white/[0.05] focus:border-amber-500/50'
+                      className={`w-full h-11 bg-muted/20 border rounded-lg px-3.5 text-sm font-medium focus:outline-none transition-colors appearance-none cursor-pointer ${
+                        rede === 'Selecione' ? 'border-border/50 text-muted-foreground/50' :
+                        rede === 'OUTRAS' ? 'border-primary/50 text-primary' :
+                        'border-border/50 text-foreground focus:border-primary/50'
                       }`}
                       required
                     >
                       {redes.map(r => (
-                        <option key={r} value={r} style={{ background: '#0a0a0a', color: r === 'OUTRAS' ? '#d4a017' : '#e2e8f0', fontWeight: 'bold' }}>
+                        <option key={r} value={r} style={{ background: 'hsl(var(--card))', color: r === 'OUTRAS' ? 'hsl(var(--primary))' : 'hsl(var(--foreground))' }}>
                           {r === 'OUTRAS' ? '✏️ OUTRAS' : r}
                         </option>
                       ))}
@@ -1593,7 +1592,7 @@ const Tasks = () => {
                           placeholder="Nome do grupo..."
                           maxLength={20}
                           autoFocus
-                          className="w-full h-10 bg-[#1a1500] border border-[#a17a15]/50 rounded-xl px-3.5 text-sm text-[#eab308] font-black placeholder:text-[#eab308]/30 focus:outline-none focus:border-[#eab308] transition-colors tracking-widest uppercase mt-2"
+                          className="w-full h-10 bg-primary/5 border border-primary/40 rounded-lg px-3.5 text-sm text-primary font-semibold placeholder:text-primary/30 focus:outline-none focus:border-primary transition-colors tracking-wider uppercase mt-2"
                           required
                         />
                       </div>
@@ -1601,128 +1600,129 @@ const Tasks = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                {modelo === 'Recarga' ? (
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-muted-foreground tracking-[0.14em] uppercase">{modelo === 'Recarga' ? 'Valor da Recarga (R$) *' : 'Contas *'}</label>
-                    <input type="number" value={contas} onChange={e => setContas(e.target.value ? Number(e.target.value) : '')} placeholder={modelo === 'Recarga' ? '5000' : '70'} className="w-full h-11 bg-[#0a0a0a] border border-white/[0.05] rounded-xl px-3.5 text-sm text-foreground font-bold placeholder:text-muted-foreground/30 focus:outline-none focus:border-amber-500/50 transition-colors" min="1" required />
+                    <label className="text-[10px] font-semibold text-muted-foreground/80 tracking-[0.16em] uppercase">Valor da Recarga (R$) *</label>
+                    <input type="number" value={contas} onChange={e => setContas(e.target.value ? Number(e.target.value) : '')} placeholder="5000" className="w-full h-11 bg-muted/20 border border-border/50 rounded-lg px-3.5 text-sm text-foreground font-medium placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50 focus:bg-muted/30 transition-colors" min="1" required />
                   </div>
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <label className="text-[10px] font-bold text-muted-foreground tracking-[0.14em] uppercase">Média de Depósito (R$)</label>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-semibold text-muted-foreground/80 tracking-[0.16em] uppercase">Contas *</label>
+                      <input type="number" value={contas} onChange={e => setContas(e.target.value ? Number(e.target.value) : '')} placeholder="70" className="w-full h-11 bg-muted/20 border border-border/50 rounded-lg px-3.5 text-sm text-foreground font-medium placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50 focus:bg-muted/30 transition-colors" min="1" required />
                     </div>
-                    <div className="relative">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-semibold text-muted-foreground/80 tracking-[0.16em] uppercase">Média de Depósito (R$)</label>
                       <input
                         type="number"
                         value={mediaDeposito}
                         onChange={e => setMediaDeposito(e.target.value ? Number(e.target.value) : '')}
                         placeholder="80"
-                        className="w-full h-11 bg-[#0a0a0a] border border-white/[0.05] rounded-xl px-3.5 text-sm text-foreground font-bold placeholder:text-muted-foreground/30 focus:outline-none focus:border-amber-500/50 transition-colors"
+                        className="w-full h-11 bg-muted/20 border border-border/50 rounded-lg px-3.5 text-sm text-foreground font-medium placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50 focus:bg-muted/30 transition-colors"
                         min="0"
                       />
                     </div>
                   </div>
-                </div>
+                )}
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-muted-foreground tracking-[0.14em] uppercase">Seleção Rápida de Contas</label>
+                  <label className="text-[10px] font-semibold text-muted-foreground/80 tracking-[0.16em] uppercase">{modelo === 'Recarga' ? 'Seleção Rápida de Recarga' : 'Seleção Rápida de Contas'}</label>
                   <div className="grid grid-cols-4 gap-2">
                     {(modelo === 'Recarga' ? [2500, 5000, 7000, 10000] : [20, 30, 50, 60]).map(val => (
                       <button key={val} type="button" onClick={() => setContas(val)}
-                        className={`h-10 rounded-lg text-sm font-bold border transition-all ${
+                        className={`h-10 rounded-lg text-sm font-semibold border transition-all ${
                           contas === val
-                            ? 'bg-[#1a1500] border-[#856514] text-[#eab308]'
-                            : 'bg-[#0a0a0a] border-white/[0.05] text-muted-foreground hover:text-foreground hover:border-white/[0.1]'
+                            ? 'bg-primary/10 border-primary/50 text-primary'
+                            : 'bg-muted/20 border-border/50 text-muted-foreground hover:text-foreground hover:border-border'
                         }`}
                       >{val}</button>
                     ))}
                   </div>
                 </div>
 
-                {modelo === 'Depositante' && (
-                  <div className="space-y-2.5 pt-2 border-t border-white/[0.05]">
-                    <label className="text-[10px] font-bold text-muted-foreground tracking-[0.14em] uppercase">Apostas Válidas (Multiplicador)</label>
-                    <div className="flex items-center gap-2">
-                      {(['NA', 2, 2.5, 3] as (number | 'NA')[]).map(v => (
-                        <button key={String(v)} type="button"
-                          onClick={() => { setApvMult(v); setApvMultCustom(''); }}
-                          className={`h-10 px-4 rounded-xl text-sm font-bold border transition-all flex-shrink-0 ${
-                            apvMult === v
-                              ? 'bg-[#1a1500] text-[#eab308] border-[#856514]'
-                              : 'bg-[#0a0a0a] border-white/[0.05] text-muted-foreground hover:text-foreground hover:border-white/[0.1]'
-                          }`}
-                        >
-                          {v === 'NA' ? 'N/A' : `${v}x`}
-                        </button>
-                      ))}
-                      <div className="relative flex-1">
-                        <input
-                          type="number"
-                          value={apvMultCustom}
-                          onChange={e => { setApvMultCustom(e.target.value); setApvMult(''); }}
-                          placeholder="Ex: 4"
-                          min="0"
-                          step="0.1"
-                          className={`w-full h-10 bg-[#0a0a0a] border rounded-xl pl-3 pr-6 text-sm text-foreground font-bold placeholder:text-muted-foreground/30 focus:outline-none transition-colors ${
-                            apvMultCustom ? 'bg-[#1a1500] border-[#856514] text-[#eab308]' : 'border-white/[0.05] focus:border-amber-500/50'
-                          }`}
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-muted-foreground/50 pointer-events-none">x</span>
-                      </div>
+                <div className="space-y-2 pt-1">
+                  <label className="text-[10px] font-semibold text-muted-foreground/80 tracking-[0.16em] uppercase">
+                    {modelo === 'Recarga' ? 'Apostas Válidas (× Valor da Recarga)' : 'Apostas Válidas (Multiplicador)'}
+                  </label>
+                  <div className="flex items-center gap-2">
+                    {(['NA', 2, 2.5, 3] as (number | 'NA')[]).map(v => (
+                      <button key={String(v)} type="button"
+                        onClick={() => { setApvMult(v); setApvMultCustom(''); }}
+                        className={`h-10 px-4 rounded-lg text-sm font-semibold border transition-all flex-shrink-0 ${
+                          apvMult === v
+                            ? 'bg-primary/10 text-primary border-primary/50'
+                            : 'bg-muted/20 border-border/50 text-muted-foreground hover:text-foreground hover:border-border'
+                        }`}
+                      >
+                        {v === 'NA' ? 'N/A' : `${v}x`}
+                      </button>
+                    ))}
+                    <div className="relative flex-1">
+                      <input
+                        type="number"
+                        value={apvMultCustom}
+                        onChange={e => { setApvMultCustom(e.target.value); setApvMult(''); }}
+                        placeholder="Ex: 4"
+                        min="0"
+                        step="0.1"
+                        className={`w-full h-10 border rounded-lg pl-3 pr-6 text-sm font-semibold placeholder:text-muted-foreground/40 focus:outline-none transition-colors ${
+                          apvMultCustom ? 'bg-primary/10 border-primary/50 text-primary' : 'bg-muted/20 border-border/50 text-foreground focus:border-primary/50'
+                        }`}
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-muted-foreground/50 pointer-events-none">x</span>
                     </div>
                   </div>
-                )}
+                </div>
 
-                {computedTotalApv !== null && apvMult !== 'NA' && modelo === 'Depositante' && (
-                  <div className="flex items-center justify-between px-4 py-3 bg-[#0a0700] border border-[#332500] rounded-xl mt-2">
-                    <span className="text-[10px] text-muted-foreground/60 uppercase font-black tracking-widest">Apostas Válidas Calculadas</span>
-                    <span className="text-base font-black text-[#eab308]">
+                {computedTotalApv !== null && apvMult !== 'NA' && (
+                  <div className="flex items-center justify-between px-4 py-3 bg-primary/5 border border-primary/20 rounded-lg">
+                    <span className="text-[10px] text-muted-foreground uppercase font-semibold tracking-[0.16em]">Apostas Válidas Calculadas</span>
+                    <span className="text-base font-bold text-primary">
                       R$ {computedTotalApv.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                 )}
 
                 {computedMontante !== null && apvMult === 'NA' && modelo === 'Depositante' && (
-                  <div className="flex items-center justify-between px-4 py-3 bg-primary/5 border border-primary/20 rounded-xl mt-2">
-                    <span className="text-[10px] text-muted-foreground/80 uppercase font-bold tracking-widest">Montante Calculado</span>
-                    <span className="text-base font-black text-primary">
+                  <div className="flex items-center justify-between px-4 py-3 bg-muted/30 border border-border/50 rounded-lg">
+                    <span className="text-[10px] text-muted-foreground uppercase font-semibold tracking-[0.16em]">Montante Calculado</span>
+                    <span className="text-base font-bold text-foreground">
                       R$ {computedMontante.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                 )}
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Modelo da Meta</label>
-                  <div className="grid grid-cols-2 gap-2 p-1 bg-[#111111] border border-white/[0.06] rounded-xl">
+                  <label className="text-[10px] font-semibold text-muted-foreground/80 tracking-[0.16em] uppercase">Modelo da Meta</label>
+                  <div className="grid grid-cols-2 gap-1 p-1 bg-muted/20 border border-border/50 rounded-lg">
                     {(['Depositante', 'Recarga'] as const).map(mod => (
                       <button key={mod} type="button" onClick={() => setModelo(mod)}
-                        className={`h-10 rounded-lg text-sm font-semibold border transition-all ${
+                        className={`h-9 rounded-md text-sm font-semibold transition-all ${
                           modelo === mod
-                            ? 'bg-primary/20 text-primary border-primary/50'
-                            : 'border-transparent text-muted-foreground hover:text-foreground'
+                            ? 'bg-primary/15 text-primary shadow-sm'
+                            : 'text-muted-foreground hover:text-foreground'
                         }`}
                       >{mod}</button>
                     ))}
                   </div>
                 </div>
 
-                <div className="space-y-1.5 animate-fade-in">
-                  <label className="text-[10px] font-semibold text-muted-foreground tracking-[0.14em] uppercase">Link de Divulgação (Opcional)</label>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-semibold text-muted-foreground/80 tracking-[0.16em] uppercase">Link de Divulgação (Opcional)</label>
                   <input
                     type="url"
                     value={link}
                     onChange={e => setLink(e.target.value)}
                     placeholder="Cole o link de afiliado/divulgação da plataforma"
-                    className="w-full h-11 bg-muted/30 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 focus:bg-muted/50 transition-colors"
+                    className="w-full h-11 bg-muted/20 border border-border/50 rounded-lg px-3.5 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50 focus:bg-muted/30 transition-colors"
                   />
                 </div>
-
-
 
                 <div className="pt-2">
                   <button
                     type="submit"
                     disabled={!plataforma || rede === 'Selecione' || !contas}
-                    className="w-full h-12 bg-primary text-primary-foreground font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 text-sm tracking-tight"
+                    className="w-full h-12 bg-primary text-primary-foreground font-semibold rounded-lg flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 text-sm tracking-tight"
                   >
                     <Target className="w-4 h-4" /> Iniciar Operação
                   </button>
