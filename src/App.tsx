@@ -41,6 +41,7 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   return (
     <SubscriptionGuard>
       <AppLayout>{children}</AppLayout>
+      <NotificationPrompt />
     </SubscriptionGuard>
   );
 };
