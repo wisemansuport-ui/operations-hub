@@ -34,7 +34,7 @@ export function buildDateFilter(preset: PeriodPreset): DateFilter {
     case 'HOJE':
       return { preset, from: startOfDay(now), to: endOfDay(now) };
     case 'SEMANA':
-      return { preset, from: startOfWeek(now, { weekStartsOn: 1 }), to: endOfWeek(now, { weekStartsOn: 1 }) };
+      return { preset, from: startOfWeek(now), to: endOfWeek(now) };
     case 'MES':
       return { preset, from: startOfMonth(now), to: endOfMonth(now) };
     case 'TODOS':
