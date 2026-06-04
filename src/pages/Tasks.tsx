@@ -745,10 +745,6 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
                 <label className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Notas</label>
                 <textarea value={rNotas} onChange={e=>setRNotas(e.target.value)} placeholder="Opcional..." rows={2} className="w-full bg-background/50 border border-border/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary shadow-inner text-foreground resize-none" />
              </div>
-             <div className="flex items-center gap-2 pt-2">
-               <input type="checkbox" id="rNaoContabilizar" checked={rNaoContabilizar} onChange={e=>setRNaoContabilizar(e.target.checked)} className="w-4 h-4 rounded border-border/50 bg-background/50 text-primary focus:ring-primary focus:ring-offset-background" />
-               <label htmlFor="rNaoContabilizar" className="text-[11px] font-medium text-muted-foreground cursor-pointer select-none uppercase tracking-widest">Não contabilizar remessa (sem salário ao operador)</label>
-             </div>
           </div>
 
           <button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-extrabold py-3 rounded-xl flex items-center justify-center gap-2 transition-transform hover:scale-[1.01] shadow-[0_10px_30px_hsl(var(--primary)/0.2)] mt-2">
@@ -879,6 +875,11 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
                   </div>
                 </div>
               )}
+
+              <div className="flex items-center gap-2 pt-4">
+                <input type="checkbox" id="eNaoContabilizar" checked={eNaoContabilizar} onChange={e=>setENaoContabilizar(e.target.checked)} className="w-4 h-4 rounded border-border/50 bg-background/50 text-primary focus:ring-primary focus:ring-offset-background" />
+                <label htmlFor="eNaoContabilizar" className="text-[11px] font-medium text-muted-foreground cursor-pointer select-none uppercase tracking-widest">Não contabilizar remessa (sem salário ao operador)</label>
+              </div>
 
               <button type="submit" className="w-full bg-primary text-primary-foreground font-bold py-3 rounded-xl mt-4 shadow-[0_5px_15px_hsl(var(--primary)/0.2)] hover:scale-[1.02] transition-transform">
                 Salvar Alterações
