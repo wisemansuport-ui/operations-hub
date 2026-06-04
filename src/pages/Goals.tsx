@@ -452,9 +452,9 @@ export default function Goals() {
           title: '🎯 Meta atingida!',
           message: `${g.title} — ${formatBRL(g.target)} alcançados.`,
           type: 'success',
-          targetRole: 'ALL',
+          targetUser: user?.username
         });
-        pushNotify('🎯 Meta atingida!', `${g.title} — ${formatBRL(g.target)} alcançados.`);
+        pushNotify('🎯 Meta atingida!', `${g.title} — ${formatBRL(g.target)} alcançados.`, user?.username);
         
         const idx = newGoals.findIndex(x => x.id === g.id);
         if (idx >= 0) {

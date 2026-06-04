@@ -229,11 +229,14 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
       `${numTotal} contas registradas | L/P: ${resValue >= 0 ? '+' : ''}R$ ${resValue.toFixed(2)}`,
       targetAdmins
     );
-    addNotification({
-      title: `Remessa Registrada 📊`,
-      message: `[${meta.plataforma}] Operador registrou: Lucro/Prej. R$ ${resValue.toFixed(2)}`,
-      type: resValue >= 0 ? 'success' : 'error',
-      targetRole: 'ADMIN'
+    targetAdmins.forEach(adminUsername => {
+      addNotification({
+        title: `Remessa Registrada 📊`,
+        message: `[${meta.plataforma}] Operador registrou: Lucro/Prej. R$ ${resValue.toFixed(2)}`,
+        type: resValue >= 0 ? 'success' : 'error',
+        targetRole: 'ADMIN',
+        targetUser: adminUsername
+      });
     });
     setRTitulo(String(remessas.length + 2));
     setRSaldoIni('');
@@ -1146,11 +1149,14 @@ const Tasks = () => {
       `Meta de ${contas} contas iniciada! ${phrase}`,
       targetAdminsForCreate
     );
-    addNotification({
-      title: 'Nova Meta 🚀',
-      message: `${activeOperator} iniciou: ${plataforma} / ${rede}`,
-      type: 'info',
-      targetRole: 'ADMIN'
+    targetAdminsForCreate.forEach(adminUsername => {
+      addNotification({
+        title: 'Nova Meta 🚀',
+        message: `${activeOperator} iniciou: ${plataforma} / ${rede}`,
+        type: 'info',
+        targetRole: 'ADMIN',
+        targetUser: adminUsername
+      });
     });
 
     setPlataforma(''); setRede('Selecione'); setRedeCustom(''); setTitulo(''); setContas(''); setTotalApv(''); setMontante(''); setLink(''); setMediaDeposito(''); setApvMult('NA'); setApvMultCustom('');
