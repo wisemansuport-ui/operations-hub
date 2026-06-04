@@ -91,7 +91,7 @@ const motivationalPhrases = [
 ];
 
 // --- SUBCOMPONENT: Meta Dashboard (Inside a Meta) ---
-const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, activeOperator }: { meta: OperationMeta, onBack: () => void, onUpdateMeta: (m: OperationMeta) => void, addNotification: (n: any) => void, users: any[], activeOperator: string }) => {
+const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, activeOperator, role }: { meta: OperationMeta, onBack: () => void, onUpdateMeta: (m: OperationMeta) => void, addNotification: (n: any) => void, users: any[], activeOperator: string, role: 'ADMIN' | 'OPERADOR' }) => {
   const targetAdmins = useMemo(() => {
     const me = users.find(u => u.username === activeOperator);
     // If operator has affiliatedTo, notify that specific admin
@@ -876,11 +876,12 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
                 </div>
               )}
 
-              <div className="flex items-center gap-2 pt-4">
-                <input type="checkbox" id="eNaoContabilizar" checked={eNaoContabilizar} onChange={e=>setENaoContabilizar(e.target.checked)} className="w-4 h-4 rounded border-border/50 bg-background/50 text-primary focus:ring-primary focus:ring-offset-background" />
-                <label htmlFor="eNaoContabilizar" className="text-[11px] font-medium text-muted-foreground cursor-pointer select-none uppercase tracking-widest">Não contabilizar remessa (sem salário ao operador)</label>
-              </div>
-
+              {role === 'ADMIN' && (
+                <div className="flex items-center gap-2 pt-4">
+                  <input type="checkbox" id="eNaoContabilizar" checked={eNaoContabilizar} onChange={e=>setENaoContabilizar(e.target.checked)} className="w-4 h-4 rounded border-border/50 bg-background/50 text-primary focus:ring-primary focus:ring-offset-background" />
+                  <label htmlFor="eNaoContabilizar" className="text-[11px] font-medium text-muted-foreground cursor-pointer select-none uppercase tracking-widest">Não contabilizar remessa (sem salário ao operador)</label>
+                </div>
+              )}
               <button type="submit" className="w-full bg-primary text-primary-foreground font-bold py-3 rounded-xl mt-4 shadow-[0_5px_15px_hsl(var(--primary)/0.2)] hover:scale-[1.02] transition-transform">
                 Salvar Alterações
               </button>
@@ -1204,7 +1205,7 @@ const Tasks = () => {
   // Currently Selected
   const selectedMeta = metas.find(m => m.id === selectedMetaId);
   if (selectedMeta) {
-    return <MetaInterior meta={selectedMeta} onBack={() => setSelectedMetaId(null)} onUpdateMeta={onUpdateMeta} addNotification={addNotification} users={users} activeOperator={activeOperator} />;
+    return <MetaInterior meta={selectedMeta} onBack={() => setSelectedMetaId(null)} onUpdateMeta={onUpdateMeta} addNotification={addNotification} users={users} activeOperator={activeOperator} role={role} />;
   }
 
   // Choose list to render

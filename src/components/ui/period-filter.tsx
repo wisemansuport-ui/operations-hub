@@ -23,8 +23,8 @@ interface PeriodFilterProps {
 
 const PRESETS: { key: PeriodPreset; label: string }[] = [
   { key: 'HOJE', label: 'Hoje' },
-  { key: 'SEMANA', label: '7 Dias' },
-  { key: 'MES', label: '30 Dias' },
+  { key: 'SEMANA', label: 'Semana' },
+  { key: 'MES', label: 'Mês' },
   { key: 'TODOS', label: 'Todos' },
 ];
 
