@@ -27,6 +27,7 @@ import Goals from "./pages/Goals";
 import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 import Subscription from "./pages/Subscription";
+import NotificationPrompt from "@/components/NotificationPrompt";
 
 import { SubscriptionGuard } from "@/components/layout/SubscriptionGuard";
 import MasterPanel from "./pages/MasterPanel";
