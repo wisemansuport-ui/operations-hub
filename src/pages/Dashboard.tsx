@@ -190,17 +190,10 @@ const Dashboard = () => {
       const sal = Number(meta.salarioOperador) || 0;
       const pagOp = Number(meta.pagamentoOperador) || 0;
 
-      // Total contas in the meta (used for proportional autoSalario split)
+      // Total contas in the meta (used for proportional autoSalario/FAT split)
       const totalContasMeta = remessas.reduce((acc, r) => acc + Number(r.contas || 0), 0);
 
-      // NOTE: sal (FAT/salarioOperador) is a fixed meta-level value — do NOT split it per
-      // remessa, because remessas with naoContabilizarSalario=true would cause their FAT
-      // slice to be zeroed, making the total FAT contribution smaller than it really is.
-      // Instead, we track whether any in-period remessa exists and apply sal once at meta level.
-
       let metaTotalDep = 0, metaTotalSaq = 0, metaTotalAutoSal = 0;
-      let metaHasInPeriodRemessa = false;
-      let metaLatestInPeriodDateStr = '';
 
       remessas.forEach(r => {
         const dep = Number(r.deposito || 0);
@@ -223,11 +216,16 @@ const Dashboard = () => {
         metaTotalDep += dep;
         metaTotalSaq += saq;
 
+        // Proporção dessa remessa para dividir o FAT e o autoSalario
+        const prop = totalContasMeta > 0 ? originalRc / totalContasMeta : (remessas.length > 0 ? 1 / remessas.length : 1);
+        
+        // FAT distribuído proporcionalmente para a remessa
+        const remSal = sal * prop;
+
         // autoSalario is still per-remessa (based on conta counts)
         let remAutoSal = 0;
         if (!meta.isAdminMeta && !(r as any).naoContabilizarSalario) {
           if (meta.modelo === 'Recarga') {
-            const prop = totalContasMeta > 0 ? originalRc / totalContasMeta : (remessas.length > 0 ? 1 / remessas.length : 1);
             remAutoSal = pagOp * prop;
           } else {
             remAutoSal = (normais * 2) + (baixas * 1);
@@ -242,37 +240,23 @@ const Dashboard = () => {
         if (isFechada && inPeriod) {
           totalDepositado += dep;
           totalSacado += saq;
-          // autoSalario is added per-remessa (correctly)
+          totalSalarios += remSal; // FAT rateado
           totalAutoSalarios += remAutoSal;
           contasProcessadas += rc;
           if (!meta.isAdminMeta && meta.modelo !== 'Recarga') {
             contasNormais += normais;
             contasBaixas += baixas;
           }
-          // Track that at least one remessa is in period (so we apply FAT once)
-          metaHasInPeriodRemessa = true;
-          metaLatestInPeriodDateStr = dateStr; // last in-period date wins
         }
 
         // Chart: always add to the chart regardless of dateFilter
-        // FAT (sal) is NOT added here per-remessa — it will be added once below
         if (isFechada) {
           if (!chartDataByDate[dateStr]) chartDataByDate[dateStr] = { name: dateStr, contas: 0, lucro: 0, lucroOperador: 0 };
           chartDataByDate[dateStr].contas += rc;
-          chartDataByDate[dateStr].lucro += (saq - dep) - remAutoSal;
+          chartDataByDate[dateStr].lucro += (saq - dep) + remSal - remAutoSal; // Aplica o FAT distribuído ao dia exato da remessa
           chartDataByDate[dateStr].lucroOperador += !meta.isAdminMeta ? remAutoSal : 0;
         }
       });
-
-      // Apply FAT (salarioOperador) once at meta level — attributed to the latest in-period remessa date
-      if (isFechada && metaHasInPeriodRemessa && sal > 0) {
-        totalSalarios += sal;
-        // Add to chart on the latest in-period date
-        if (metaLatestInPeriodDateStr) {
-          if (!chartDataByDate[metaLatestInPeriodDateStr]) chartDataByDate[metaLatestInPeriodDateStr] = { name: metaLatestInPeriodDateStr, contas: 0, lucro: 0, lucroOperador: 0 };
-          chartDataByDate[metaLatestInPeriodDateStr].lucro += sal;
-        }
-      }
 
       // Handle metas with 0 contas (no remessas counted) — put full amount on createdAt date
       if (isFechada && totalContasMeta === 0 && remessas.length === 0) {
