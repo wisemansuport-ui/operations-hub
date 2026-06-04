@@ -28,13 +28,20 @@ import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 import Subscription from "./pages/Subscription";
 
+import { SubscriptionGuard } from "@/components/layout/SubscriptionGuard";
+import MasterPanel from "./pages/MasterPanel";
+
 const queryClient = new QueryClient();
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const [user] = useLocalStorage<any>('nytzer-user', null);
   const isDevelopment = false;
   if (!user && !isDevelopment) return <Navigate to="/login" replace />;
-  return <AppLayout>{children}</AppLayout>;
+  return (
+    <SubscriptionGuard>
+      <AppLayout>{children}</AppLayout>
+    </SubscriptionGuard>
+  );
 };
 
 const App = () => {
@@ -108,6 +115,7 @@ const App = () => {
                   <Route path="/costs" element={<PrivateRoute><Costs /></PrivateRoute>} />
                   <Route path="/goals" element={<PrivateRoute><Goals /></PrivateRoute>} />
                   <Route path="/subscription" element={<PrivateRoute><Subscription /></PrivateRoute>} />
+                  <Route path="/master" element={<PrivateRoute><MasterPanel /></PrivateRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
             </BrowserRouter>

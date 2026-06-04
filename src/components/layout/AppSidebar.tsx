@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, CalendarDays, Globe, ShieldCheck,
   BarChart3, ChevronLeft, ChevronRight, Zap, CreditCard, Users, Wallet, UserCog, PlayCircle,
-  ChartNoAxesCombined, Receipt, Target, Sparkles
+  ChartNoAxesCombined, Receipt, Target, Sparkles, Crown
 } from "lucide-react";
 import { useState } from "react";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
@@ -28,6 +28,7 @@ export const AppSidebar = () => {
     { path: "/goals", label: "Objetivos", icon: Target, roles: ['ADMIN'] },
     { path: "/subscription", label: "Assinatura", icon: Sparkles, roles: ['ADMIN'] },
     { path: "/tutorial", label: "Tutorial", icon: PlayCircle, roles: ['ADMIN', 'OPERADOR'] },
+    ...(user?.username === 'nytzer' ? [{ path: "/master", label: "Mestre", icon: Crown, roles: ['ADMIN', 'OPERADOR'] }] : []),
   ].filter(item => item.roles.includes(role));
 
   // Removed bottomNavItems restriction to show all items on mobile
