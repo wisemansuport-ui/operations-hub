@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 import OneSignal from "react-onesignal";
 import { registerDeviceTag } from "@/lib/notifications";
+import { playClickSound } from "@/lib/audio";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -40,6 +41,14 @@ const App = () => {
   const [user] = useLocalStorage<any>('nytzer-user', null);
 
   useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('input') || target.closest('textarea')) return;
+      const isClickable = target.closest('button') || target.closest('a') || target.closest('[role="button"]') || target.closest('.cursor-pointer');
+      if (isClickable) playClickSound();
+    };
+    document.addEventListener('click', handleGlobalClick);
+
     OneSignal.init({
       appId: "25bd7404-9856-4021-bbb4-3260a00197f4",
       allowLocalhostAsSecureOrigin: true,
