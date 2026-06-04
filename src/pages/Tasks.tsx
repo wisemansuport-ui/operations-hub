@@ -1085,7 +1085,9 @@ const Tasks = () => {
 
   const computedMontante = contas && mediaDeposito ? Number(contas) * Number(mediaDeposito) : null;
   const effectiveMult = apvMult === 'NA' ? null : apvMult !== '' ? Number(apvMult) : (apvMultCustom ? Number(apvMultCustom) : null);
-  const computedTotalApv = computedMontante && effectiveMult ? computedMontante * effectiveMult : null;
+  const computedTotalApv = modelo === 'Recarga'
+    ? (contas && effectiveMult ? Number(contas) * effectiveMult : null)
+    : (computedMontante && effectiveMult ? computedMontante * effectiveMult : null);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
