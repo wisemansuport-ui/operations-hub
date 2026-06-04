@@ -239,27 +239,24 @@ const Dashboard = () => {
         const inPeriod = isInRange(remessaDate, dateFilter);
         const dateStr = remessaDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 
-        // Remessas marcadas como naoContabilizarSalario são completamente excluídas
-        // dos KPIs do dashboard — nem dep/saq nem autoSalario entram nos totais.
-        // O FAT (salarioOperador) ainda é aplicado ao nível da meta (abaixo).
-        const naoContabilizar = !!(r as any).naoContabilizarSalario;
-
-        if (isFechada && inPeriod && !naoContabilizar) {
+        if (isFechada && inPeriod) {
           totalDepositado += dep;
           totalSacado += saq;
+          // autoSalario is added per-remessa (correctly)
           totalAutoSalarios += remAutoSal;
           contasProcessadas += rc;
           if (!meta.isAdminMeta && meta.modelo !== 'Recarga') {
             contasNormais += normais;
             contasBaixas += baixas;
           }
-          // Marca que há ao menos uma remessa válida no período (para aplicar FAT)
+          // Track that at least one remessa is in period (so we apply FAT once)
           metaHasInPeriodRemessa = true;
-          metaLatestInPeriodDateStr = dateStr;
+          metaLatestInPeriodDateStr = dateStr; // last in-period date wins
         }
 
-        // Gráfico: apenas remessas válidas contribuem para o gráfico
-        if (isFechada && !naoContabilizar) {
+        // Chart: always add to the chart regardless of dateFilter
+        // FAT (sal) is NOT added here per-remessa — it will be added once below
+        if (isFechada) {
           if (!chartDataByDate[dateStr]) chartDataByDate[dateStr] = { name: dateStr, contas: 0, lucro: 0, lucroOperador: 0 };
           chartDataByDate[dateStr].contas += rc;
           chartDataByDate[dateStr].lucro += (saq - dep) - remAutoSal;
