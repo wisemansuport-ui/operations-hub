@@ -151,11 +151,15 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
   const resultadoBruto = saqueTotal - depositoTotal;
 
   const totalAutoSalarios = remessas.reduce((acc, r) => {
-    if (meta.modelo === 'Recarga') return acc;
+    if (meta.modelo === 'Recarga' || r.naoContabilizarSalario) return acc;
     return acc + ((r.contasNormais || 0) * 2) + ((r.contasBaixas || 0) * 1);
   }, 0) + (meta.modelo === 'Recarga' ? (Number(meta.pagamentoOperador) || 0) : 0);
 
-  const salarioOperador = meta.salarioOperador || 0;
+  const salarioOperador = remessas.reduce((acc, r) => {
+    if (r.naoContabilizarSalario) return acc;
+    const prop = meta.contas > 0 ? r.contas / meta.contas : (remessas.length > 0 ? 1 / remessas.length : 1);
+    return acc + ((meta.salarioOperador || 0) * prop);
+  }, 0);
   
   // Resultado líquido = (saques - depósitos) + salário do admin - pagamento ao operador
   const resultadoLiquido = resultadoBruto + salarioOperador - (!meta.isAdminMeta ? totalAutoSalarios : 0);
