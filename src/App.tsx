@@ -27,6 +27,7 @@ import Goals from "./pages/Goals";
 import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 import Subscription from "./pages/Subscription";
+import NotificationPrompt from "@/components/NotificationPrompt";
 
 import { SubscriptionGuard } from "@/components/layout/SubscriptionGuard";
 import MasterPanel from "./pages/MasterPanel";
@@ -40,6 +41,7 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   return (
     <SubscriptionGuard>
       <AppLayout>{children}</AppLayout>
+      <NotificationPrompt />
     </SubscriptionGuard>
   );
 };
@@ -60,6 +62,9 @@ const App = () => {
       appId: "25bd7404-9856-4021-bbb4-3260a00197f4",
       allowLocalhostAsSecureOrigin: true,
       notifyButton: { enable: false } as any,
+      autoRegister: false,
+      autoResubscribe: true,
+      promptOptions: { slidedown: { prompts: [] } } as any,
       serviceWorkerParam: { scope: "/" } as any,
       serviceWorkerPath: "/OneSignalSDKWorker.js" as any,
     } as any).then(() => {
