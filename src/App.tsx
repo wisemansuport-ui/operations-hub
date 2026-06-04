@@ -62,6 +62,9 @@ const App = () => {
       appId: "25bd7404-9856-4021-bbb4-3260a00197f4",
       allowLocalhostAsSecureOrigin: true,
       notifyButton: { enable: false } as any,
+      autoRegister: false,
+      autoResubscribe: true,
+      promptOptions: { slidedown: { prompts: [] } } as any,
       serviceWorkerParam: { scope: "/" } as any,
       serviceWorkerPath: "/OneSignalSDKWorker.js" as any,
     } as any).then(() => {
