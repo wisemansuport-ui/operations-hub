@@ -1413,7 +1413,10 @@ const Tasks = () => {
               if (meta.modelo === 'Recarga') {
                 autoSalarioMeta = Number(meta.pagamentoOperador) || 0;
               } else {
-                autoSalarioMeta = rem.reduce((acc, r) => acc + ((r.contasNormais || 0) * 2) + ((r.contasBaixas || 0) * 1), 0);
+                autoSalarioMeta = rem.reduce((acc, r) => {
+                  if (r.naoContabilizarSalario) return acc;
+                  return acc + ((r.contasNormais || 0) * 2) + ((r.contasBaixas || 0) * 1);
+                }, 0);
               }
             }
             
