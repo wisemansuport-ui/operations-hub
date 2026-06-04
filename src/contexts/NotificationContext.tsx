@@ -46,9 +46,17 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       
       // Filter notifications based on user role/username
       const visibleNotifs = notifsData.filter(n => {
+        // If there is an explicit targetUser, ONLY that user sees it.
+        if (n.targetUser) {
+          return n.targetUser === user?.username;
+        }
+
+        // Legacy notifications (no targetUser) handling:
         if (n.targetRole === 'ALL' || !n.targetRole) return true;
-        if (n.targetRole === 'ADMIN' && role === 'ADMIN') return true;
-        if (n.targetUser === user?.username) return true;
+        
+        // Legacy 'ADMIN' notifications only go to the master admin now to avoid leaking to new admins
+        if (n.targetRole === 'ADMIN' && user?.username === 'wiseman') return true;
+        
         return false;
       });
       
