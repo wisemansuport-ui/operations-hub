@@ -89,20 +89,11 @@
 @layer base {
   * {
     @apply border-border;
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='24' viewBox='0 0 20 24'%3E%3Cpath d='M2 1L18 12L10 13L6 23L2 1Z' fill='%23cba54b' stroke='%23000000' stroke-width='1.2'/%3E%3C/svg%3E") 2 1, auto !important;
   }
   
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  }
-  
-  a, a *, button, button *, [role="button"], [role="button"] *, select, [type="button"], [type="submit"], .cursor-pointer, .cursor-pointer *, .recharts-surface, .recharts-wrapper *, [cursor="pointer"], g[cursor="pointer"], g[cursor="pointer"] * {
-    cursor: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 2C10 1.44772 10.4477 1 11 1C11.5523 1 12 1.44772 12 2V9H13C13.5523 9 14 9.44772 14 10C14 10.0827 13.9893 10.1631 13.9691 10.2403C14.269 10.0864 14.6186 10 15 10C15.5523 10 16 10.4477 16 11C16 11.0827 15.9893 11.1631 15.9691 11.2403C16.269 11.0864 16.6186 11 17 11C17.5523 11 18 11.4477 18 12V16.5C18 19.5376 15.5376 22 12.5 22H11C8.23858 22 6 19.7614 6 17V12L8.58579 9.41421C8.96086 9.03914 9.46957 8.82843 10 8.82843V2Z' fill='%23cba54b' stroke='black' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 11 1, pointer !important;
-  }
-
-  input, textarea, [contenteditable="true"] {
-    cursor: text !important;
   }
 }
 

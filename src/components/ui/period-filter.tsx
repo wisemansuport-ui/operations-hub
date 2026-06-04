@@ -34,13 +34,13 @@ export function buildDateFilter(preset: PeriodPreset): DateFilter {
     case 'HOJE':
       return { preset, from: startOfDay(now), to: endOfDay(now) };
     case 'SEMANA':
-      return { preset, from: startOfDay(subDays(now, 6)), to: endOfDay(now) };
+      return { preset, from: startOfWeek(now, { weekStartsOn: 1 }), to: endOfWeek(now, { weekStartsOn: 1 }) };
     case 'MES':
-      return { preset, from: startOfDay(subDays(now, 29)), to: endOfDay(now) };
+      return { preset, from: startOfMonth(now), to: endOfMonth(now) };
     case 'TODOS':
       return { preset, from: null, to: null };
     default:
-      return { preset: 'MES', from: startOfDay(subDays(now, 29)), to: endOfDay(now) };
+      return { preset: 'MES', from: startOfMonth(now), to: endOfMonth(now) };
   }
 }
 
@@ -79,8 +79,8 @@ export function PeriodFilter({ value, onChange, className }: PeriodFilterProps) 
   const label = React.useMemo(() => {
     if (value.preset === 'TODOS') return 'Todos';
     if (value.preset === 'HOJE') return 'Hoje';
-    if (value.preset === 'SEMANA') return 'Últimos 7 dias';
-    if (value.preset === 'MES') return 'Últimos 30 dias';
+    if (value.preset === 'SEMANA') return 'Esta semana';
+    if (value.preset === 'MES') return 'Este mês';
     if (value.preset === 'CUSTOM' && value.from && value.to) {
       if (format(value.from, 'dd/MM') === format(value.to, 'dd/MM')) {
         return format(value.from, 'dd/MM/yyyy');
@@ -133,17 +133,16 @@ export function PeriodFilter({ value, onChange, className }: PeriodFilterProps) 
           {/* Preset shortcuts inside popover */}
           <div className="flex gap-1 px-3 pt-3 pb-1 border-b border-border/50 flex-wrap">
             {[
-              { label: 'Hoje', days: 0 },
-              { label: 'Últimos 7 dias', days: 7 },
-              { label: 'Últimos 30 dias', days: 30 },
+              { label: 'Hoje', preset: 'HOJE' as PeriodPreset },
+              { label: 'Esta semana', preset: 'SEMANA' as PeriodPreset },
+              { label: 'Este mês', preset: 'MES' as PeriodPreset },
             ].map(s => (
               <button
                 key={s.label}
                 onClick={() => {
-                  const to = endOfDay(new Date());
-                  const from = s.days === 0 ? startOfDay(new Date()) : startOfDay(subDays(new Date(), s.days));
-                  setRange({ from, to });
-                  onChange({ preset: 'CUSTOM', from, to });
+                  const filter = buildDateFilter(s.preset);
+                  setRange({ from: filter.from || undefined, to: filter.to || undefined });
+                  onChange(filter);
                   setOpen(false);
                 }}
                 className="px-2.5 py-1 text-[10px] font-semibold rounded-lg bg-secondary border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-all"
