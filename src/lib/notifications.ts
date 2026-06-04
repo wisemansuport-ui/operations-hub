@@ -38,19 +38,25 @@ export const registerDeviceTag = async (username: string, role: string) => {
 export const pushNotify = async (
   title: string,
   body: string,
-  operator?: string | string[]
+  targets?: string[] | string
 ) => {
-  const operatorLabel = Array.isArray(operator)
-    ? operator.join(', ')
-    : (operator || 'desconhecido');
+  const targetArray = Array.isArray(targets) ? targets : (targets ? [targets] : []);
+  
+  // If explicitly passed an empty array, it means no one should be notified
+  if (Array.isArray(targets) && targets.length === 0) {
+    console.log(`[Push] 🎯 Skipped: "${title}" (No targets)`);
+    return;
+  }
 
-  console.log(`[Push] 📤 Enviando: "${title}" | Operador: ${operatorLabel}`);
+  const operatorLabel = targetArray.length > 0 ? targetArray.join(', ') : 'todos';
+
+  console.log(`[Push] 🚀 Enviando: "${title}" | Alvos: ${operatorLabel}`);
 
   try {
     const res = await fetch('/api/notify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, body, operator: operatorLabel }),
+      body: JSON.stringify({ title, body, targets: targetArray }),
     });
 
     const json = await res.json();

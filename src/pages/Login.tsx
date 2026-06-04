@@ -85,6 +85,13 @@ const Login = () => {
         };
         
         await addDoc(usersRef, newUser);
+
+        // Clear any generic legacy localStorage keys so new users start clean
+        // (prevents data from a previously logged-in user leaking to a new account)
+        ['nytzer-goals', 'nytzer-tasks'].forEach(k => {
+          try { window.localStorage.removeItem(k); } catch(e) {}
+        });
+
         setUserData(newUser);
         setGlobalRole(role);
         // Tag this device in OneSignal immediately after account creation
@@ -164,6 +171,10 @@ const Login = () => {
            
            const docRef = await addDoc(usersRef, existingUser);
            existingUser.id = docRef.id;
+           // Clear any generic legacy localStorage keys so new users start clean
+           ['nytzer-goals', 'nytzer-tasks'].forEach(k => {
+             try { window.localStorage.removeItem(k); } catch(e) {}
+           });
            toast.success('Conta criada via Google com sucesso!');
         } else {
            const userDoc = querySnapshot.docs[0];

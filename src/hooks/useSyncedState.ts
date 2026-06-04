@@ -6,30 +6,20 @@ import { useLocalStorage } from './useLocalStorage';
 export function useSyncedState<T>(key: string, initialValue: T, syncEnabled: boolean = true): [T, (value: T | ((val: T) => T)) => void] {
   const [user] = useLocalStorage<any>('nytzer-user', null);
   const username = user?.username;
-  const role = user?.role;
   const safeKey = key.replace(/\s+/g, '_');
 
   const [state, setState] = useState<T>(() => {
     if (typeof window === "undefined") return initialValue;
-    
     if (!syncEnabled) return initialValue;
 
-    // Always check the synced key first
+    // Only load data scoped to the current user — never share between users
     if (username) {
       const localSynced = window.localStorage.getItem(`sync-${username}-${safeKey}`);
       if (localSynced) {
         try { return JSON.parse(localSynced); } catch(e) {}
       }
     }
-    
-    // If Admin, try to fallback to the old key for migration
-    if (role === 'ADMIN') {
-      const oldLocal = window.localStorage.getItem(key);
-      if (oldLocal) {
-        try { return JSON.parse(oldLocal); } catch(e) {}
-      }
-    }
-    
+
     return initialValue;
   });
 
@@ -43,24 +33,15 @@ export function useSyncedState<T>(key: string, initialValue: T, syncEnabled: boo
         setState(data);
         window.localStorage.setItem(`sync-${username}-${safeKey}`, JSON.stringify(data));
       } else {
-        // Migration logic for ADMIN only
-        if (role === 'ADMIN') {
-          const oldLocal = window.localStorage.getItem(key);
-          if (oldLocal) {
-            try {
-              const parsed = JSON.parse(oldLocal);
-              setState(parsed);
-              setDoc(docRef, { value: parsed });
-            } catch(e) {}
-          }
-        }
+        // No data in Firestore for this user — keep initialValue (empty state)
+        // Do NOT read generic localStorage keys to avoid data leaking between users
       }
     }, (error) => {
       console.warn("Firestore sync error:", error);
     });
 
     return () => unsubscribe();
-  }, [key, username, role, safeKey]);
+  }, [key, username, safeKey]);
 
   const setSyncedState = (value: T | ((val: T) => T)) => {
     try {

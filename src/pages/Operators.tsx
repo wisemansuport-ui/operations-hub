@@ -323,6 +323,11 @@ const Operators = () => {
              normais = 0;
              baixas = 0;
           }
+          // Respeita o flag naoContabilizarSalario (igual ao Dashboard)
+          if (r.naoContabilizarSalario) {
+            normais = 0;
+            baixas = 0;
+          }
 
           const prop = totalContasMeta > 0 ? originalRc / totalContasMeta : 1 / remessas.length;
           const remSal = sal * prop;
@@ -330,7 +335,8 @@ const Operators = () => {
           let remAutoSal = 0;
           if (meta.modelo === 'Recarga') {
             remAutoSal = pagOp * prop;
-          } else {
+          } else if (!r.naoContabilizarSalario) {
+            // Só calcula autoSalario se a remessa contabiliza salário
             remAutoSal = (normais * 2) + (baixas * 1);
           }
 

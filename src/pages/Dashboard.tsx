@@ -282,6 +282,16 @@ const Dashboard = () => {
     let totalCustos = 0;
     const costsByDate: Record<string, number> = {};
     for (const cost of costs) {
+       let isVisible = false;
+       if (role === 'ADMIN') {
+         isVisible = cost.operador === operatorName || 
+                     (users.find(u => u.username === cost.operador)?.affiliatedTo === operatorName) ||
+                     (!cost.operador && operatorName === 'wiseman');
+       } else {
+         isVisible = cost.operador === operatorName;
+       }
+       if (!isVisible) continue;
+
        const costDate = cost.date ? new Date(cost.date + 'T12:00:00') : new Date(cost.createdAt);
        if (isInRange(costDate, dateFilter)) {
          const amt = Number(cost.amount || 0);

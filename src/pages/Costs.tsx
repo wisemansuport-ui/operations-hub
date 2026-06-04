@@ -42,7 +42,7 @@ const formatBRL = (v: number) =>
   v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
 const Costs = () => {
-  const { metas } = useFirestoreData();
+  const { metas, users } = useFirestoreData();
   const [costs, setCosts] = useState<CostEntry[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -76,13 +76,20 @@ const Costs = () => {
 
   const today = new Date();
 
-  // Admin sees ALL costs (all deduce from admin profit).
+  // Admin sees all costs related to their own account or their affiliated operators.
   // Each operator sees only their own costs in this tab.
   const myCosts = useMemo(
-    () => role === 'ADMIN'
-      ? costs  // admin sees everything — all costs deduct from admin net
-      : costs.filter(c => c.operador === operatorName),
-    [costs, operatorName, role]
+    () => costs.filter(c => {
+      if (role === 'ADMIN') {
+        if (c.operador === operatorName) return true;
+        const opUser = users.find(u => u.username === c.operador);
+        if (opUser && opUser.affiliatedTo === operatorName) return true;
+        if (!c.operador && operatorName === 'wiseman') return true;
+        return false;
+      }
+      return c.operador === operatorName;
+    }),
+    [costs, operatorName, role, users]
   );
 
   const filteredCosts = useMemo(() => {

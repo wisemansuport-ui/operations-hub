@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Server misconfigured: missing API key" });
   }
 
-  const { title, body, operator } = req.body || {};
+  const { title, body, targets } = req.body || {};
 
   if (!title || !body) {
     return res.status(400).json({ error: "Missing title or body" });
@@ -33,7 +33,6 @@ export default async function handler(req, res) {
 
   const payload = {
     app_id: ONESIGNAL_APP_ID,
-    included_segments: ["Total Subscriptions"],
     headings: { en: title, pt: title },
     contents: { en: body, pt: body },
     chrome_web_icon: "https://www.nytzervision.com/icon-512.png",
@@ -41,6 +40,13 @@ export default async function handler(req, res) {
     adm_small_icon: "https://www.nytzervision.com/icon-512.png",
     ios_attachments: { id1: "https://www.nytzervision.com/icon-512.png" }
   };
+
+  if (targets && Array.isArray(targets) && targets.length > 0) {
+    payload.include_aliases = { external_id: targets };
+    payload.target_channel = "push";
+  } else {
+    payload.included_segments = ["Total Subscriptions"];
+  }
 
   try {
     const onesignalRes = await fetch("https://onesignal.com/api/v1/notifications", {
@@ -55,7 +61,7 @@ export default async function handler(req, res) {
     const json = await onesignalRes.json();
 
     if (onesignalRes.ok) {
-      console.log(`[notify] Push sent | ID: ${json.id} | Rec: ${json.recipients} | Op: ${operator}`);
+      console.log(`[notify] Push sent | ID: ${json.id} | Rec: ${json.recipients} | Op: ${targets?.join(',') || 'todos'}`);
       return res.status(200).json({ success: true, id: json.id, recipients: json.recipients });
     } else {
       console.error(`[notify] OneSignal error (${onesignalRes.status}):`, json);
