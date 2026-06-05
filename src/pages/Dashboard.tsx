@@ -618,9 +618,10 @@ const Dashboard = () => {
       </div>
     </div>
 
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
       {/* Col 1: Fluxo */}
-      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5 flex flex-col justify-between">
+      <div className="relative rounded-2xl border border-border bg-card/60 backdrop-blur p-4 md:p-5 flex flex-col justify-between overflow-hidden">
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
         <h3 className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold mb-5">Fluxo (Entradas vs Saídas)</h3>
 
         <div className="space-y-5">
