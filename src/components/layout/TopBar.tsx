@@ -378,7 +378,7 @@ export const TopBar = () => {
                       {role === "ADMIN" && user?.username && (
                         <button
                           onClick={handleTestPush}
-                          className="text-[9px] font-bold text-amber-400 border border-amber-500/25 bg-amber-500/8 px-2 py-1 rounded-lg hover:bg-amber-500/15 transition-colors flex items-center gap-1"
+                          className="text-[9px] font-bold text-primary border border-primary/25 bg-primary/10 px-2 py-1 rounded-lg hover:bg-primary/20 transition-colors flex items-center gap-1"
                           title="Enviar push de teste"
                         >
                           <Zap className="w-2.5 h-2.5" />
