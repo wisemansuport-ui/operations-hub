@@ -581,13 +581,14 @@ const Dashboard = () => {
         </ResponsiveContainer>
       </div>
 
-      <div className="glass-card rounded-2xl p-6 border-primary/10 flex flex-col items-center justify-center relative overflow-hidden">
+      <div className="glass-card rounded-2xl p-4 md:p-6 border-primary/10 flex flex-col items-center justify-center relative overflow-hidden">
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl -z-10" />
         <div className="w-full">
-          <h3 className="text-base font-bold text-foreground mb-1">Proporção Operacional</h3>
+          <h3 className="text-base font-bold text-foreground mb-1 tracking-tight">Proporção Operacional</h3>
           <p className="text-xs text-muted-foreground mb-4">Volume vs Status Real.</p>
         </div>
-        <ResponsiveContainer width="100%" height={220}>
+        <ResponsiveContainer width="100%" height={200}>
           <PieChart>
             <Pie 
               data={pieData} 
