@@ -673,7 +673,8 @@ const Dashboard = () => {
       </div>
 
       {/* Col 2: Previsão Inteligente */}
-      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5">
+      <div className="relative rounded-2xl border border-border bg-card/60 backdrop-blur p-4 md:p-5 overflow-hidden">
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
         <h3 className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold mb-5">Previsão Inteligente</h3>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -692,7 +693,8 @@ const Dashboard = () => {
       </div>
 
       {/* Col 3: Redes Mais Lucrativas */}
-      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5 overflow-y-auto max-h-[400px] hide-scrollbar">
+      <div className="relative rounded-2xl border border-border bg-card/60 backdrop-blur p-4 md:p-5 overflow-y-auto max-h-[400px] hide-scrollbar">
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
         <h3 className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold mb-5">Redes Mais Lucrativas</h3>
         <div className="divide-y divide-border/60">
            {stats.rankingRedes.length === 0 ? (
