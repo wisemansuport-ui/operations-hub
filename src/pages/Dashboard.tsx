@@ -388,11 +388,11 @@ const Dashboard = () => {
 
   if (role === 'OPERADOR') {
     return (
-      <div className="space-y-6 relative z-10 pb-20 md:pb-6">
+      <div className="space-y-5 md:space-y-6 relative z-10 pb-20 md:pb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Meu Painel</h1>
-            <p className="text-sm text-primary/70 mt-1 uppercase tracking-widest font-semibold flex items-center gap-2">
+            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-foreground">Meu Painel</h1>
+            <p className="text-[11px] md:text-sm text-primary/70 mt-1 uppercase tracking-widest font-semibold flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--primary))]" />
               Sincronizado via Metas
             </p>
@@ -402,7 +402,7 @@ const Dashboard = () => {
         {/* Period filter - above KPIs */}
         <PeriodFilter value={dateFilter} onChange={setDateFilter} />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           <KPICard title="Saldo Total" value={formatBRL(stats.totalAutoSalarios)} change={`${stats.contasProcessadas} contas operadas`} changeType="positive" icon={DollarSign} color="success" tooltip="O valor total a receber (salário + comissões) baseado na sua produção validada." />
           <KPICard title="Metas Fechadas" value={`${stats.metasFechadas}/${stats.totalMetas}`} change="Registradas" changeType="positive" icon={Target} color="primary" tooltip="Quantidade de metas concluídas em relação ao total atribuído a você." />
           <KPICard title="Contas (NORMAL)" value={String(stats.contasNormais)} change="R$ 2,00 por conta" changeType="neutral" icon={Activity} color="primary" tooltip="Volume de contas normais validadas (R$ 2,00 por unidade)." />
