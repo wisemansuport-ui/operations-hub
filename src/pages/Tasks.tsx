@@ -1494,35 +1494,60 @@ const Tasks = () => {
         </div>
       )}
 
-      {displayList.length > 10 && (
-        <div className="flex justify-center items-center gap-2 mt-6 animate-fade-in">
-          <button 
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-            className="px-3 py-1.5 rounded-lg bg-muted/20 border border-border/40 text-muted-foreground disabled:opacity-30 hover:bg-muted/40 transition-colors text-xs font-bold"
-          >
-            Anterior
-          </button>
-          <div className="flex gap-1">
-            {Array.from({ length: totalPages }).map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentPage(i + 1)}
-                className={`w-7 h-7 rounded-md text-xs font-bold transition-all ${currentPage === i + 1 ? 'bg-primary text-primary-foreground shadow-[0_0_10px_hsl(var(--primary)/0.3)]' : 'bg-muted/20 border border-border/40 text-muted-foreground hover:bg-muted/40 hover:text-foreground'}`}
-              >
-                {i + 1}
-              </button>
-            ))}
+      {displayList.length > 10 && (() => {
+        const pageWindow: (number | 'ellipsis')[] = [];
+        const add = (v: number | 'ellipsis') => pageWindow.push(v);
+        if (totalPages <= 7) {
+          for (let i = 1; i <= totalPages; i++) add(i);
+        } else {
+          add(1);
+          const start = Math.max(2, currentPage - 1);
+          const end = Math.min(totalPages - 1, currentPage + 1);
+          if (start > 2) add('ellipsis');
+          for (let i = start; i <= end; i++) add(i);
+          if (end < totalPages - 1) add('ellipsis');
+          add(totalPages);
+        }
+        return (
+          <div className="flex justify-center items-center gap-1.5 sm:gap-2 mt-6 animate-fade-in flex-wrap px-2">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              aria-label="Página anterior"
+              className="h-9 px-3 rounded-lg bg-muted/20 border border-border/40 text-muted-foreground disabled:opacity-30 hover:bg-muted/40 transition-colors text-xs font-bold"
+            >
+              Anterior
+            </button>
+            <div className="flex items-center gap-1">
+              {pageWindow.map((p, i) =>
+                p === 'ellipsis' ? (
+                  <span key={`e-${i}`} className="w-6 text-center text-muted-foreground/60 text-xs select-none">…</span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => setCurrentPage(p)}
+                    aria-current={currentPage === p ? 'page' : undefined}
+                    className={`min-w-9 h-9 px-2 rounded-md text-xs font-bold transition-all ${currentPage === p ? 'bg-primary text-primary-foreground shadow-[0_0_10px_hsl(var(--primary)/0.3)]' : 'bg-muted/20 border border-border/40 text-muted-foreground hover:bg-muted/40 hover:text-foreground'}`}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+            </div>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              aria-label="Próxima página"
+              className="h-9 px-3 rounded-lg bg-muted/20 border border-border/40 text-muted-foreground disabled:opacity-30 hover:bg-muted/40 transition-colors text-xs font-bold"
+            >
+              Próxima
+            </button>
+            <span className="w-full sm:w-auto sm:ml-2 text-center text-[11px] text-muted-foreground/70 font-medium tabular-nums">
+              {currentPage} / {totalPages}
+            </span>
           </div>
-          <button 
-            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-            className="px-3 py-1.5 rounded-lg bg-muted/20 border border-border/40 text-muted-foreground disabled:opacity-30 hover:bg-muted/40 transition-colors text-xs font-bold"
-          >
-            Próxima
-          </button>
-        </div>
-      )}
+        );
+      })()}
 
       {/* MODAL - Nova Operação */}
       {isModalOpen && createPortal(
