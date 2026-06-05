@@ -351,11 +351,13 @@ export const TopBar = () => {
             {/* ── Notification Panel ── */}
             {showNotifs && (
               <div
-                className="absolute -right-14 sm:-right-4 md:right-0 top-12 w-[360px] sm:w-[400px]
-                  bg-[#0B0B0D]/95 backdrop-blur-2xl border border-white/[0.08] rounded-2xl
-                  shadow-2xl shadow-black/60 overflow-hidden
+                className="fixed left-2 right-2 top-[calc(env(safe-area-inset-top)+3.5rem)] w-auto
+                  sm:absolute sm:left-auto sm:right-0 sm:top-12 sm:w-[400px]
+                  bg-[#0B0B0D]/95 backdrop-blur-2xl border border-primary/15 rounded-2xl
+                  shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7),0_0_0_1px_hsl(var(--primary)/0.05)] overflow-hidden
                   animate-in fade-in-0 slide-in-from-top-2 duration-200 z-50"
               >
+                <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
                 {/* Header */}
                 <div className="px-4 pt-4 pb-3 border-b border-white/[0.06]">
                   <div className="flex items-center justify-between mb-3">
@@ -376,7 +378,7 @@ export const TopBar = () => {
                       {role === "ADMIN" && user?.username && (
                         <button
                           onClick={handleTestPush}
-                          className="text-[9px] font-bold text-amber-400 border border-amber-500/25 bg-amber-500/8 px-2 py-1 rounded-lg hover:bg-amber-500/15 transition-colors flex items-center gap-1"
+                          className="text-[9px] font-bold text-primary border border-primary/25 bg-primary/10 px-2 py-1 rounded-lg hover:bg-primary/20 transition-colors flex items-center gap-1"
                           title="Enviar push de teste"
                         >
                           <Zap className="w-2.5 h-2.5" />

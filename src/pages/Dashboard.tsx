@@ -388,11 +388,11 @@ const Dashboard = () => {
 
   if (role === 'OPERADOR') {
     return (
-      <div className="space-y-6 relative z-10 pb-20 md:pb-6">
+      <div className="space-y-5 md:space-y-6 relative z-10 pb-20 md:pb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Meu Painel</h1>
-            <p className="text-sm text-primary/70 mt-1 uppercase tracking-widest font-semibold flex items-center gap-2">
+            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-foreground">Meu Painel</h1>
+            <p className="text-[11px] md:text-sm text-primary/70 mt-1 uppercase tracking-widest font-semibold flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--primary))]" />
               Sincronizado via Metas
             </p>
@@ -402,7 +402,7 @@ const Dashboard = () => {
         {/* Period filter - above KPIs */}
         <PeriodFilter value={dateFilter} onChange={setDateFilter} />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           <KPICard title="Saldo Total" value={formatBRL(stats.totalAutoSalarios)} change={`${stats.contasProcessadas} contas operadas`} changeType="positive" icon={DollarSign} color="success" tooltip="O valor total a receber (salário + comissões) baseado na sua produção validada." />
           <KPICard title="Metas Fechadas" value={`${stats.metasFechadas}/${stats.totalMetas}`} change="Registradas" changeType="positive" icon={Target} color="primary" tooltip="Quantidade de metas concluídas em relação ao total atribuído a você." />
           <KPICard title="Contas (NORMAL)" value={String(stats.contasNormais)} change="R$ 2,00 por conta" changeType="neutral" icon={Activity} color="primary" tooltip="Volume de contas normais validadas (R$ 2,00 por unidade)." />
@@ -410,7 +410,8 @@ const Dashboard = () => {
         </div>
 
         {/* Proporção Operacional - Simple Chart for Operator */}
-        <div className="glass-card rounded-2xl p-6 border-primary/10 flex flex-col md:flex-row items-center justify-between relative overflow-hidden gap-6">
+        <div className="glass-card rounded-2xl p-4 md:p-6 border-primary/10 flex flex-col md:flex-row items-center justify-between relative overflow-hidden gap-6">
+          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10" />
           <div className="w-full md:w-1/2">
             <h3 className="text-xl font-bold text-foreground mb-2">Desempenho Geral</h3>
@@ -459,11 +460,12 @@ const Dashboard = () => {
         </div>
 
         {/* Evolução do Faturamento - Operator */}
-        <div className="glass-card rounded-2xl p-6 border-primary/10 relative overflow-hidden group mt-6">
+        <div className="glass-card rounded-2xl p-4 md:p-6 border-primary/10 relative overflow-hidden group mt-6">
+          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10 group-hover:bg-primary/10 transition-all duration-700" />
-          <h3 className="text-base font-bold text-foreground mb-1">Evolução do Faturamento</h3>
+          <h3 className="text-base font-bold text-foreground mb-1 tracking-tight">Evolução do Faturamento</h3>
           <p className="text-xs text-muted-foreground mb-6">Métricas fiéis ligadas ao seu processamento.</p>
-          <ResponsiveContainer width="100%" height={280}>
+          <ResponsiveContainer width="100%" height={240}>
             <AreaChart data={barData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorLucroOp" x1="0" y1="0" x2="0" y2="1">
@@ -521,11 +523,11 @@ const Dashboard = () => {
   }
 
   return (
-  <div className="space-y-6 relative z-10 pb-20 md:pb-6">
+  <div className="space-y-5 md:space-y-6 relative z-10 pb-20 md:pb-6">
     <div className="flex items-center justify-between">
       <div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-foreground capitalize">Olá, {(user?.fullName || user?.name || user?.username || 'Operador').split(' ')[0]}</h1>
-        <p className="text-sm text-primary/70 mt-1 uppercase tracking-widest font-semibold flex items-center gap-2">
+        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-foreground capitalize">Olá, {(user?.fullName || user?.name || user?.username || 'Operador').split(' ')[0]}</h1>
+        <p className="text-[11px] md:text-sm text-primary/70 mt-1 uppercase tracking-widest font-semibold flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--primary))]" />
           SINCRONIZADO VIA PLANILHAS
         </p>
@@ -535,7 +537,7 @@ const Dashboard = () => {
     {/* Period filter - above KPIs */}
     <PeriodFilter value={dateFilter} onChange={setDateFilter} />
 
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
       <KPICard title="Receita Líquida" value={formatBRL(stats.receitaMensal)} change={`+ ${formatBRL(stats.totalSalarios)} FAT`} changeType="positive" icon={DollarSign} color="success" tooltip="Lucro bruto somado ao faturamento (salários) de toda a operação." />
       <KPICard title="Metas Fechadas" value={`${stats.metasFechadas}/${stats.totalMetas}`} change="Registradas" changeType="positive" icon={Target} color="primary" tooltip="Metas concluídas com sucesso do total criado." />
       <KPICard title="Metas Ativas" value={String(stats.metasAtivas)} change="Painel de controle" changeType="neutral" icon={Activity} color="warning" tooltip="Metas atualmente em andamento aguardando o fechamento dos operadores." />
@@ -543,12 +545,13 @@ const Dashboard = () => {
     </div>
 
     {/* Modernized Charts */}
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4">
-      <div className="lg:col-span-2 glass-card rounded-2xl p-6 border-primary/10 relative overflow-hidden group">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mt-4">
+      <div className="lg:col-span-2 glass-card rounded-2xl p-4 md:p-6 border-primary/10 relative overflow-hidden group">
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10 group-hover:bg-primary/10 transition-all duration-700" />
-        <h3 className="text-base font-bold text-foreground mb-1">Evolução do Faturamento</h3>
+        <h3 className="text-base font-bold text-foreground mb-1 tracking-tight">Evolução do Faturamento</h3>
         <p className="text-xs text-muted-foreground mb-6">Métricas fiéis ligadas ao seu processamento.</p>
-        <ResponsiveContainer width="100%" height={280}>
+        <ResponsiveContainer width="100%" height={240}>
           <AreaChart data={barData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="colorLucro" x1="0" y1="0" x2="0" y2="1">
@@ -578,13 +581,14 @@ const Dashboard = () => {
         </ResponsiveContainer>
       </div>
 
-      <div className="glass-card rounded-2xl p-6 border-primary/10 flex flex-col items-center justify-center relative overflow-hidden">
+      <div className="glass-card rounded-2xl p-4 md:p-6 border-primary/10 flex flex-col items-center justify-center relative overflow-hidden">
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl -z-10" />
         <div className="w-full">
-          <h3 className="text-base font-bold text-foreground mb-1">Proporção Operacional</h3>
+          <h3 className="text-base font-bold text-foreground mb-1 tracking-tight">Proporção Operacional</h3>
           <p className="text-xs text-muted-foreground mb-4">Volume vs Status Real.</p>
         </div>
-        <ResponsiveContainer width="100%" height={220}>
+        <ResponsiveContainer width="100%" height={200}>
           <PieChart>
             <Pie 
               data={pieData} 
@@ -614,9 +618,10 @@ const Dashboard = () => {
       </div>
     </div>
 
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
       {/* Col 1: Fluxo */}
-      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5 flex flex-col justify-between">
+      <div className="relative rounded-2xl border border-border bg-card/60 backdrop-blur p-4 md:p-5 flex flex-col justify-between overflow-hidden">
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
         <h3 className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold mb-5">Fluxo (Entradas vs Saídas)</h3>
 
         <div className="space-y-5">
@@ -668,7 +673,8 @@ const Dashboard = () => {
       </div>
 
       {/* Col 2: Previsão Inteligente */}
-      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5">
+      <div className="relative rounded-2xl border border-border bg-card/60 backdrop-blur p-4 md:p-5 overflow-hidden">
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
         <h3 className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold mb-5">Previsão Inteligente</h3>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -687,7 +693,8 @@ const Dashboard = () => {
       </div>
 
       {/* Col 3: Redes Mais Lucrativas */}
-      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5 overflow-y-auto max-h-[400px] hide-scrollbar">
+      <div className="relative rounded-2xl border border-border bg-card/60 backdrop-blur p-4 md:p-5 overflow-y-auto max-h-[400px] hide-scrollbar">
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
         <h3 className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold mb-5">Redes Mais Lucrativas</h3>
         <div className="divide-y divide-border/60">
            {stats.rankingRedes.length === 0 ? (
