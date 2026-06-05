@@ -89,36 +89,36 @@ export const DataTable = ({ columns, data: initialData, onDataChange, title, sub
 
   return (
     <div className="glass-card rounded-xl overflow-hidden">
-      <div className="px-5 py-4 border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-semibold text-foreground">{title}</h2>
-          {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
+      <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-base sm:text-lg font-semibold text-foreground tracking-tight truncate">{title}</h2>
+          {subtitle && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{subtitle}</p>}
         </div>
-        <div className="flex items-center gap-2">
-          <div className="relative">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-initial">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar..."
-              className="h-8 pl-8 pr-3 text-sm bg-muted/50 border border-border/50 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring w-48"
+              className="h-10 sm:h-8 w-full sm:w-48 pl-8 pr-3 text-sm bg-muted/50 border border-border/50 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
             />
           </div>
-          <button onClick={addRow} className="h-8 px-3 flex items-center gap-1.5 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
-            <Plus className="w-3.5 h-3.5" /> Adicionar
+          <button onClick={addRow} className="h-10 sm:h-8 px-3 shrink-0 flex items-center gap-1.5 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
+            <Plus className="w-3.5 h-3.5" /> <span>Adicionar</span>
           </button>
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border/50">
+      <div className="max-h-[70vh] overflow-auto overscroll-contain [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]">
+        <table className="w-full text-sm border-separate border-spacing-0 min-w-[640px]">
+          <thead className="sticky top-0 z-20 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+            <tr>
               {columns.map((col) => (
                 <th
                   key={col.key}
                   onClick={() => handleSort(col.key)}
-                  className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors select-none"
+                  className="px-3 sm:px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors select-none whitespace-nowrap border-b border-border/50"
                   style={{ width: col.width }}
                 >
                   <div className="flex items-center gap-1">
@@ -131,14 +131,14 @@ export const DataTable = ({ columns, data: initialData, onDataChange, title, sub
                   </div>
                 </th>
               ))}
-              <th className="w-10" />
+              <th className="w-10 border-b border-border/50" />
             </tr>
           </thead>
           <tbody>
             {sorted.map((row, rowIdx) => (
-              <tr key={row.id || rowIdx} className="border-b border-border/30 hover:bg-muted/30 transition-colors">
+              <tr key={row.id || rowIdx} className="hover:bg-muted/30 transition-colors">
                 {columns.map((col) => (
-                  <td key={col.key} className="px-4 py-2">
+                  <td key={col.key} className="px-3 sm:px-4 py-2 border-b border-border/30 align-middle">
                     {editingCell?.row === rowIdx && editingCell?.col === col.key ? (
                       col.type === "select" || col.type === "status" ? (
                         <select
@@ -164,23 +164,23 @@ export const DataTable = ({ columns, data: initialData, onDataChange, title, sub
                     ) : (
                       <div
                         onClick={() => setEditingCell({ row: rowIdx, col: col.key })}
-                        className="cursor-text min-h-[24px] flex items-center"
+                        className="cursor-text min-h-[28px] flex items-center"
                       >
                         {col.type === "status" ? (
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[row[col.key]] || "bg-muted text-muted-foreground"}`}>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${statusColors[row[col.key]] || "bg-muted text-muted-foreground"}`}>
                             {row[col.key]}
                           </span>
                         ) : col.type === "number" ? (
-                          <span className="font-mono">{row[col.key]}</span>
+                          <span className="font-mono tabular-nums">{row[col.key]}</span>
                         ) : (
-                          <span>{row[col.key]}</span>
+                          <span className="block truncate max-w-[240px]">{row[col.key]}</span>
                         )}
                       </div>
                     )}
                   </td>
                 ))}
-                <td className="px-2">
-                  <button onClick={() => deleteRow(rowIdx)} className="p-1 text-muted-foreground hover:text-destructive transition-colors rounded">
+                <td className="px-2 border-b border-border/30">
+                  <button onClick={() => deleteRow(rowIdx)} className="p-2 sm:p-1 text-muted-foreground hover:text-destructive transition-colors rounded">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </td>
@@ -196,8 +196,8 @@ export const DataTable = ({ columns, data: initialData, onDataChange, title, sub
           </tbody>
         </table>
       </div>
-      <div className="px-5 py-2.5 border-t border-border/50 text-xs text-muted-foreground">
-        {sorted.length} registro{sorted.length !== 1 ? "s" : ""} · Clique em uma célula para editar
+      <div className="px-4 sm:px-5 py-2.5 border-t border-border/50 text-xs text-muted-foreground">
+        {sorted.length} registro{sorted.length !== 1 ? "s" : ""} · Toque em uma célula para editar
       </div>
     </div>
   );
