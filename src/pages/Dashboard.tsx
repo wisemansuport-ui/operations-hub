@@ -410,7 +410,8 @@ const Dashboard = () => {
         </div>
 
         {/* Proporção Operacional - Simple Chart for Operator */}
-        <div className="glass-card rounded-2xl p-6 border-primary/10 flex flex-col md:flex-row items-center justify-between relative overflow-hidden gap-6">
+        <div className="glass-card rounded-2xl p-4 md:p-6 border-primary/10 flex flex-col md:flex-row items-center justify-between relative overflow-hidden gap-6">
+          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10" />
           <div className="w-full md:w-1/2">
             <h3 className="text-xl font-bold text-foreground mb-2">Desempenho Geral</h3>
