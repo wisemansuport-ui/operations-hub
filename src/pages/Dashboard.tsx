@@ -523,11 +523,11 @@ const Dashboard = () => {
   }
 
   return (
-  <div className="space-y-6 relative z-10 pb-20 md:pb-6">
+  <div className="space-y-5 md:space-y-6 relative z-10 pb-20 md:pb-6">
     <div className="flex items-center justify-between">
       <div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-foreground capitalize">Olá, {(user?.fullName || user?.name || user?.username || 'Operador').split(' ')[0]}</h1>
-        <p className="text-sm text-primary/70 mt-1 uppercase tracking-widest font-semibold flex items-center gap-2">
+        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-foreground capitalize">Olá, {(user?.fullName || user?.name || user?.username || 'Operador').split(' ')[0]}</h1>
+        <p className="text-[11px] md:text-sm text-primary/70 mt-1 uppercase tracking-widest font-semibold flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--primary))]" />
           SINCRONIZADO VIA PLANILHAS
         </p>
@@ -537,7 +537,7 @@ const Dashboard = () => {
     {/* Period filter - above KPIs */}
     <PeriodFilter value={dateFilter} onChange={setDateFilter} />
 
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
       <KPICard title="Receita Líquida" value={formatBRL(stats.receitaMensal)} change={`+ ${formatBRL(stats.totalSalarios)} FAT`} changeType="positive" icon={DollarSign} color="success" tooltip="Lucro bruto somado ao faturamento (salários) de toda a operação." />
       <KPICard title="Metas Fechadas" value={`${stats.metasFechadas}/${stats.totalMetas}`} change="Registradas" changeType="positive" icon={Target} color="primary" tooltip="Metas concluídas com sucesso do total criado." />
       <KPICard title="Metas Ativas" value={String(stats.metasAtivas)} change="Painel de controle" changeType="neutral" icon={Activity} color="warning" tooltip="Metas atualmente em andamento aguardando o fechamento dos operadores." />
