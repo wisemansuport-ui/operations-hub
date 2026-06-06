@@ -1390,7 +1390,9 @@ const Tasks = () => {
               description="Arquivo de todas as metas finalizadas. Consulte o histórico e o lucro consolidado de cada ciclo encerrado."
               kpis={[
                 { label: 'Metas fechadas', value: String(listFechadas.length), accent: true },
-                { label: 'Lucro consolidado', value: fmtBRL(lucroConsolidado), tone: lucroConsolidado >= 0 ? 'success' : 'destructive' },
+                isOperator
+                  ? { label: 'Meus ganhos', value: fmtBRL(ganhosOperador), tone: 'success' }
+                  : { label: 'Lucro consolidado', value: fmtBRL(lucroConsolidado), tone: lucroConsolidado >= 0 ? 'success' : 'destructive' },
                 { label: 'Total criadas', value: String(visibleMetas.length), tone: 'muted' },
               ]}
             />
