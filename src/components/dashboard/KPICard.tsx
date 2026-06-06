@@ -71,7 +71,7 @@ export const KPICard = ({
               <TrendingDown className="w-3 h-3 text-destructive" />
             ) : null}
             <span
-              className={`text-[11px] font-medium truncate ${
+              className={`text-[11px] font-medium leading-snug break-words ${
                 changeType === "positive"
                   ? "text-success"
                   : changeType === "negative"
