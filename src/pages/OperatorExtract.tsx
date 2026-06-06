@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Wallet, CheckCircle2, Filter, Download, Calendar as CalendarIcon, User as UserIcon, TrendingUp, Receipt, Clock } from "lucide-react";
+import { Wallet, CheckCircle2, Filter, Download, Calendar as CalendarIcon, User as UserIcon, TrendingUp, Receipt, Clock, HandCoins, Sparkles } from "lucide-react";
 
 import { DataTable, Column } from "@/components/spreadsheet/DataTable";
 import { TasksHero, type HeroKpi } from "@/components/heroes/TasksHero";
@@ -7,7 +7,7 @@ import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useFirestoreData } from "../hooks/useFirestoreData";
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { format, startOfDay, subDays } from "date-fns";
+import { format, startOfDay, subDays, startOfWeek, startOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 interface PaymentHistoryEntry {
@@ -172,6 +172,28 @@ export default function OperatorExtract() {
   const totalValor = extratoData.reduce((s, e) => s + (Number(e.valor) || 0), 0);
   const finalizadas = extratoData.filter(e => e.status === 'Finalizada').length;
 
+  // ===== A Receber =====
+  // Tudo que foi gerado após a data coberta pelo último pagamento ainda é "a receber"
+  const paidUntilTs = lastPayment?.newPaidUntil ? new Date(lastPayment.newPaidUntil).getTime() : 0;
+  const now = new Date();
+  const todayStart = startOfDay(now).getTime();
+  const weekStart = startOfWeek(now, { weekStartsOn: 1 }).getTime();
+  const monthStart = startOfMonth(now).getTime();
+
+  const aReceber = useMemo(() => {
+    let total = 0, dia = 0, semana = 0, mes = 0;
+    extratoData.forEach(e => {
+      const ts = e.timestamp || 0;
+      const v = Number(e.valor) || 0;
+      if (ts <= paidUntilTs) return; // já pago
+      total += v;
+      if (ts >= todayStart) dia += v;
+      if (ts >= weekStart) semana += v;
+      if (ts >= monthStart) mes += v;
+    });
+    return { total, dia, semana, mes };
+  }, [extratoData, paidUntilTs, todayStart, weekStart, monthStart]);
+
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-fade-in relative z-10">
       {/* HERO — Extrato */}
@@ -231,6 +253,72 @@ export default function OperatorExtract() {
           dynamicData={true}
         />
       </div>
+
+      {/* ============================================= */}
+      {/* A RECEBER — saldo pendente                     */}
+      {/* ============================================= */}
+      <section className="space-y-5">
+        <div className="flex items-center gap-3">
+          <div className="w-1 h-8 rounded-full bg-gradient-to-b from-warning to-warning/40" />
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-warning/90">Saldo pendente</p>
+            <h2 className="text-lg md:text-xl font-bold text-foreground tracking-tight">A receber</h2>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Total pendente — destaque */}
+          <div className="hairline-gold surface-3 rounded-2xl p-4 relative overflow-hidden lg:col-span-1">
+            <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-warning/10 blur-3xl pointer-events-none" />
+            <div className="flex items-center gap-2 mb-2 relative">
+              <div className="w-8 h-8 rounded-lg bg-warning/10 border border-warning/20 flex items-center justify-center">
+                <HandCoins className="w-4 h-4 text-warning" />
+              </div>
+              <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground">Total a receber</p>
+            </div>
+            <p className="text-2xl font-extrabold text-foreground tabular-nums tracking-tight">{formatBRL(aReceber.total)}</p>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              {paidUntilTs > 0
+                ? `Desde ${format(new Date(paidUntilTs), "dd MMM yyyy", { locale: ptBR })}`
+                : 'Nenhum pagamento registrado ainda'}
+            </p>
+          </div>
+
+          <div className="surface-2 rounded-2xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-primary" />
+              </div>
+              <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground">Hoje</p>
+            </div>
+            <p className="text-2xl font-extrabold text-foreground tabular-nums tracking-tight">{formatBRL(aReceber.dia)}</p>
+            <p className="text-[10px] text-muted-foreground mt-1">Ganho do dia</p>
+          </div>
+
+          <div className="surface-2 rounded-2xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <CalendarIcon className="w-4 h-4 text-primary" />
+              </div>
+              <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground">Esta semana</p>
+            </div>
+            <p className="text-2xl font-extrabold text-foreground tabular-nums tracking-tight">{formatBRL(aReceber.semana)}</p>
+            <p className="text-[10px] text-muted-foreground mt-1">A partir de segunda</p>
+          </div>
+
+          <div className="surface-2 rounded-2xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <TrendingUp className="w-4 h-4 text-primary" />
+              </div>
+              <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground">Este mês</p>
+            </div>
+            <p className="text-2xl font-extrabold text-foreground tabular-nums tracking-tight">{formatBRL(aReceber.mes)}</p>
+            <p className="text-[10px] text-muted-foreground mt-1">Acumulado mensal</p>
+          </div>
+        </div>
+      </section>
+
 
       {/* ============================================= */}
       {/* HISTÓRICO DE PAGAMENTOS — versão premium       */}
