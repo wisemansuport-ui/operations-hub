@@ -33,7 +33,8 @@ const quickLinks = [
   { path: "/me", label: "Extrato", icon: Wallet, desc: "Produtividade", roles: ['OPERADOR'] },
 ];
 
-const formatBRL = (val: number) => `R$ ${val.toFixed(2).replace('.', ',')}`;
+const formatBRL = (val: number) => `R$ ${Math.abs(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const formatBRLSigned = (val: number) => `${val < 0 ? '-' : '+'}R$ ${Math.abs(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const DashboardSkeleton = ({ role }: { role: 'ADMIN' | 'OPERADOR' }) => {
   return (
