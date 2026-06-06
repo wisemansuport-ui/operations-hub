@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import OneSignal from "react-onesignal";
 import { registerDeviceTag } from "@/lib/notifications";
 import { playClickSound } from "@/lib/audio";
@@ -12,28 +12,35 @@ import { NotificationProvider } from "@/contexts/NotificationContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { RouteTransition } from "@/components/layout/RouteTransition";
 import { useLocalStorage } from "./hooks/useLocalStorage";
-import Index from "./pages/Index";
 import Login from "./pages/Login";
-import Production from "./pages/Production";
-import Tasks from "./pages/Tasks";
-import Networks from "./pages/Networks";
-import PixKeys from "./pages/PixKeys";
-import Quality from "./pages/Quality";
-import Reports from "./pages/Reports";
-import Operators from "./pages/Operators";
-import OperatorExtract from "./pages/OperatorExtract";
-import Tutorial from "./pages/Tutorial";
-import Costs from "./pages/Costs";
-import Goals from "./pages/Goals";
 import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
-import Subscription from "./pages/Subscription";
 import NotificationPrompt from "@/components/NotificationPrompt";
-
 import { SubscriptionGuard } from "@/components/layout/SubscriptionGuard";
-import MasterPanel from "./pages/MasterPanel";
+
+// Lazy-loaded routes — keeps the initial bundle small and navigation snappy on mobile
+const Index = lazy(() => import("./pages/Index"));
+const Production = lazy(() => import("./pages/Production"));
+const Tasks = lazy(() => import("./pages/Tasks"));
+const Networks = lazy(() => import("./pages/Networks"));
+const PixKeys = lazy(() => import("./pages/PixKeys"));
+const Quality = lazy(() => import("./pages/Quality"));
+const Reports = lazy(() => import("./pages/Reports"));
+const Operators = lazy(() => import("./pages/Operators"));
+const OperatorExtract = lazy(() => import("./pages/OperatorExtract"));
+const Tutorial = lazy(() => import("./pages/Tutorial"));
+const Costs = lazy(() => import("./pages/Costs"));
+const Goals = lazy(() => import("./pages/Goals"));
+const Subscription = lazy(() => import("./pages/Subscription"));
+const MasterPanel = lazy(() => import("./pages/MasterPanel"));
 
 const queryClient = new QueryClient();
+
+const RouteFallback = () => (
+  <div className="min-h-[40vh] flex items-center justify-center">
+    <div className="w-6 h-6 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+  </div>
+);
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const [user] = useLocalStorage<any>('nytzer-user', null);
@@ -41,7 +48,9 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   if (!user && !isDevelopment) return <Navigate to="/login" replace />;
   return (
     <SubscriptionGuard>
-      <AppLayout>{children}</AppLayout>
+      <AppLayout>
+        <Suspense fallback={<RouteFallback />}>{children}</Suspense>
+      </AppLayout>
       <NotificationPrompt />
     </SubscriptionGuard>
   );
@@ -69,13 +78,9 @@ const App = () => {
       serviceWorkerParam: { scope: "/" } as any,
       serviceWorkerPath: "/OneSignalSDKWorker.js" as any,
     } as any).then(() => {
-      // Tag device immediately after init if user is logged in
       if (user?.username) {
         registerDeviceTag(user.username, user.role || 'OPERADOR');
       }
-
-      // Also listen for when the user grants permission (subscription created/changed)
-      // This ensures tagging happens even if permission was granted before login
       OneSignal.User.PushSubscription.addEventListener('change', (event: any) => {
         if (event?.current?.isSubscribed && user?.username) {
           console.log('[OneSignal] Subscription changed — re-tagging device...');
@@ -83,11 +88,12 @@ const App = () => {
         }
       });
     }).catch(e => console.error("OneSignal init error:", e));
+
+    return () => document.removeEventListener('click', handleGlobalClick);
   }, []);
 
   useEffect(() => {
     if (user?.username) {
-      // Re-register tags on login or account change (with delay to ensure init is done)
       setTimeout(() => {
         registerDeviceTag(user.username, user.role || 'OPERADOR');
       }, 2000);
@@ -119,7 +125,6 @@ const App = () => {
                   <Route path="/operators" element={<PrivateRoute><Operators /></PrivateRoute>} />
                   <Route path="/me" element={<PrivateRoute><OperatorExtract /></PrivateRoute>} />
                   <Route path="/tutorial" element={<PrivateRoute><Tutorial /></PrivateRoute>} />
-                  <Route path="/costs" element={<PrivateRoute><Costs /></PrivateRoute>} />
                   <Route path="/goals" element={<PrivateRoute><Goals /></PrivateRoute>} />
                   <Route path="/subscription" element={<PrivateRoute><Subscription /></PrivateRoute>} />
                   <Route path="/master" element={<PrivateRoute><MasterPanel /></PrivateRoute>} />
