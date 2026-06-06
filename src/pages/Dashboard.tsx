@@ -1,7 +1,8 @@
 import { KPICard } from "@/components/dashboard/KPICard";
 import { HeroPanel } from "@/components/dashboard/HeroPanel";
 import { DecisionEngine, Insight } from "@/components/dashboard/DecisionEngine";
-import { DollarSign, Target, Activity, Users, CalendarDays, ListTodo, ShieldCheck, Wrench, BarChart3, Globe, ChartNoAxesCombined, CreditCard, PlayCircle, Wallet, UserCog, Receipt } from "lucide-react";
+import { DollarSign, Target, Activity, Users, CalendarDays, ListTodo, ShieldCheck, Wrench, BarChart3, Globe, ChartNoAxesCombined, CreditCard, PlayCircle, Wallet, UserCog, Receipt, Wallet2, Brain } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from "recharts";
 import { Link } from "react-router-dom";
 import { useLocalStorage } from "../hooks/useLocalStorage";
