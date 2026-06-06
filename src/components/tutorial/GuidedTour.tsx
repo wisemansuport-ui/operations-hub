@@ -172,7 +172,7 @@ export const GuidedTour = () => {
       window.removeEventListener('resize', onResize);
       window.removeEventListener('scroll', onResize, true);
     };
-  }, [step, location.pathname]);
+  }, [step, location.pathname, state?.tourId, state?.step]);
 
   const close = useCallback(() => {
     localStorage.removeItem(TOUR_STORAGE_KEY);
