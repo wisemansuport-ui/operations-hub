@@ -71,6 +71,7 @@ export default function OperatorExtract() {
       HOJE: { normal: 0, depBaixo: 0, salarioManual: 0, pendingNormal: 0, pendingDepBaixo: 0, pendingSalarioManual: 0 },
       SEMANA: { normal: 0, depBaixo: 0, salarioManual: 0, pendingNormal: 0, pendingDepBaixo: 0, pendingSalarioManual: 0 },
       MES: { normal: 0, depBaixo: 0, salarioManual: 0, pendingNormal: 0, pendingDepBaixo: 0, pendingSalarioManual: 0 },
+      TOTAL: { normal: 0, depBaixo: 0, salarioManual: 0, pendingNormal: 0, pendingDepBaixo: 0, pendingSalarioManual: 0 },
     };
 
     const extrato: any[] = [];
