@@ -1325,6 +1325,18 @@ const Tasks = () => {
           return acc + bruto + sal - auto;
         }, 0);
 
+        // Ganhos do operador — pagamento devido ao operador em TODAS as suas metas (ativas + fechadas)
+        const ganhosOperador = visibleMetas
+          .filter(m => m.status !== 'lixeira' && !m.isAdminMeta)
+          .reduce((acc, m) => {
+            const r = m.remessas || [];
+            let auto = 0;
+            if (m.modelo === 'Recarga') auto = Number(m.pagamentoOperador) || 0;
+            else auto = r.reduce((s, x) => s + (x.naoContabilizarSalario ? 0 : ((Number(x.contasNormais || 0)) * 2 + (Number(x.contasBaixas || 0)) * 1)), 0);
+            return acc + auto;
+          }, 0);
+
+        const isOperator = role !== 'ADMIN';
         const fmtBRL = (v: number) => `R$ ${v.toFixed(2).replace('.', ',')}`;
         const pad2 = (n: number) => (n < 10 ? `0${n}` : String(n));
 
@@ -1333,18 +1345,23 @@ const Tasks = () => {
             <TasksHero
               eyebrow="Visão geral · Operacional"
               title="Planilhas"
-              description="Panorama tático das suas metas. Acompanhe progresso, fechamentos e lucro consolidado em um só lugar."
+              description={isOperator
+                ? "Panorama tático das suas metas. Acompanhe seu progresso e os ganhos acumulados em todas elas."
+                : "Panorama tático das suas metas. Acompanhe progresso, fechamentos e lucro consolidado em um só lugar."}
               progressLabel="Progresso médio"
               progressValue={progressoMedio}
               kpis={[
                 { label: 'Total de metas', value: String(visibleMetas.length) },
                 { label: 'Abertas', value: pad2(listActive.length) },
                 { label: 'Fechadas', value: String(listFechadas.length) },
-                { label: 'Lucro consolidado', value: fmtBRL(lucroConsolidado), accent: true, tone: lucroConsolidado >= 0 ? 'success' : 'destructive' },
+                isOperator
+                  ? { label: 'Meus ganhos', value: fmtBRL(ganhosOperador), accent: true, tone: 'success' }
+                  : { label: 'Lucro consolidado', value: fmtBRL(lucroConsolidado), accent: true, tone: lucroConsolidado >= 0 ? 'success' : 'destructive' },
               ]}
             />
           );
         }
+
 
         if (activeTab === 'Minha operacao') {
           return (
