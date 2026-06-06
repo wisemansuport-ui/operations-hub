@@ -9,6 +9,9 @@ const QUOTES = [
   "Cada conta validada é um passo rumo à liberdade.",
   "Foco no que se mede. Cresce o que se acompanha.",
   "O ouro pertence a quem garimpa todos os dias.",
+  "Pequenas decisões diárias constroem grandes resultados.",
+  "Estratégia sem execução é só intenção.",
+  "Quem controla os números, controla o jogo.",
 ];
 
 export const LoadingScreen = ({
@@ -55,73 +58,88 @@ export const LoadingScreen = ({
           from { opacity: 0; transform: translate3d(0, 6px, 0) scale(0.985); }
           to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
         }
-        @keyframes nv-loader-sweep {
-          from { transform: translate3d(-100%, 0, 0); }
-          to   { transform: translate3d(300%, 0, 0); }
+        @keyframes nv-divider-grow {
+          from { transform: scaleX(0); opacity: 0; }
+          to   { transform: scaleX(1); opacity: 1; }
+        }
+        @keyframes nv-pulse-soft {
+          0%, 100% { opacity: 0.55; }
+          50%      { opacity: 1; }
         }
       `}</style>
 
-      {/* Ambient gold glow — single soft layer, GPU friendly */}
+      {/* Ambient gold glow */}
       <div
-        className="absolute top-1/2 left-1/2 w-[420px] h-[420px] rounded-full bg-primary/10 blur-3xl pointer-events-none"
+        className="absolute top-1/2 left-1/2 w-[520px] h-[520px] rounded-full bg-primary/[0.08] blur-3xl pointer-events-none"
+        style={{ transform: "translate3d(-50%, -50%, 0)", contain: "strict" }}
+        aria-hidden
+      />
+      <div
+        className="absolute top-1/2 left-1/2 w-[260px] h-[260px] rounded-full bg-primary/[0.06] blur-2xl pointer-events-none"
         style={{ transform: "translate3d(-50%, -50%, 0)", contain: "strict" }}
         aria-hidden
       />
 
-
       <div
-        className="relative z-10 flex flex-col items-center text-center px-6 max-w-md"
+        className="relative z-10 flex flex-col items-center text-center px-6 max-w-md w-full"
         style={{
           animation: "nv-loader-content-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both",
           animationDelay: "60ms",
           willChange: "opacity, transform",
         }}
       >
-
-        {/* Favicon with halo */}
-        <div className="relative mb-8">
-          <div className="absolute inset-0 rounded-full bg-primary/20 blur-2xl" />
-          <div className="relative w-24 h-24 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 border border-primary/25 flex items-center justify-center shadow-[0_0_30px_hsl(var(--primary)/0.25)]">
-            <img
-              src="/web-app-manifest-192x192.png"
-              alt="Nytzer Vision"
-              className="w-14 h-14 object-contain"
-            />
-          </div>
-          {/* Orbiting ring */}
+        {/* Favicon framed: square inside circle with orbiting dot */}
+        <div className="relative mb-10 w-32 h-32 flex items-center justify-center">
+          {/* Outer circle ring (orbiting dot) */}
           <div
-            className="absolute inset-0 -m-3 rounded-full border border-primary/20 animate-spin"
-            style={{ animationDuration: "6s", willChange: "transform" }}
+            className="absolute inset-0 rounded-full border border-primary/25 animate-spin"
+            style={{ animationDuration: "8s", willChange: "transform" }}
+            aria-hidden
           >
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary))]" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary shadow-[0_0_12px_hsl(var(--primary)),0_0_24px_hsl(var(--primary)/0.6)]" />
+          </div>
+
+          {/* Square frame around favicon */}
+          <div className="relative w-[88px] h-[88px] flex items-center justify-center">
+            <div
+              className="absolute inset-0 rounded-lg border border-primary/30"
+              style={{ boxShadow: "inset 0 0 24px hsl(var(--primary) / 0.08)" }}
+              aria-hidden
+            />
+            <div className="relative w-[72px] h-[72px] rounded-md bg-black/60 border border-primary/20 flex items-center justify-center overflow-hidden">
+              <img
+                src="/web-app-manifest-192x192.png"
+                alt="Nytzer Vision"
+                className="w-12 h-12 object-contain"
+              />
+            </div>
           </div>
         </div>
 
         {/* Brand */}
-        <h2 className="text-2xl font-bold tracking-tight text-foreground mb-1">
+        <h2 className="text-3xl font-bold tracking-tight text-foreground mb-2">
           Nytzer Vision
         </h2>
-        <p className="text-xs uppercase tracking-[0.3em] text-primary/70 font-semibold mb-8">
+        <p
+          className="text-[11px] uppercase tracking-[0.4em] text-primary/80 font-semibold mb-7"
+          style={{ animation: "nv-pulse-soft 2.4s ease-in-out infinite" }}
+        >
           {offline ? "Aguardando conexão" : message}
         </p>
 
-        {/* Progress bar */}
-        <div className="w-56 h-[2px] rounded-full bg-primary/10 overflow-hidden mb-8 relative">
-          <div
-            className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-primary to-transparent"
-            style={{
-              animation: "nv-loader-sweep 1.6s ease-in-out infinite",
-              willChange: "transform",
-            }}
-          />
-        </div>
-
-
-
+        {/* Gold divider line */}
+        <div
+          className="h-px w-64 max-w-full bg-gradient-to-r from-transparent via-primary/70 to-transparent mb-8 origin-center"
+          style={{
+            animation: "nv-divider-grow 700ms cubic-bezier(0.22, 1, 0.36, 1) both",
+            animationDelay: "200ms",
+          }}
+          aria-hidden
+        />
 
         {/* Quote */}
-        <blockquote className="text-sm md:text-base text-muted-foreground italic leading-relaxed border-l-2 border-primary/40 pl-4 text-left">
-          “{quote}”
+        <blockquote className="text-sm md:text-base text-muted-foreground italic leading-relaxed border-l-2 border-primary/60 pl-4 text-left max-w-sm">
+          "{quote}"
         </blockquote>
 
         {/* Slow / offline hint */}
