@@ -1014,7 +1014,7 @@ const Operators = () => {
             </div>
           )}
 
-          {/* Mobile payment sheet */}
+          {/* Operator payment sheet */}
           <OperatorPayrollSheet
             open={!!sheetOpenId}
             onOpenChange={(o) => !o && setSheetOpenId(null)}
