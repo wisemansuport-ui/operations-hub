@@ -100,7 +100,7 @@ export const OperatorPayrollSheet: React.FC<Props> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-0 overflow-hidden border-border/60 bg-card">
+      <DialogContent className="max-w-md md:max-w-lg p-0 overflow-hidden border-border/60 bg-card">
         {/* Header */}
         <div className="px-5 pt-5 pb-4 border-b border-border/40 flex items-center gap-3">
           <div className={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
