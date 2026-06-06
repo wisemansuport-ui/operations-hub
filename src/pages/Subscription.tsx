@@ -167,13 +167,13 @@ export default function Subscription() {
         </div>
       </div>
 
-      {/* AIDA Narrative */}
+      {/* Narrative */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
         {[
-          { tag: 'ATENÇÃO', text: 'Você já possui os dados. A maioria das pessoas falha porque não possui inteligência suficiente para agir sobre eles.' },
-          { tag: 'INTERESSE', text: 'O sistema analisa desempenho, identifica oportunidades e transforma operações dispersas em decisões mais lucrativas.' },
-          { tag: 'DESEJO', text: 'Saiba exatamente onde investir capital, quais operadores performam melhor e quais redes geram maior retorno — em tempo real.' },
-          { tag: 'AÇÃO', text: 'Ative seu acesso premium agora e opere com a inteligência completa do Nytzer Vision Pro.' },
+          { tag: 'O CENÁRIO', text: 'Você já possui os dados. A maioria das pessoas falha porque não possui inteligência suficiente para agir sobre eles.' },
+          { tag: 'A VIRADA', text: 'O sistema analisa desempenho, identifica oportunidades e transforma operações dispersas em decisões mais lucrativas.' },
+          { tag: 'O PODER', text: 'Saiba exatamente onde investir capital, quais operadores performam melhor e quais redes geram maior retorno — em tempo real.' },
+          { tag: 'O PRÓXIMO PASSO', text: 'Ative seu acesso e opere com a inteligência completa do Nytzer Vision Pro.' },
         ].map(b => (
           <div key={b.tag} className="surface-2 rounded-2xl p-4 relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
