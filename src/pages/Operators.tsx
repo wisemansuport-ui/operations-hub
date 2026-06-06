@@ -512,7 +512,7 @@ const Operators = () => {
               eyebrow="Ranking · Performance Arena"
               title="Pódio em tempo real"
               description="Quem está liderando, quem precisa subir. Lucro líquido define a posição."
-              pulseDotClass="bg-success"
+              pulseDotClass="bg-primary"
               kpis={[
                 { label: 'Operadores', value: String(operatorData.length), accent: true },
                 { label: 'Metas executadas', value: String(totalMetas) },
