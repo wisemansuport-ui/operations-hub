@@ -255,19 +255,12 @@ export const GuidedTour = () => {
   const easing = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
   return createPortal(
-    <div
-      className="fixed inset-0"
-      style={{
-        zIndex: 9990,
-        opacity: transitioning ? 0 : 1,
-        transition: `opacity 320ms ${easing}`,
-      }}
-    >
+    <div className="fixed inset-0" style={{ zIndex: 9990 }}>
       {/* Backdrop click-catcher */}
       <div className="fixed inset-0 pointer-events-auto" style={{ zIndex: 9990 }} aria-hidden />
 
-      {/* Animated spotlight via box-shadow trick — the transform follows route
-          changes and scroll motion smoothly instead of snapping. */}
+      {/* Animated spotlight — fades in only once the target rect is stable, so
+          it never appears misaligned during the smooth-scroll. */}
       <div
         className="fixed pointer-events-none"
         style={{
@@ -280,8 +273,8 @@ export const GuidedTour = () => {
           borderRadius: 16,
           boxShadow:
             '0 0 0 9999px hsl(var(--background) / 0.82), 0 0 0 1px hsl(var(--primary) / 0.88), 0 0 34px 6px hsl(var(--primary) / 0.42), inset 0 0 18px hsl(var(--primary) / 0.12)',
-          transition: `transform 720ms ${easing}, width 640ms ${easing}, height 640ms ${easing}, box-shadow 420ms ease-out, opacity 260ms ease-out`,
-          opacity: rect ? 1 : 0.92,
+          transition: `transform 680ms ${easing}, width 600ms ${easing}, height 600ms ${easing}, box-shadow 420ms ease-out, opacity 380ms ${easing}`,
+          opacity: tooltipVisible && rect ? 1 : 0,
           willChange: 'transform, width, height, opacity',
         }}
       />
