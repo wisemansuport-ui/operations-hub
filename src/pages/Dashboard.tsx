@@ -614,7 +614,7 @@ const Dashboard = () => {
           </div>
 
           {/* IA Motivacional */}
-          <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-card/80 to-primary/[0.03] backdrop-blur p-5 space-y-3">
+          <div data-tour="operator-ai" className="rounded-2xl border border-primary/20 bg-gradient-to-br from-card/80 to-primary/[0.03] backdrop-blur p-5 space-y-3">
             <div className="flex items-center gap-2 mb-1">
               <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
                 <Brain className="w-4 h-4 text-primary" />
