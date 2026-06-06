@@ -642,7 +642,8 @@ const Dashboard = () => {
         </div>
 
         {/* Comandos rápidos */}
-        <div>
+        <div data-tour="operator-quick">
+
           <h3 className="text-[10px] uppercase tracking-[0.2em] font-semibold text-primary/70 mb-3">Comandos Rápidos</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {allowedLinks.map(({ path, label, icon: Icon, desc }) => (
