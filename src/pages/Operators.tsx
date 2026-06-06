@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { OperatorsHero } from '@/components/heroes/OperatorsHero';
 import {
   Users, Link as LinkIcon, Pencil, Trash2, Check, X, Crown, Trophy, Medal,
   TrendingUp, DollarSign, Target, UserCheck, Wallet, ArrowUpRight,
@@ -460,18 +461,20 @@ const Operators = () => {
   return (
     <div className="space-y-6 animate-fade-in max-w-6xl mx-auto pb-16 relative z-10 w-full">
 
-      {/* Minimal header */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 pt-2">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">EQUIPE OPERACIONAL</span>
-          </div>
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">Operadores</h1>
-          <p className="text-sm text-muted-foreground mt-1.5">Performance, ranking e folha de pagamento em tempo real.</p>
-        </div>
+      {/* Performance Arena hero */}
+      <OperatorsHero
+        totalOperators={operatorData.length}
+        totalMetas={totalMetas}
+        totalContas={totalContas}
+        receitaBruta={formatBRL(totalLucroEquipe)}
+        netResult={formatBRL(totalLucroEquipe - folhaTotal - custoTotal)}
+        netPositive={(totalLucroEquipe - folhaTotal - custoTotal) >= 0}
+        topPerformer={operatorData[0] ? { name: operatorData[0].name, initials: operatorData[0].initials, net: formatBRL(operatorData[0].netProfit) } : undefined}
+      />
+      <div className="flex justify-end -mt-2">
         <button
           onClick={handleCopyLink}
-          className="group inline-flex items-center gap-2 self-start sm:self-auto bg-foreground/[0.04] hover:bg-foreground/[0.08] text-foreground border border-border/60 hover:border-primary/40 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all"
+          className="group inline-flex items-center gap-2 bg-foreground/[0.04] hover:bg-foreground/[0.08] text-foreground border border-border/60 hover:border-primary/40 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all"
         >
           <LinkIcon className="w-4 h-4 text-primary" />
           Gerar link de cadastro
