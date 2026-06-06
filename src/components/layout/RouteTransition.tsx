@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 /**
  * Lightweight cross-fade for route changes.
@@ -8,7 +9,10 @@ import { useLocation } from 'react-router-dom';
  */
 export const RouteTransition = ({ children }: { children: ReactNode }) => {
   const { pathname } = useLocation();
+  const isMobile = useIsMobile();
   const easing = 'cubic-bezier(0.22, 1, 0.36, 1)';
+
+  if (isMobile) return <>{children}</>;
 
   return (
     <>

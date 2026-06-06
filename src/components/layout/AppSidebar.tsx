@@ -120,7 +120,7 @@ export const AppSidebar = () => {
       </aside>
 
       <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 bg-sidebar/95 backdrop-blur-xl border-t border-sidebar-border flex items-center justify-start gap-2 px-3 overflow-x-auto hide-scrollbar"
+        className="md:hidden fixed bottom-0 left-0 right-0 bg-sidebar border-t border-sidebar-border flex items-center justify-start gap-2 px-3 overflow-x-auto hide-scrollbar"
         style={{ zIndex: 200, paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         {navItems.map(({ path, label, icon: Icon }) => {
@@ -129,7 +129,7 @@ export const AppSidebar = () => {
             <Link
               key={path}
               to={path}
-              className={`flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl transition-all shrink-0 min-w-[70px] ${
+              className={`flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl transition-colors shrink-0 min-w-[70px] ${
                 active ? "text-primary bg-primary/5" : "text-sidebar-foreground"
               }`}
             >
