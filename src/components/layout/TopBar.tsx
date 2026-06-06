@@ -517,7 +517,6 @@ export const TopBar = () => {
           </div>
         </div>
 
-      </div>
     </header>
   );
 };
