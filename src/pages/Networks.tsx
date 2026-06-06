@@ -170,6 +170,8 @@ const Networks = () => {
   const activeOperator = user?.username || 'admin';
   const role           = user?.role     || 'ADMIN';
   const [selectedNetworkId, setSelectedNetworkId] = useState<string | null>(null);
+  const [insightOpen, setInsightOpen] = useState(false);
+  const [insightNetworkId, setInsightNetworkId] = useState<string | null>(null);
 
 
   const networkData = useMemo((): NetworkStats[] => {
