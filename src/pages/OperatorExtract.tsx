@@ -300,10 +300,10 @@ export default function OperatorExtract() {
               <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
                 <CalendarIcon className="w-4 h-4 text-primary" />
               </div>
-              <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground">Esta semana</p>
+              <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground">7 dias</p>
             </div>
-            <p className="text-2xl font-extrabold text-foreground tabular-nums tracking-tight">{formatBRL(aReceber.semana)}</p>
-            <p className="text-[10px] text-muted-foreground mt-1">A partir de segunda</p>
+            <p className="text-2xl font-extrabold text-foreground tabular-nums tracking-tight">{formatBRL(aReceber.dias7)}</p>
+            <p className="text-[10px] text-muted-foreground mt-1">Últimos 7 dias</p>
           </div>
 
           <div className="surface-2 rounded-2xl p-4">
@@ -311,10 +311,10 @@ export default function OperatorExtract() {
               <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
                 <TrendingUp className="w-4 h-4 text-primary" />
               </div>
-              <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground">Este mês</p>
+              <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground">30 dias</p>
             </div>
-            <p className="text-2xl font-extrabold text-foreground tabular-nums tracking-tight">{formatBRL(aReceber.mes)}</p>
-            <p className="text-[10px] text-muted-foreground mt-1">Acumulado mensal</p>
+            <p className="text-2xl font-extrabold text-foreground tabular-nums tracking-tight">{formatBRL(aReceber.dias30)}</p>
+            <p className="text-[10px] text-muted-foreground mt-1">Últimos 30 dias</p>
           </div>
         </div>
       </section>
