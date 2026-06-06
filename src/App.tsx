@@ -10,6 +10,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { RouteTransition } from "@/components/layout/RouteTransition";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
@@ -103,6 +104,7 @@ const App = () => {
             <Toaster />
             <Sonner />
             <BrowserRouter>
+                <RouteTransition>
                 <Routes>
                   <Route path="/login" element={<Login />} />
                   <Route path="/" element={<Landing />} />
@@ -123,6 +125,7 @@ const App = () => {
                   <Route path="/master" element={<PrivateRoute><MasterPanel /></PrivateRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                </RouteTransition>
             </BrowserRouter>
           </TooltipProvider>
         </NotificationProvider>
