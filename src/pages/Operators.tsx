@@ -894,7 +894,7 @@ const Operators = () => {
                         <p className="font-bold text-foreground text-sm truncate">{displayName}</p>
                         <p className="text-[10px] text-muted-foreground truncate">@{u.username}</p>
                       </div>
-                      <span className="w-1.5 h-1.5 rounded-full bg-success shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
                     </div>
                     <div className="grid grid-cols-3 gap-2 pt-3 border-t border-border/40">
                       <div>
