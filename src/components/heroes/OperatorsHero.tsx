@@ -22,11 +22,8 @@ export const OperatorsHero = ({
 }: Props) => {
   return (
     <section className="hairline-gold glass-premium rounded-3xl relative overflow-hidden">
-      {/* Arena spotlight beams */}
+      {/* Arena spotlight glow */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-primary/30 via-primary/5 to-transparent" />
-        <div className="absolute top-0 left-2/4 w-px h-full bg-gradient-to-b from-primary/20 via-transparent to-transparent" />
-        <div className="absolute top-0 left-3/4 w-px h-full bg-gradient-to-b from-primary/30 via-primary/5 to-transparent" />
         <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full bg-primary/[0.08] blur-3xl" />
       </div>
 
