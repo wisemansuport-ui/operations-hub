@@ -1124,20 +1124,18 @@ const Tasks = () => {
     setIsAdminMeta(false);
     setIsModalOpen(false);
 
-    // Notification Hook - Meta Initiated
+    // Notification Hook - Meta Initiated (escopo por workspace)
     const activeUserObj = users.find(u => u.username === activeOperator);
     let targetAdminsForCreate: string[];
     if (activeUserObj?.affiliatedTo) {
-      // Operator linked to a specific admin
+      // Operador vinculado → apenas o admin dono do workspace
       targetAdminsForCreate = [activeUserObj.affiliatedTo];
     } else if (activeUserObj?.role === 'ADMIN') {
-      // Admin creating a meta → broadcast to all subscribers
-      targetAdminsForCreate = [];
+      // Admin criando meta no próprio workspace → apenas a si mesmo
+      targetAdminsForCreate = [activeUserObj.username];
     } else {
-      // Operator without affiliatedTo: notify all ADMIN accounts dynamically
-      targetAdminsForCreate = users
-        .filter(u => u.role === 'ADMIN' && !u.affiliatedTo)
-        .map(u => u.username);
+      // Operador órfão → sem push (não vaza para outros admins)
+      targetAdminsForCreate = [];
     }
 
     const creatorName = getOperatorName(activeOperator, users);
