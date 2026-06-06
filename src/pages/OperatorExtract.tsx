@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Wallet, Target, Activity, CheckCircle2, History, Filter, Download, Calendar as CalendarIcon, User as UserIcon, ChevronDown } from "lucide-react";
+import { Wallet, CheckCircle2, Filter, Download, Calendar as CalendarIcon, User as UserIcon, ChevronDown } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import { DataTable, Column } from "@/components/spreadsheet/DataTable";
+import { TasksHero, type HeroKpi } from "@/components/heroes/TasksHero";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useFirestoreData } from "../hooks/useFirestoreData";
 import { OperationMeta } from "./Tasks";
@@ -277,16 +278,57 @@ export default function OperatorExtract() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 pb-20 animate-fade-in relative z-10">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div className="flex items-start gap-4">
-          <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-            <Wallet className="w-5 h-5 text-primary" />
+    <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-fade-in relative z-10">
+      {/* HERO — Operação ativa */}
+      <TasksHero
+        eyebrow={`Minha operação · ${operatorName}`}
+        title="Operação ativa"
+        description="Acompanhe contas validadas, dep baixos e o total a receber em tempo real. Tudo o que está rodando agora aparece aqui."
+        pulseDotClass="bg-primary"
+        kpis={[
+          { label: `Normais (${timeFilter})`, value: String(currentStats.normal) },
+          { label: `Dep Baixo (${timeFilter})`, value: String(currentStats.depBaixo) },
+          { label: 'Salário manual', value: formatBRL(currentStats.salarioManual || 0), tone: 'muted' },
+          { label: `A receber (${timeFilter})`, value: formatBRL(lucroTotal), accent: true, tone: 'success' },
+        ] as HeroKpi[]}
+      />
+
+      {/* Filtros + exportar */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2 items-center">
+          <div className="flex gap-1 p-1 bg-secondary rounded-xl w-fit border border-border">
+            {(['HOJE', 'SEMANA', 'MES'] as const).map(f => (
+              <button
+                key={f}
+                onClick={() => setTimeFilter(f)}
+                className={`px-4 py-1.5 text-[11px] font-semibold uppercase tracking-widest rounded-lg transition-all ${timeFilter === f ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+              >
+                {f}
+              </button>
+            ))}
           </div>
-          <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Meu Relatório de Produtividade</h1>
-            <p className="text-sm text-muted-foreground mt-1">Fechamento de contas validadas e estimativa de acerto individual</p>
+          <div className="flex items-center gap-2 ml-1">
+            <div className="flex items-center gap-2 bg-secondary border border-border rounded-xl px-3 py-2">
+              <Filter className="w-3.5 h-3.5 text-muted-foreground" />
+              <select
+                value={platformFilter}
+                onChange={(e) => setPlatformFilter(e.target.value)}
+                className="bg-transparent text-xs text-foreground focus:outline-none max-w-[140px] cursor-pointer appearance-none"
+              >
+                <option value="TODAS">Todas Plataformas</option>
+                {availablePlatforms.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
+            <div className="flex items-center gap-2 bg-secondary border border-border rounded-xl px-3 py-2">
+              <select
+                value={networkFilter}
+                onChange={(e) => setNetworkFilter(e.target.value)}
+                className="bg-transparent text-xs text-foreground focus:outline-none max-w-[120px] cursor-pointer appearance-none"
+              >
+                <option value="TODAS">Todas Redes</option>
+                {availableNetworks.map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </div>
           </div>
         </div>
         <button
@@ -297,98 +339,6 @@ export default function OperatorExtract() {
         </button>
       </div>
 
-      {/* Tempo Filtro */}
-      <div className="flex flex-wrap gap-2 items-center">
-        <div className="flex gap-1 p-1 bg-secondary rounded-xl w-fit border border-border">
-          {(['HOJE', 'SEMANA', 'MES'] as const).map(f => (
-            <button
-              key={f}
-              onClick={() => setTimeFilter(f)}
-              className={`px-4 py-1.5 text-[11px] font-semibold uppercase tracking-widest rounded-lg transition-all ${timeFilter === f ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-2 ml-1">
-          <div className="flex items-center gap-2 bg-secondary border border-border rounded-xl px-3 py-2">
-            <Filter className="w-3.5 h-3.5 text-muted-foreground" />
-            <select
-              value={platformFilter}
-              onChange={(e) => setPlatformFilter(e.target.value)}
-              className="bg-transparent text-xs text-foreground focus:outline-none max-w-[140px] cursor-pointer appearance-none"
-            >
-              <option value="TODAS">Todas Plataformas</option>
-              {availablePlatforms.map(p => <option key={p} value={p}>{p}</option>)}
-            </select>
-          </div>
-          <div className="flex items-center gap-2 bg-secondary border border-border rounded-xl px-3 py-2">
-            <select
-              value={networkFilter}
-              onChange={(e) => setNetworkFilter(e.target.value)}
-              className="bg-transparent text-xs text-foreground focus:outline-none max-w-[120px] cursor-pointer appearance-none"
-            >
-              <option value="TODAS">Todas Redes</option>
-              {availableNetworks.map(n => <option key={n} value={n}>{n}</option>)}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* KPIs Operacionais */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Card Normal */}
-        <div className="rounded-2xl border border-border bg-gradient-to-br from-card to-secondary/40 p-5 relative overflow-hidden">
-          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-primary/5 blur-2xl pointer-events-none" />
-          <div className="relative flex items-start justify-between">
-            <div>
-              <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">Contas Concluídas (NORMAL)</div>
-              <div className="mt-2 flex items-end gap-2">
-                <span className="text-3xl font-bold text-foreground tabular-nums">{currentStats.normal}</span>
-                <span className="text-[10px] text-primary font-semibold mb-1.5 bg-primary/10 border border-primary/20 px-2 py-0.5 rounded uppercase tracking-wider">R$ 2,00 / un</span>
-              </div>
-            </div>
-            <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-              <Target className="w-4 h-4 text-primary" />
-            </div>
-          </div>
-        </div>
-
-        {/* Card Dep Baixo */}
-        <div className="rounded-2xl border border-border bg-gradient-to-br from-card to-secondary/40 p-5 relative overflow-hidden">
-          <div className="relative flex items-start justify-between">
-            <div>
-              <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">Contas Concluídas (DEP BAIXO)</div>
-              <div className="mt-2 flex items-end gap-2">
-                <span className="text-3xl font-bold text-foreground tabular-nums">{currentStats.depBaixo}</span>
-                <span className="text-[10px] text-muted-foreground font-semibold mb-1.5 bg-secondary border border-border px-2 py-0.5 rounded uppercase tracking-wider">R$ 1,00 / un</span>
-              </div>
-            </div>
-            <div className="w-9 h-9 rounded-xl bg-secondary border border-border flex items-center justify-center">
-              <Activity className="w-4 h-4 text-muted-foreground" />
-            </div>
-          </div>
-        </div>
-
-        {/* Card Lucro */}
-        <div className="rounded-2xl border border-success/30 bg-gradient-to-br from-card to-success/5 p-5 relative overflow-hidden">
-          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-success/10 blur-2xl pointer-events-none" />
-          <div className="relative flex items-start justify-between">
-            <div>
-              <div className="text-[11px] uppercase tracking-widest text-success font-semibold">Total a Receber ({timeFilter})</div>
-              <div className="mt-2">
-                <span className="text-3xl font-bold text-success tabular-nums">
-                  R$ {lucroTotal.toFixed(2).replace('.', ',')}
-                </span>
-              </div>
-            </div>
-            <div className="w-9 h-9 rounded-xl bg-success/10 border border-success/20 flex items-center justify-center">
-              <CheckCircle2 className="w-4 h-4 text-success" />
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Gráfico de Produção */}
       <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5">
@@ -425,10 +375,29 @@ export default function OperatorExtract() {
         )}
       </div>
 
-      <div>
-        <h3 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
-          <History className="w-4 h-4 text-primary" /> Histórico de Processamento
-        </h3>
+      {/* HERO — Extrato detalhado */}
+      {(() => {
+        const totalOps = extratoData.length;
+        const totalContas = extratoData.reduce((s, e) => s + (Number(e.contas) || 0), 0);
+        const totalValor = extratoData.reduce((s, e) => s + (Number(e.valor) || 0), 0);
+        const finalizadas = extratoData.filter(e => e.status === 'Finalizada').length;
+        return (
+          <TasksHero
+            eyebrow="Extrato · Histórico de processamento"
+            title="Movimentações detalhadas"
+            description="Cada remessa validada pelo controle de qualidade aparece aqui. Filtre por período, plataforma ou rede para auditar caso a caso."
+            pulseDotClass="bg-primary"
+            kpis={[
+              { label: 'Operações', value: String(totalOps) },
+              { label: 'Contas totais', value: totalContas.toLocaleString('pt-BR') },
+              { label: 'Finalizadas', value: `${finalizadas}/${totalOps || 0}`, tone: 'muted' },
+              { label: 'Valor acumulado', value: formatBRL(totalValor), accent: true },
+            ] as HeroKpi[]}
+          />
+        );
+      })()}
+
+      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-1 md:p-2">
         <DataTable
           title="Extrato de Operações"
           subtitle="Registros validados pelo controle de qualidade"
@@ -437,6 +406,7 @@ export default function OperatorExtract() {
           dynamicData={true}
         />
       </div>
+
 
       {/* Histórico de Pagamentos Recebidos */}
       <div className="rounded-2xl border border-border bg-card/60 backdrop-blur overflow-hidden">
