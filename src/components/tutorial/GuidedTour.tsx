@@ -52,59 +52,74 @@ export const GuidedTour = () => {
     if (state && tour) markTourStepReached(state.tourId, state.step);
   }, [state, tour]);
 
-  // Smooth fade for tooltip on step change
+  // Hide tooltip immediately on step change — it fades back in once the target
+  // is measured and stable, so the user never sees a misaligned tooltip.
   useEffect(() => {
     if (!state) { setTooltipVisible(false); return; }
     if (prevStepRef.current !== state.step) {
       setTooltipVisible(false);
-      const t = setTimeout(() => setTooltipVisible(true), 280);
       prevStepRef.current = state.step;
-      return () => clearTimeout(t);
     }
-    setTooltipVisible(true);
   }, [state]);
 
-  // Smooth route transition: fade out, navigate, fade back in
+  // Navigate immediately when the step's route differs. No artificial pause —
+  // the perceived smoothness comes from cross-fading the spotlight/tooltip.
   useEffect(() => {
     if (!step) return;
     if (location.pathname !== step.route) {
-      setTransitioning(true);
       setRect(null);
       setTooltipVisible(false);
-      const t = setTimeout(() => navigate(step.route), 320);
-      return () => clearTimeout(t);
+      setTransitioning(true);
+      navigate(step.route);
+      return;
     }
     if (prevRouteRef.current !== step.route) {
       prevRouteRef.current = step.route;
-      const t = setTimeout(() => setTransitioning(false), 240);
-      return () => clearTimeout(t);
     }
-    setTransitioning(false);
   }, [step, location.pathname, navigate]);
 
-  // Track target rect with scroll-aware measurements so the spotlight does not
-  // flash into a blank fallback while the page is still moving.
+  // Track target rect with scroll-aware measurements, then reveal the tooltip
+  // only after the rect has been stable for a couple of frames so it never
+  // appears misaligned during the smooth-scroll animation.
   useLayoutEffect(() => {
     if (!step) { setRect(null); return; }
     if (location.pathname !== step.route) { setRect(null); return; }
 
     let retryTimer = 0;
     let followRaf = 0;
+    let stableTimer = 0;
     let tries = 0;
     let cancelled = false;
+    let lastSig = '';
+    let stableSince = 0;
 
     const getTarget = () => (step.selector ? document.querySelector(step.selector) as HTMLElement | null : null);
 
-    const updateRect = (el: HTMLElement) => {
-      const next = el.getBoundingClientRect();
-      if (next.width > 0 && next.height > 0) setRect(next);
-    };
+    const sig = (r: DOMRect) => `${Math.round(r.left)}x${Math.round(r.top)}x${Math.round(r.width)}x${Math.round(r.height)}`;
 
     const followScroll = (el: HTMLElement, startedAt = performance.now()) => {
       if (cancelled) return;
-      updateRect(el);
-      if (performance.now() - startedAt < 900) {
+      const next = el.getBoundingClientRect();
+      if (next.width > 0 && next.height > 0) {
+        setRect(next);
+        const s = sig(next);
+        const now = performance.now();
+        if (s === lastSig) {
+          if (now - stableSince > 140) {
+            setTransitioning(false);
+            setTooltipVisible(true);
+            return;
+          }
+        } else {
+          lastSig = s;
+          stableSince = now;
+        }
+      }
+      if (performance.now() - startedAt < 1600) {
         followRaf = requestAnimationFrame(() => followScroll(el, startedAt));
+      } else {
+        setTransitioning(false);
+        setTooltipVisible(true);
       }
     };
 
@@ -112,14 +127,20 @@ export const GuidedTour = () => {
       tries++;
       const el = getTarget();
       if (el) {
-        updateRect(el);
+        const r = el.getBoundingClientRect();
+        if (r.width > 0 && r.height > 0) setRect(r);
         el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
         followScroll(el);
-      } else if (step.selector && tries < 40) {
-        retryTimer = window.setTimeout(tryFind, 100) as unknown as number;
+      } else if (step.selector && tries < 50) {
+        retryTimer = window.setTimeout(tryFind, 80) as unknown as number;
         return;
       } else {
         setRect(null);
+        // No target — show the centered fallback tooltip after a short beat
+        stableTimer = window.setTimeout(() => {
+          setTransitioning(false);
+          setTooltipVisible(true);
+        }, 220) as unknown as number;
       }
     };
     tryFind();
@@ -133,6 +154,7 @@ export const GuidedTour = () => {
     return () => {
       cancelled = true;
       clearTimeout(retryTimer);
+      clearTimeout(stableTimer);
       cancelAnimationFrame(followRaf);
       window.removeEventListener('resize', onResize);
       window.removeEventListener('scroll', onResize, true);
