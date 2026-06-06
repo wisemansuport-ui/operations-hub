@@ -212,6 +212,8 @@ export default function OperatorExtract() {
                 newStats.MES.salarioManual += remManualSalario;
                 if (isPending) newStats.MES.pendingSalarioManual += remManualSalario;
               }
+              newStats.TOTAL.salarioManual += remManualSalario;
+              if (isPending) newStats.TOTAL.pendingSalarioManual += remManualSalario;
             }
 
             // Group for chart (by remessa day)
