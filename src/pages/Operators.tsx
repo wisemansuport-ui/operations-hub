@@ -678,7 +678,7 @@ const Operators = () => {
                   </span>
                 </div>
 
-                <div className="rounded-2xl border border-border/50 bg-card/20 overflow-hidden">
+                <div data-tour="operators-leaderboard" className="rounded-2xl border border-border/50 bg-card/20 overflow-hidden">
                   {/* Header columns — desktop only */}
                   <div className="hidden lg:grid grid-cols-[60px_1fr_100px_100px_120px_180px] gap-4 px-5 py-3 border-b border-border/40 bg-background/30">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">#</span>
