@@ -159,6 +159,8 @@ const Dashboard = () => {
     let totalSalarios = 0;
     let totalAutoSalarios = 0;
     let metasFechadas = 0;
+    let metasFechadasInPeriod = 0;
+    let metasAtivasInPeriod = 0;
     let contasProcessadas = 0;
     let contasNormais = 0;
     let contasBaixas = 0;
@@ -167,6 +169,7 @@ const Dashboard = () => {
 
     let metasAtivas = 0;
     let totalMetas = 0;
+
 
     // ----- SINGLE SOURCE OF TRUTH -----
     // For every fechada meta: calculate totals from ALL remessas (for chart),
@@ -301,7 +304,12 @@ const Dashboard = () => {
         redesMap[meta.rede].metas += 1;
         if (metaLiquido > 0) redesMap[meta.rede].acertos += 1;
       }
+
+      // Proporção Operacional respeita filtro de data
+      if (isFechada && metaHasRemessaInPeriod) metasFechadasInPeriod++;
+      if (!isFechada && isInRange(new Date(meta.createdAt), dateFilter)) metasAtivasInPeriod++;
     }
+
 
     let totalCustos = 0;
     const costsByDate: Record<string, number> = {};
@@ -383,6 +391,8 @@ const Dashboard = () => {
       receitaMensal,
       metasFechadas,
       metasAtivas,
+      metasFechadasInPeriod,
+      metasAtivasInPeriod,
       totalMetas,
       contasProcessadas,
       contasNormais,
@@ -399,8 +409,8 @@ const Dashboard = () => {
   const barData = stats.chartData;
 
   const pieData = [
-    { name: "Fechado", value: stats.metasFechadas },
-    { name: "Em Andamento", value: stats.metasAtivas },
+    { name: "Fechado", value: stats.metasFechadasInPeriod },
+    { name: "Em Andamento", value: stats.metasAtivasInPeriod },
   ].filter(d => d.value > 0);
   
   if (pieData.length === 0) pieData.push({ name: "Sem Dados", value: 1 });
