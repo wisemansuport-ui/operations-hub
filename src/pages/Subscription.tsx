@@ -10,8 +10,8 @@ import { SubscriptionHero } from '../components/heroes/SubscriptionHero';
 import { cn } from '@/lib/utils';
 
 const BENEFITS = [
-  { icon: Brain, title: 'Decision Engine IA', desc: 'Recomendações em tempo real sobre cada operação, custo e meta.' },
-  { icon: TrendingUp, title: 'Forecast Inteligente', desc: 'Projeções algorítmicas baseadas em performance histórica.' },
+  { icon: Brain, title: 'Motor de Decisão IA', desc: 'Recomendações em tempo real sobre cada operação, custo e meta.' },
+  { icon: TrendingUp, title: 'Previsão Inteligente', desc: 'Projeções algorítmicas baseadas em performance histórica.' },
   { icon: Sparkles, title: 'Analytics Avançado', desc: 'Camada profunda de inteligência operacional sobre seus dados.' },
   { icon: Star, title: 'Prioridade em Novos Recursos', desc: 'Acesso antecipado a módulos lançados em ciclo fechado.' },
   { icon: Zap, title: 'Insights Exclusivos', desc: 'Padrões ocultos identificados automaticamente em sua operação.' },
@@ -25,7 +25,7 @@ const PLANS = [
     price: 500,
     period: '/mês',
     tagline: 'Flexibilidade total. Cancele quando quiser.',
-    features: ['Acesso completo à plataforma', 'Decision Engine ativo', 'Suporte prioritário'],
+    features: ['Acesso completo à plataforma', 'Motor de Decisão ativo', 'Suporte prioritário'],
   },
   {
     id: 'yearly' as const,
@@ -41,7 +41,7 @@ const PLANS = [
       'Tudo do Mensal',
       'Economia de R$ 1.800/ano',
       'Onboarding dedicado',
-      'Forecast estendido 12 meses',
+      'Previsão estendida 12 meses',
       'Acesso antecipado a novos módulos',
     ],
   },

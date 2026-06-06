@@ -94,7 +94,7 @@ export const HeroPanel = ({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] uppercase tracking-widest font-semibold text-primary/80 mb-0.5">
-                  Decision Engine
+                  Motor de Decisão
                 </p>
                 <p className="text-xs md:text-sm text-foreground/90 leading-relaxed">{aiInsight}</p>
               </div>
@@ -109,7 +109,7 @@ export const HeroPanel = ({
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] uppercase tracking-[0.18em] font-semibold text-muted-foreground inline-flex items-center gap-1.5">
                   <Target className="w-3 h-3 text-primary" />
-                  {forecastLabel || "Forecast"}
+                  {forecastLabel || "Previsão"}
                 </span>
                 <span className="text-[10px] font-semibold text-success/80 inline-flex items-center gap-1">
                   <Activity className="w-3 h-3" /> projeção

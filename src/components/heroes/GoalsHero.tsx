@@ -8,7 +8,7 @@ interface Props {
   progressoGlobal: number; // %
 }
 
-// Mission Control 3D Hero — premium launch scene
+// Central de Missões 3D Hero — premium launch scene
 export const GoalsHero = ({ ativas, concluidas, taxaConclusao, lucroGerado, progressoGlobal }: Props) => {
   const stars = Array.from({ length: 60 });
   const orbital = Math.max(0, Math.min(100, progressoGlobal));
@@ -41,14 +41,14 @@ export const GoalsHero = ({ ativas, concluidas, taxaConclusao, lucroGerado, prog
         <div className="flex flex-col">
           <div className="flex items-center gap-2 mb-3">
             <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.25em] text-primary/80">
-              <Rocket className="w-3 h-3" /> Mission Control
+              <Rocket className="w-3 h-3" /> Central de Missões
             </span>
             <span className="text-[9px] uppercase tracking-widest font-semibold text-muted-foreground">
               {ativas} missões ativas
             </span>
           </div>
           <h1 className="text-3xl md:text-5xl font-black tracking-tight gradient-gold-text leading-[1.05]">
-            Goal Command Center
+            Central de Comando de Metas
           </h1>
           <p className="text-sm text-muted-foreground/90 mt-3 max-w-md leading-relaxed">
             Lance missões operacionais, monitore trajetória em tempo real e converta dados em conquistas mensuráveis.
@@ -66,7 +66,7 @@ export const GoalsHero = ({ ativas, concluidas, taxaConclusao, lucroGerado, prog
               <Sparkles className="w-4 h-4 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] uppercase tracking-widest font-semibold text-primary/80 mb-0.5">Decision Engine</p>
+              <p className="text-[10px] uppercase tracking-widest font-semibold text-primary/80 mb-0.5">Motor de Decisão</p>
               <p className="text-xs md:text-sm text-foreground/90 leading-relaxed">
                 Progresso global da operação: <span className="text-primary font-bold">{orbital.toFixed(1)}%</span> · Em rota para escala sustentada.
               </p>

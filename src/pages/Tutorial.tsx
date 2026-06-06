@@ -17,9 +17,9 @@ const TRACKS: Track[] = [
   { id: 'primeiros', title: 'Primeiros Passos', desc: 'Configure sua operação e domine a interface central em minutos.', icon: Rocket, level: 'Iniciante', modules: 5, progress: 100, duration: '20 min' },
   { id: 'operacoes', title: 'Operações & Remessas', desc: 'Lance metas, registre remessas e domine o ciclo completo de uma operação.', icon: Sparkles, level: 'Iniciante', modules: 7, progress: 60, duration: '45 min' },
   { id: 'redes', title: 'Redes & Operadores', desc: 'Estruture sua rede, organize operadores e maximize a performance coletiva.', icon: Network, level: 'Intermediário', modules: 6, progress: 35, duration: '40 min' },
-  { id: 'metas', title: 'Missões & Forecast', desc: 'Use o Mission Control para escalar metas com previsão IA.', icon: Target, level: 'Intermediário', modules: 5, progress: 20, duration: '30 min' },
-  { id: 'custos', title: 'Cost Intelligence', desc: 'Controle custos, identifique vazamentos e maximize eficiência operacional.', icon: Wallet, level: 'Avançado', modules: 6, progress: 0, duration: '50 min' },
-  { id: 'decision', title: 'Decision Engine IA', desc: 'Aprenda a interpretar os sinais do Decision Engine e agir com precisão.', icon: Brain, level: 'Avançado', modules: 8, progress: 0, duration: '60 min' },
+  { id: 'metas', title: 'Missões & Forecast', desc: 'Use o Central de Missões para escalar metas com previsão IA.', icon: Target, level: 'Intermediário', modules: 5, progress: 20, duration: '30 min' },
+  { id: 'custos', title: 'Inteligência de Custos', desc: 'Controle custos, identifique vazamentos e maximize eficiência operacional.', icon: Wallet, level: 'Avançado', modules: 6, progress: 0, duration: '50 min' },
+  { id: 'decision', title: 'Motor de Decisão IA', desc: 'Aprenda a interpretar os sinais do Motor de Decisão e agir com precisão.', icon: Brain, level: 'Avançado', modules: 8, progress: 0, duration: '60 min' },
   { id: 'assinatura', title: 'Plano & Acesso Premium', desc: 'Entenda as camadas de acesso, renovação e benefícios exclusivos.', icon: Crown, level: 'Iniciante', modules: 3, progress: 100, duration: '10 min' },
 ];
 
@@ -100,7 +100,7 @@ export default function Tutorial() {
             <Bell className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h3 className="text-base font-black text-foreground tracking-tight">Quick Start · Notificações no celular</h3>
+            <h3 className="text-base font-black text-foreground tracking-tight">Início Rápido · Notificações no celular</h3>
             <p className="text-xs text-muted-foreground mt-0.5">Receba alertas em tempo real sobre sua operação.</p>
           </div>
         </div>

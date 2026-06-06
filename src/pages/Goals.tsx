@@ -526,7 +526,7 @@ export default function Goals() {
               </div>
               <div>
                 <h3 className="text-base font-black text-foreground tracking-tight">Lançar missão</h3>
-                <p className="text-[11px] text-muted-foreground mt-0.5 uppercase tracking-widest font-bold">Mission Builder</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5 uppercase tracking-widest font-bold">Construtor de Missões</p>
               </div>
             </div>
 
@@ -591,7 +591,7 @@ export default function Goals() {
                 <Target className="w-8 h-8 text-muted-foreground/40" />
               </div>
               <p className="text-base font-bold text-foreground mb-1">Nenhuma missão em órbita</p>
-              <p className="text-sm text-muted-foreground">Lance sua primeira missão para ativar o Decision Engine.</p>
+              <p className="text-sm text-muted-foreground">Lance sua primeira missão para ativar o Motor de Decisão.</p>
             </div>
           )}
 
@@ -646,7 +646,7 @@ export default function Goals() {
                     <p className={`text-sm font-black tabular-nums mt-0.5 ${reached ? "text-success" : "text-foreground"}`}>{reached ? "—" : formatBRL(remaining)}</p>
                   </div>
                   <div className="surface-3 hairline-gold rounded-xl p-3">
-                    <p className="text-[9px] uppercase tracking-widest font-bold text-primary/80">Forecast IA</p>
+                    <p className="text-[9px] uppercase tracking-widest font-bold text-primary/80">Previsão IA</p>
                     <p className="text-sm font-black tabular-nums text-foreground mt-0.5">
                       {reached ? "Batida" : g.forecastDays != null ? `~${g.forecastDays}d` : "—"}
                     </p>

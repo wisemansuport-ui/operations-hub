@@ -384,7 +384,7 @@ const Dashboard = () => {
   
   if (pieData.length === 0) pieData.push({ name: "Sem Dados", value: 1 });
 
-  // ----- Decision Engine insights (heuristics from real stats) -----
+  // ----- Motor de Decisão insights (heuristics from real stats) -----
   const insights: Insight[] = useMemo(() => {
     const arr: Insight[] = [];
     const top = stats.rankingRedes[0];
@@ -601,7 +601,7 @@ const Dashboard = () => {
       <div>
         <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-primary/70 flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-          Financial Intelligence OS · Sincronizado
+          SO de Inteligência Financeira · Sincronizado
         </p>
         <h1 className="mt-1.5 text-2xl md:text-3xl font-extrabold tracking-tight text-foreground capitalize">
           Olá, {(user?.fullName || user?.name || user?.username || 'Operador').split(' ')[0]}
@@ -610,7 +610,7 @@ const Dashboard = () => {
       <PeriodFilter value={dateFilter} onChange={setDateFilter} />
     </div>
 
-    {/* LEVEL 1 — Hero Command Center */}
+    {/* LEVEL 1 — Hero Central de Comando */}
     <HeroPanel
       status={{ label: "Operação ao vivo", tone: "live" }}
       primaryLabel="Receita líquida — período"
@@ -620,7 +620,7 @@ const Dashboard = () => {
           ? { value: `${heroDeltaPct}% de margem sobre o bruto`, positive: true }
           : { value: "Margem negativa no período", positive: false }
       }
-      title="Command Center"
+      title="Central de Comando"
       subtitle="Visão consolidada de toda a operação — entradas, custos e projeção."
       forecastLabel="Projeção fim do período"
       forecastValue={formatBRL(heroForecastValue)}
@@ -645,7 +645,7 @@ const Dashboard = () => {
       <KPICard title="Lucro / Conta" value={formatBRL(stats.medioporConta)} change={`Média sobre ${stats.contasProcessadas}`} changeType={stats.medioporConta >= 0 ? "positive" : "negative"} icon={DollarSign} color="success" tooltip="Lucro líquido médio gerado por cada conta operada no período." />
     </div>
 
-    {/* LEVEL 3 — Decision Engine */}
+    {/* LEVEL 3 — Motor de Decisão */}
     <DecisionEngine insights={insights} />
 
     {/* LEVEL 4 — Intelligence visuals */}

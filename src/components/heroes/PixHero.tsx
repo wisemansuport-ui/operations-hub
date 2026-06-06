@@ -8,7 +8,7 @@ interface Props {
   ultimaImportacao?: string;
 }
 
-// "PIX Control Center" — operational treasury identity
+// "Central de Controle PIX" — operational treasury identity
 export const PixHero = ({ totalChaves, disponiveis, usadas, taxaSucesso, ultimaImportacao }: Props) => {
   const sucesso = Math.max(0, Math.min(100, taxaSucesso));
   const bars = Array.from({ length: 14 });
@@ -21,14 +21,14 @@ export const PixHero = ({ totalChaves, disponiveis, usadas, taxaSucesso, ultimaI
         <div>
           <div className="flex items-center gap-2 mb-3">
             <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.25em] text-primary/80">
-              <Zap className="w-3 h-3" /> PIX Control Center
+              <Zap className="w-3 h-3" /> Central de Controle PIX
             </span>
             <span className="inline-flex items-center gap-1 text-[9px] uppercase tracking-widest font-semibold text-success">
               <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" /> Online
             </span>
           </div>
           <h1 className="text-3xl md:text-5xl font-black tracking-tight gradient-gold-text leading-[1.05]">
-            Payment Intelligence
+            Inteligência de Pagamentos
           </h1>
           <p className="text-sm text-muted-foreground/90 mt-3 max-w-md leading-relaxed">
             Tesouraria de chaves PIX classificadas, rastreadas e movimentadas em tempo real. Velocidade operacional sob radar.
