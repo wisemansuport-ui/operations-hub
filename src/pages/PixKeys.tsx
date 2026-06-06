@@ -128,13 +128,21 @@ export default function PixKeys() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-fade-in relative z-10 w-full text-foreground">
-      <PixHero
-        totalChaves={keys.length}
-        disponiveis={disponiveis}
-        usadas={usadas}
-        taxaSucesso={taxaSucesso}
-        ultimaImportacao={lastImportCount > 0 ? `${lastImportCount} chave(s) processada(s)` : undefined}
+      <TasksHero
+        eyebrow="PIX · Cofre de chaves"
+        title="Chaves PIX"
+        description="Estoque, status e taxa de sucesso. Importe, distribua e nunca fique sem chave útil."
+        pulseDotClass={disponiveis > 0 ? 'bg-success' : 'bg-destructive'}
+        progressLabel="Taxa de sucesso"
+        progressValue={taxaSucesso}
+        kpis={[
+          { label: 'Total de chaves', value: String(keys.length), accent: true },
+          { label: 'Disponíveis', value: String(disponiveis), tone: 'success' },
+          { label: 'Usadas', value: String(usadas), tone: 'muted' },
+          { label: 'Última importação', value: lastImportCount > 0 ? `${lastImportCount} chave(s)` : '—', tone: 'muted' },
+        ] as HeroKpi[]}
       />
+
 
       {/* Type distribution */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
