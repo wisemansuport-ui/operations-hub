@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { GraduationCap, BookOpen, Rocket, Network, Target, Wallet, Brain, Crown, ArrowRight, Bell, Info, Sparkles, CheckCircle2, Footprints } from 'lucide-react';
-import { TutorialHero } from '../components/heroes/TutorialHero';
+import { TasksHero, type HeroKpi } from '../components/heroes/TasksHero';
 import { startTour, TOURS, getTourProgressPercent, TOUR_PROGRESS_EVENT } from '@/lib/tours';
 
 interface Track {
