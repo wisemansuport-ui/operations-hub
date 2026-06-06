@@ -1,5 +1,5 @@
 import { KPICard } from "@/components/dashboard/KPICard";
-import { ReportsHero } from "@/components/heroes/ReportsHero";
+import { TasksHero, type HeroKpi } from "@/components/heroes/TasksHero";
 import { TrendingUp, CheckCircle, AlertTriangle, Clock, Users, Trophy } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 
