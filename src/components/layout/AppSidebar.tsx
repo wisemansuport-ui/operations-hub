@@ -45,7 +45,7 @@ export const AppSidebar = () => {
           <img
             src="/web-app-manifest-512x512.png"
             alt="NytzerVision"
-            className="w-8 h-8 rounded-lg object-cover shrink-0 shadow-[0_0_12px_hsl(var(--primary)/0.35)]"
+            className="w-9 h-9 rounded-[10px] object-cover shrink-0 block"
           />
           {!collapsed && (
             <span className="text-base font-semibold tracking-[-0.02em] text-foreground leading-none">
