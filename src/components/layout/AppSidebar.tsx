@@ -28,7 +28,7 @@ export const AppSidebar = () => {
     { path: "/goals", label: "Objetivos", icon: Crosshair, roles: ['ADMIN'] },
     { path: "/subscription", label: "Assinatura", icon: WandSparkles, roles: ['ADMIN'] },
     { path: "/tutorial", label: "Tutorial", icon: CirclePlay, roles: ['ADMIN', 'OPERADOR'] },
-    ...(user?.username === 'nytzer' ? [{ path: "/master", label: "Mestre", icon: Crown, roles: ['ADMIN', 'OPERADOR'] }] : []),
+    
   ].filter(item => item.roles.includes(role));
 
   // Removed bottomNavItems restriction to show all items on mobile
