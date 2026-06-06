@@ -432,7 +432,7 @@ const Networks = () => {
               <button
                 key={network.id}
                 type="button"
-                onClick={() => setSelectedNetworkId(network.id)}
+                onClick={() => { setSelectedNetworkId(network.id); setInsightNetworkId(network.id); setInsightOpen(true); }}
                 aria-pressed={isSelected}
                 className={`group relative w-full text-left px-6 py-4 transition-all duration-200 ${
                   isSelected
