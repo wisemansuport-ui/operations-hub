@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { GraduationCap, BookOpen, Rocket, Network, Target, Wallet, Brain, Crown, ArrowRight, Bell, Info, Sparkles, CheckCircle2, Footprints } from 'lucide-react';
-import { TutorialHero } from '../components/heroes/TutorialHero';
+import { TasksHero, type HeroKpi } from '../components/heroes/TasksHero';
 import { startTour, TOURS, getTourProgressPercent, TOUR_PROGRESS_EVENT } from '@/lib/tours';
 
 interface Track {
@@ -58,7 +58,24 @@ export default function Tutorial() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-fade-in relative z-10 w-full text-foreground">
-      <TutorialHero trilhas={enriched.length} modulos={totalSteps} conclusao={conclusao} />
+      <TasksHero
+        eyebrow="Tutorial · Academia operacional"
+        title="Trilhas de maestria"
+        description="Domine cada módulo do sistema no seu ritmo. Trilhas guiadas, do básico ao avançado."
+        pulseDotClass="bg-primary"
+        progressLabel="Conclusão geral"
+        progressValue={conclusao}
+        kpis={[
+          { label: 'Trilhas', value: String(enriched.length), accent: true },
+          { label: 'Módulos', value: String(totalSteps) },
+          { label: 'Conclusão', value: `${Math.round(conclusao)}%`, tone: conclusao >= 100 ? 'success' : 'default' },
+          {
+            label: 'Trilhas concluídas',
+            value: String(enriched.filter((t: any) => t.progress === 100).length),
+            tone: 'success',
+          },
+        ] as HeroKpi[]}
+      />
 
       {/* Tracks grid */}
       <div>
