@@ -42,6 +42,9 @@ const LEVEL_TONE: Record<Track['level'], string> = {
 
 
 export default function Tutorial() {
+  const [role] = useLocalStorage<'ADMIN' | 'OPERADOR'>('nytzer-role', 'ADMIN');
+  const TRACKS = role === 'OPERADOR' ? OPERATOR_TRACKS : ADMIN_TRACKS;
+
   // Re-render when tour progress changes
   const [progressTick, setProgressTick] = useState(0);
   useEffect(() => {
@@ -57,18 +60,20 @@ export default function Tutorial() {
   const enriched = TRACKS.map((t) => {
     const def = TOURS[t.id];
     const steps = def ? def.steps.length : 0;
-    const progress = getTourProgressPercent(t.id);
+    const progress = t.adminOnly ? 0 : getTourProgressPercent(t.id);
     return { ...t, steps, progress };
   });
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _tick = progressTick;
 
-  const totalSteps = enriched.reduce((s, t) => s + t.steps, 0);
-  const completedSteps = enriched.reduce(
+  const unlocked = enriched.filter(t => !t.adminOnly);
+  const totalSteps = unlocked.reduce((s, t) => s + t.steps, 0);
+  const completedSteps = unlocked.reduce(
     (s, t) => s + Math.round((t.steps * t.progress) / 100),
     0,
   );
   const conclusao = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-fade-in relative z-10 w-full text-foreground">
