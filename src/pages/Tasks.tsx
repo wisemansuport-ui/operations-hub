@@ -1496,17 +1496,13 @@ const Tasks = () => {
 
       {displayList.length > 10 && (() => {
         const pageWindow: (number | 'ellipsis')[] = [];
-        const add = (v: number | 'ellipsis') => pageWindow.push(v);
-        if (totalPages <= 7) {
-          for (let i = 1; i <= totalPages; i++) add(i);
+        if (totalPages <= 6) {
+          for (let i = 1; i <= totalPages; i++) pageWindow.push(i);
         } else {
-          add(1);
-          const start = Math.max(2, currentPage - 1);
-          const end = Math.min(totalPages - 1, currentPage + 1);
-          if (start > 2) add('ellipsis');
-          for (let i = start; i <= end; i++) add(i);
-          if (end < totalPages - 1) add('ellipsis');
-          add(totalPages);
+          const maxStart = Math.max(1, totalPages - 4);
+          const start = Math.min(Math.max(1, currentPage - 2), maxStart);
+          for (let i = start; i < start + 5; i++) pageWindow.push(i);
+          if (start + 5 <= totalPages) pageWindow.push('ellipsis');
         }
         return (
           <div className="flex justify-center items-center gap-1.5 sm:gap-2 mt-6 animate-fade-in flex-wrap px-2">
@@ -1542,9 +1538,6 @@ const Tasks = () => {
             >
               Próxima
             </button>
-            <span className="w-full sm:w-auto sm:ml-2 text-center text-[11px] text-muted-foreground/70 font-medium tabular-nums">
-              {currentPage} / {totalPages}
-            </span>
           </div>
         );
       })()}
