@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useSyncedState } from '../hooks/useSyncedState';
 import { RefreshCw, Plus, Upload, Copy, Download, Search, Trash2, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
-import { PixHero } from '../components/heroes/PixHero';
+import { TasksHero, type HeroKpi } from '../components/heroes/TasksHero';
 
 type PixType = 'CPF' | 'PHONE' | 'EMAIL' | 'INVALIDO';
 type PixStatus = 'DISPONIVEL' | 'USADA';
