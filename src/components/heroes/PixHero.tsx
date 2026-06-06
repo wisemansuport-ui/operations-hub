@@ -23,8 +23,8 @@ export const PixHero = ({ totalChaves, disponiveis, usadas, taxaSucesso, ultimaI
             <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.25em] text-primary/80">
               <Zap className="w-3 h-3" /> Central de Controle PIX
             </span>
-            <span className="inline-flex items-center gap-1 text-[9px] uppercase tracking-widest font-semibold text-success">
-              <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" /> Online
+            <span className="inline-flex items-center gap-1 text-[9px] uppercase tracking-widest font-semibold text-primary">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" /> Online
             </span>
           </div>
           <h1 className="text-3xl md:text-5xl font-black tracking-tight gradient-gold-text leading-[1.05]">
