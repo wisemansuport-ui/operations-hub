@@ -614,6 +614,38 @@ const Dashboard = () => {
       </div>
     </div>
 
+    {/* Sub-tabs: minimalist underline navigation */}
+    <div className="border-b border-border/40">
+      <div className="flex items-center gap-1 -mb-px">
+        {[
+          { id: 'financeira' as const, label: 'Visão Financeira', icon: Wallet2 },
+          { id: 'inteligencia' as const, label: 'Inteligência & IA', icon: Brain },
+        ].map(({ id, label, icon: Icon }) => {
+          const active = activeTab === id;
+          return (
+            <button
+              key={id}
+              onClick={() => setActiveTab(id)}
+              className={cn(
+                "relative inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold tracking-tight transition-all rounded-t-lg",
+                active
+                  ? "text-foreground"
+                  : "text-muted-foreground/70 hover:text-foreground/90"
+              )}
+            >
+              <Icon className={cn("w-4 h-4 transition-colors", active ? "text-primary" : "text-muted-foreground/60")} />
+              {label}
+              {active && (
+                <span className="absolute left-2 right-2 -bottom-px h-[2px] rounded-full bg-gradient-to-r from-primary/40 via-primary to-primary/40 shadow-[0_0_12px_hsl(var(--primary)/0.5)]" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+
+    {activeTab === 'financeira' && (
+      <div className="space-y-6 md:space-y-8 animate-fade-in">
     {/* LEVEL 1 — Hero Central de Comando */}
     <div data-tour="hero-lucro">
       <HeroPanel
@@ -651,8 +683,6 @@ const Dashboard = () => {
       <KPICard title="Lucro / Conta" value={formatBRL(stats.medioporConta)} change={`Média sobre ${stats.contasProcessadas}`} changeType={stats.medioporConta >= 0 ? "positive" : "negative"} icon={DollarSign} color="success" tooltip="Lucro líquido médio gerado por cada conta operada no período." />
     </div>
 
-    {/* LEVEL 3 — Motor de Decisão */}
-    <div data-tour="decision-engine"><DecisionEngine insights={insights} /></div>
 
     {/* LEVEL 4 — Intelligence visuals */}
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
