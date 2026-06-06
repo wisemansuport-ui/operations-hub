@@ -233,7 +233,14 @@ export const GuidedTour = () => {
   const easing = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
   return createPortal(
-    <div className="fixed inset-0" style={{ zIndex: 9990 }}>
+    <div
+      className="fixed inset-0"
+      style={{
+        zIndex: 9990,
+        opacity: transitioning ? 0 : 1,
+        transition: `opacity 320ms ${easing}`,
+      }}
+    >
       {/* Backdrop click-catcher */}
       <div className="fixed inset-0 pointer-events-auto" style={{ zIndex: 9990 }} aria-hidden />
 
