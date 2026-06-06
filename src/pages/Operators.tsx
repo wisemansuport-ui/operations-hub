@@ -569,33 +569,8 @@ const Operators = () => {
       {activeTab === 'Ranking' && (
         <div className="space-y-8 animate-fade-in">
 
-          {/* Executive summary band */}
-          <div className="relative rounded-3xl border border-border/50 bg-gradient-to-br from-card/60 via-card/30 to-background/40 backdrop-blur-sm overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,hsl(var(--primary)/0.08),transparent_60%)] pointer-events-none" />
-            <div className="relative grid grid-cols-2 lg:grid-cols-5 divide-y lg:divide-y-0 lg:divide-x divide-border/40">
-              {[
-                { icon: UserCheck, label: 'Operadores ativos', value: String(operatorData.length), sub: 'no período', tone: 'text-foreground' },
-                { icon: Target, label: 'Metas executadas', value: String(totalMetas), sub: 'fechadas', tone: 'text-foreground' },
-                { icon: TrendingUp, label: 'Contas geradas', value: totalContas.toLocaleString('pt-BR'), sub: 'depositantes', tone: 'text-foreground' },
-                { icon: DollarSign, label: 'Receita bruta', value: formatBRL(totalLucroEquipe), sub: 'antes de descontos', tone: totalLucroEquipe >= 0 ? 'text-success' : 'text-destructive' },
-                { icon: Wallet, label: 'Resultado líquido', value: formatBRL(totalLucroEquipe - folhaTotal - custoTotal), sub: 'pós folha + custos', tone: (totalLucroEquipe - folhaTotal - custoTotal) >= 0 ? 'text-success' : 'text-destructive' },
-              ].map((k) => (
-                <div key={k.label} className="p-5 group">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-7 h-7 rounded-lg border border-border/40 bg-background/40 flex items-center justify-center group-hover:border-primary/40 transition-colors">
-                      <k.icon className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </div>
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.18em]">{k.label}</p>
-                  </div>
-                  <p className={`text-2xl font-bold tracking-tight ${k.tone}`}>{k.value}</p>
-                  <p className="text-[10px] text-muted-foreground/70 mt-1">{k.sub}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* KPIs já vivem no hero — área limpa para pódio + leaderboard */}
 
-          {operatorData.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border/60 p-16 text-center">
               <div className="w-12 h-12 mx-auto rounded-xl bg-muted/20 border border-border/40 flex items-center justify-center mb-3">
                 <Users className="w-5 h-5 text-muted-foreground/60" />
               </div>
