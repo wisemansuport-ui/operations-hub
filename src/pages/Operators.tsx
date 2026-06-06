@@ -635,7 +635,7 @@ const Operators = () => {
                   mode="range"
                   selected={dateRange}
                   onSelect={(r) => { setDateRange(r); if (r?.from) setPeriod('intervalo'); }}
-                  numberOfMonths={2}
+                  numberOfMonths={isMobile ? 1 : 2}
                   locale={ptBR}
                   initialFocus
                   className={cn("p-3 pointer-events-auto")}
@@ -668,7 +668,7 @@ const Operators = () => {
           ) : (
             <>
               {/* Podium — top 3 */}
-              {operatorData.length > 0 && (
+              {!isMobile && operatorData.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <div>
@@ -807,7 +807,7 @@ const Operators = () => {
                                 </div>
                                 <div className="mt-1.5 h-[2px] w-full max-w-[260px] rounded-full bg-border/40 overflow-hidden">
                                   <div
-                                    className={`h-full rounded-full transition-all duration-700 ${
+                                    className={`h-full rounded-full md:transition-all md:duration-700 ${
                                       op.netProfit >= 0 ? 'bg-gradient-to-r from-success/60 to-success' : 'bg-destructive'
                                     }`}
                                     style={{ width: `${widthPct}%` }}
@@ -1093,7 +1093,7 @@ const Operators = () => {
                                 className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold border transition-all ${
                                   op.pendingSalary === 0
                                     ? 'bg-muted/10 text-muted-foreground/50 border-border/30 cursor-not-allowed'
-                                    : 'bg-success/10 hover:bg-success/20 text-success border-success/30 hover:-translate-y-0.5'
+                                    : 'bg-success/10 hover:bg-success/20 text-success border-success/30 md:hover:-translate-y-0.5'
                                 }`}
                                 title="Marcar como pago"
                               >
