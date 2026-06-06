@@ -304,7 +304,12 @@ const Dashboard = () => {
         redesMap[meta.rede].metas += 1;
         if (metaLiquido > 0) redesMap[meta.rede].acertos += 1;
       }
+
+      // Proporção Operacional respeita filtro de data
+      if (isFechada && metaHasRemessaInPeriod) metasFechadasInPeriod++;
+      if (!isFechada && isInRange(new Date(meta.createdAt), dateFilter)) metasAtivasInPeriod++;
     }
+
 
     let totalCustos = 0;
     const costsByDate: Record<string, number> = {};
