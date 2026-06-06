@@ -69,6 +69,104 @@ export default function Subscription() {
         expDateLabel={expDate ? format(expDate, "dd 'de' MMM, yyyy", { locale: ptBR }) : undefined}
       />
 
+      {/* Pain vs Solution */}
+      <div className="surface-2 hairline-gold rounded-2xl p-6 md:p-8 relative overflow-hidden">
+        <div className="absolute -top-20 -right-20 w-80 h-80 bg-destructive/[0.05] rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-primary/[0.08] rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative text-center mb-6">
+          <p className="text-[10px] tracking-[0.3em] font-black text-primary mb-2">CHEGA DE OPERAR NO ESCURO</p>
+          <h2 className="text-2xl md:text-3xl font-black tracking-tight">
+            Sua planilha está <span className="text-destructive">custando lucro</span>.{' '}
+            <span className="gradient-gold-text">Nytzer Vision devolve o controle.</span>
+          </h2>
+          <p className="text-sm text-muted-foreground mt-2 max-w-2xl mx-auto">
+            Quem opera no Excel perde dinheiro em erros de cálculo, fechamentos manuais e falta de visibilidade sobre os operadores. Nós automatizamos tudo.
+          </p>
+        </div>
+
+        <div className="relative grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* ANTES — Planilha */}
+          <div className="rounded-2xl border border-destructive/25 bg-destructive/[0.04] p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-destructive/15 border border-destructive/30 flex items-center justify-center">
+                <FileSpreadsheet className="w-4 h-4 text-destructive" />
+              </div>
+              <div>
+                <p className="text-[9px] uppercase tracking-[0.25em] font-black text-destructive/90">SEM NYTZER VISION</p>
+                <p className="text-sm font-black text-foreground">Operando no Excel</p>
+              </div>
+            </div>
+            <ul className="space-y-2.5 text-sm">
+              {[
+                { icon: AlertTriangle, t: 'Relatórios de lucro com fórmulas erradas e divergências entre planilhas.' },
+                { icon: Clock, t: 'Horas perdidas todo dia fechando lucro diário, semanal e mensal manualmente.' },
+                { icon: X, t: 'Zero visibilidade do que os operadores fazem em tempo real.' },
+                { icon: X, t: 'Sem notificações — você só descobre os problemas depois que o dinheiro já evaporou.' },
+                { icon: X, t: 'Precisa estar no computador para conferir qualquer coisa.' },
+              ].map((p, i) => {
+                const Icon = p.icon;
+                return (
+                  <li key={i} className="flex items-start gap-2.5">
+                    <Icon className="w-4 h-4 text-destructive/80 shrink-0 mt-0.5" />
+                    <span className="text-foreground/85 leading-relaxed">{p.t}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+
+          {/* DEPOIS — Nytzer */}
+          <div className="rounded-2xl hairline-gold surface-3 p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-primary/15 border border-primary/30 flex items-center justify-center">
+                <Crown className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-[9px] uppercase tracking-[0.25em] font-black text-primary">COM NYTZER VISION</p>
+                <p className="text-sm font-black text-foreground">Operando com inteligência</p>
+              </div>
+            </div>
+            <ul className="space-y-2.5 text-sm">
+              {[
+                { t: 'Lucro líquido calculado automaticamente — diário, semanal e mensal, sem erro humano.' },
+                { t: 'Fechamento instantâneo: o que levava horas é entregue em segundos.' },
+                { t: 'Acompanhe cada operador de qualquer lugar do mundo, direto do celular.' },
+                { t: 'Notificações em tempo real de tudo que os operadores fazem.' },
+                { t: 'Dashboard inteligente que aponta riscos, oportunidades e padrões ocultos.' },
+              ].map((p, i) => (
+                <li key={i} className="flex items-start gap-2.5">
+                  <div className="w-4 h-4 rounded-full bg-primary/20 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                    <Check className="w-2.5 h-2.5" strokeWidth={3} />
+                  </div>
+                  <span className="text-foreground/90 leading-relaxed">{p.t}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Highlight strip — Mobile + Notifications */}
+        <div className="relative mt-5 grid grid-cols-1 md:grid-cols-3 gap-3">
+          {[
+            { icon: Smartphone, title: 'Opere do celular', desc: 'Basta estar logado no Nytzer — controle total na palma da mão, em qualquer lugar do mundo.' },
+            { icon: Bell, title: 'Notificações em tempo real', desc: 'Cada ação de cada operador chega instantaneamente no seu dispositivo.' },
+            { icon: Clock, title: 'Recupere horas por dia', desc: 'O dashboard faz o fechamento — você foca em decisão e crescimento.' },
+          ].map(item => {
+            const Icon = item.icon;
+            return (
+              <div key={item.title} className="surface-1 rounded-xl p-4 border border-primary/15">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <Icon className="w-4 h-4 text-primary" />
+                  <p className="text-xs font-black text-foreground">{item.title}</p>
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">{item.desc}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* AIDA Narrative */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
         {[
