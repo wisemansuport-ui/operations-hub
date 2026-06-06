@@ -512,7 +512,7 @@ const Operators = () => {
               eyebrow="Ranking · Performance Arena"
               title="Pódio em tempo real"
               description="Quem está liderando, quem precisa subir. Lucro líquido define a posição."
-              pulseDotClass="bg-success"
+              pulseDotClass="bg-primary"
               kpis={[
                 { label: 'Operadores', value: String(operatorData.length), accent: true },
                 { label: 'Metas executadas', value: String(totalMetas) },
@@ -548,7 +548,7 @@ const Operators = () => {
               eyebrow="Folha · Pagamentos"
               title="Folha da equipe"
               description="Quanto foi pago, quanto ainda está pendente e o impacto no líquido."
-              pulseDotClass={folhaPendente > 0 ? 'bg-destructive' : 'bg-success'}
+              pulseDotClass={folhaPendente > 0 ? 'bg-destructive' : 'bg-primary'}
               progressLabel="Folha quitada"
               progressValue={pctPaga}
               kpis={[
@@ -894,7 +894,7 @@ const Operators = () => {
                         <p className="font-bold text-foreground text-sm truncate">{displayName}</p>
                         <p className="text-[10px] text-muted-foreground truncate">@{u.username}</p>
                       </div>
-                      <span className="w-1.5 h-1.5 rounded-full bg-success shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
                     </div>
                     <div className="grid grid-cols-3 gap-2 pt-3 border-t border-border/40">
                       <div>

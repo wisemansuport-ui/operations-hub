@@ -37,7 +37,7 @@ export const HeroPanel = ({
 }: HeroPanelProps) => {
   const dotClass =
     status?.tone === "live"
-      ? "bg-success animate-pulse"
+      ? "bg-primary animate-pulse"
       : status?.tone === "warn"
       ? "bg-warning"
       : "bg-primary";

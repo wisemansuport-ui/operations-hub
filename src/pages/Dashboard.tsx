@@ -631,7 +631,7 @@ const Dashboard = () => {
     <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
       <div>
         <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-primary/70 flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
           SO de Inteligência Financeira · Sincronizado
         </p>
         <h1 className="mt-1.5 text-2xl md:text-3xl font-extrabold tracking-tight text-foreground capitalize">
