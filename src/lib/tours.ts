@@ -210,18 +210,37 @@ export const TOURS: Record<string, TourDefinition> = {
     steps: [
       {
         route: '/app',
+        selector: '[data-tour="hero-lucro"]',
+        title: 'Leitura do painel',
+        description: 'O Motor parte daqui: lucro, custos e produção do período são a matéria-prima da IA. Confirme o filtro de período antes de interpretar qualquer sinal.',
+      },
+      {
+        route: '/app',
         selector: '[data-tour="decision-engine"]',
-        title: 'Motor de Decisão',
-        description: 'O Motor lê seus dados em tempo real e devolve recomendações práticas: o que escalar, o que cortar e onde acelerar.',
+        title: 'Recomendações em tempo real',
+        description: 'O Motor de Decisão cruza sua operação ao vivo e devolve ações práticas — o que escalar, o que cortar, onde acelerar e quais riscos observar agora.',
+      },
+      {
+        route: '/networks',
+        selector: '[data-tour="networks-ranking"]',
+        title: 'Ranking inteligente de redes',
+        description: 'Cada rede recebe um score com veredito da IA. Clique numa rede para abrir a análise completa: pontos fortes, fracos, ações e previsão.',
+      },
+      {
+        route: '/goals',
+        selector: '[data-tour="goals-forecast"]',
+        title: 'Forecast de metas',
+        description: 'A previsão da IA antecipa fechamento e gargalos das metas em andamento — use para priorizar quem destravar primeiro.',
       },
       {
         route: '/reports',
         selector: '[data-tour="reports-charts"]',
         title: 'Sinais cruzados',
-        description: 'Em Relatórios, o motor cruza receita, custos e produtividade por operador para apontar prioridades.',
+        description: 'Em Relatórios, o motor cruza receita, custos e produtividade por operador para confirmar (ou desafiar) as recomendações do painel.',
       },
     ],
   },
+
   assinatura: {
     id: 'assinatura',
     title: 'Plano & Acesso Premium',
@@ -270,11 +289,13 @@ export const getTourProgressPercent = (tourId: string): number => {
   if (!tour) return 0;
   const entry = getTourProgressMap()[tourId];
   if (!entry) return 0;
-  if (entry.completed) return 100;
   // reached is the index of the last viewed step (0-based)
   const stepsDone = Math.min(entry.reached + 1, tour.steps.length);
+  // Stale completion: tour grew after the user finished it — recompute from reached.
+  if (entry.completed && entry.reached >= tour.steps.length - 1) return 100;
   return Math.round((stepsDone / tour.steps.length) * 100);
 };
+
 
 export const markTourStepReached = (tourId: string, step: number) => {
   const tour = TOURS[tourId];
