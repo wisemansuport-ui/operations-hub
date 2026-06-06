@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { TasksHero } from '@/components/heroes/TasksHero';
 import { createPortal } from 'react-dom';
 import { Target, Plus, X, Search, ArrowUpRight, ArrowLeft, AlertTriangle, CheckSquare, Trash2, RotateCcw, BarChart2, Edit2, ExternalLink, Link as LinkIcon, TrendingUp, CheckCircle2, AlertCircle, Wrench, ArrowDownRight } from 'lucide-react';
 import { toast } from 'sonner';

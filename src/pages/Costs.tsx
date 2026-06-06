@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { CostsHero } from '@/components/heroes/CostsHero';
 import {
   Plus, Wallet, TrendingDown, TrendingUp, X, Shield, MessageSquare,
   Camera, Bot, Server, DollarSign, Trash2, Calendar as CalendarIcon
