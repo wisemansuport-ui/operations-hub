@@ -147,8 +147,14 @@ export const GuidedTour = () => {
 
   const finish = useCallback(() => {
     if (state) markTourCompleted(state.tourId);
-    close();
-  }, [state, close]);
+    setTransitioning(true);
+    setTooltipVisible(false);
+    setRect(null);
+    setTimeout(() => {
+      close();
+      navigate('/tutorial');
+    }, 360);
+  }, [state, close, navigate]);
 
   const goto = useCallback((idx: number) => {
     if (!tour || !state) return;
