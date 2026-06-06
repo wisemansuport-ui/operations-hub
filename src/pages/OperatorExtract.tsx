@@ -235,7 +235,7 @@ export default function OperatorExtract() {
       {/* ============================================= */}
       {/* HISTÓRICO DE PAGAMENTOS — versão premium       */}
       {/* ============================================= */}
-      <section className="space-y-5">
+      <section data-tour="operator-payments" className="space-y-5">
         <div className="flex items-center gap-3">
           <div className="w-1 h-8 rounded-full bg-gradient-to-b from-success to-success/40" />
           <div>
