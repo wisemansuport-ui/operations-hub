@@ -85,7 +85,10 @@ export default function Tutorial() {
                   </div>
                 </div>
 
-                <button className="relative w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold bg-foreground/5 hover:bg-primary/10 hover:text-primary border border-border hover:border-primary/30 transition-all">
+                <button
+                  onClick={() => startTour(t.id)}
+                  className="relative w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold bg-foreground/5 hover:bg-primary/10 hover:text-primary border border-border hover:border-primary/30 transition-all"
+                >
                   {completed ? (<><CheckCircle2 className="w-3.5 h-3.5 text-success" /> Revisar trilha</>) : t.progress > 0 ? (<>Continuar trilha <ArrowRight className="w-3.5 h-3.5" /></>) : (<>Iniciar trilha <ArrowRight className="w-3.5 h-3.5" /></>)}
                 </button>
               </div>
