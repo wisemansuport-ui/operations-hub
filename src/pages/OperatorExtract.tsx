@@ -185,6 +185,9 @@ export default function OperatorExtract() {
                 newStats.MES.depBaixo += rb; 
                 if (isPending) { newStats.MES.pendingNormal += rn; newStats.MES.pendingDepBaixo += rb; }
               }
+              newStats.TOTAL.normal += rn;
+              newStats.TOTAL.depBaixo += rb;
+              if (isPending) { newStats.TOTAL.pendingNormal += rn; newStats.TOTAL.pendingDepBaixo += rb; }
             }
 
             const prop = totalContasMeta > 0 ? originalRc / totalContasMeta : 1 / remessas.length;
