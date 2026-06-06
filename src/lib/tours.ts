@@ -64,25 +64,29 @@ export const TOURS: Record<string, TourDefinition> = {
       },
       {
         route: '/me',
+        selector: '[data-tour="operator-extract-table"]',
         title: 'Extrato detalhado',
-        description: 'Cada remessa validada aparece linha a linha no seu extrato, com plataforma, rede, contas e valor. Filtre e exporte quando quiser.',
+        description: 'Cada remessa validada aparece linha a linha — plataforma, rede, contas e valor. Use os filtros acima para refinar e o botão Exportar CSV para baixar.',
       },
       {
         route: '/me',
+        selector: '[data-tour="operator-payments"]',
         title: 'Histórico de pagamentos',
-        description: 'Acompanhe tudo que já recebeu: total acumulado, últimos 30 dias, ticket médio e o último repasse — agrupado por mês.',
+        description: 'Tudo que já caiu na sua conta: total recebido, últimos 30 dias, ticket médio e a linha do tempo agrupada por mês com cada repasse.',
       },
       {
         route: '/costs',
         selector: '[data-tour="costs-center"]',
         title: 'Registre seus custos',
-        description: 'Lançar custos operacionais aqui mantém seu lucro real correto. Use isso para auditar sua própria operação.',
+        description: 'Lance aqui os custos da sua operação para manter o lucro real correto. Útil para auditar a sua própria margem.',
       },
       {
         route: '/pix',
+        selector: '[data-tour="pix-stats"]',
         title: 'Chaves PIX',
-        description: 'Gerencie as chaves PIX usadas no seu fluxo financeiro — receba pagamentos sem fricção.',
+        description: 'Cadastre, organize e acompanhe as chaves PIX usadas no seu fluxo financeiro — receba sem fricção.',
       },
+
     ],
   },
 

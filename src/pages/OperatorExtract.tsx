@@ -222,7 +222,7 @@ export default function OperatorExtract() {
       </div>
 
       {/* Tabela */}
-      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-1 md:p-2">
+      <div data-tour="operator-extract-table" className="rounded-2xl border border-border bg-card/60 backdrop-blur p-1 md:p-2">
         <DataTable
           title="Extrato de Operações"
           subtitle="Registros validados pelo controle de qualidade"
@@ -235,7 +235,7 @@ export default function OperatorExtract() {
       {/* ============================================= */}
       {/* HISTÓRICO DE PAGAMENTOS — versão premium       */}
       {/* ============================================= */}
-      <section className="space-y-5">
+      <section data-tour="operator-payments" className="space-y-5">
         <div className="flex items-center gap-3">
           <div className="w-1 h-8 rounded-full bg-gradient-to-b from-success to-success/40" />
           <div>
