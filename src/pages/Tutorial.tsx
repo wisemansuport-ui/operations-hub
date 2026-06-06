@@ -1,6 +1,7 @@
 import React from 'react';
 import { GraduationCap, BookOpen, Rocket, Network, Target, Wallet, Brain, Crown, ArrowRight, Bell, Info, Sparkles, CheckCircle2 } from 'lucide-react';
 import { TutorialHero } from '../components/heroes/TutorialHero';
+import { startTour } from '@/lib/tours';
 
 interface Track {
   id: string;
