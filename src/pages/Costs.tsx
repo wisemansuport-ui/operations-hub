@@ -194,11 +194,8 @@ const Costs = () => {
     <div className="max-w-7xl mx-auto space-y-6 pb-20">
       <CostsHero
         custoPeriodo={formatBRL(custoPeriodo)}
-        lucroBruto={formatBRL(lucroBrutoPeriodo)}
-        lucroLiquido={formatBRL(lucroLiquidoPeriodo)}
-        liquidoPositive={lucroLiquidoPeriodo >= 0}
-        eficiencia={lucroBrutoPeriodo > 0 ? ((lucroBrutoPeriodo - custoPeriodo) / lucroBrutoPeriodo) * 100 : 0}
         registros={filteredCosts.length}
+        mediaPorLancamento={filteredCosts.length > 0 ? formatBRL(custoPeriodo / filteredCosts.length) : undefined}
         topCategory={porTipo[0] && porTipo[0].value > 0 ? { label: porTipo[0].label, value: formatBRL(porTipo[0].value) } : undefined}
       />
       <div data-tour="costs-center" className="flex items-center justify-end gap-3 flex-wrap">
