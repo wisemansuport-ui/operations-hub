@@ -111,6 +111,7 @@ const App = () => {
             <Sonner />
             <BrowserRouter>
                 <RouteTransition>
+                <Suspense fallback={<RouteFallback />}>
                 <Routes>
                   <Route path="/login" element={<Login />} />
                   <Route path="/" element={<Landing />} />
@@ -130,6 +131,7 @@ const App = () => {
                   <Route path="/master" element={<PrivateRoute><MasterPanel /></PrivateRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                </Suspense>
                 </RouteTransition>
             </BrowserRouter>
           </TooltipProvider>
