@@ -10,7 +10,7 @@ interface Props {
   topCategory?: { label: string; value: string };
 }
 
-// "Cost Intelligence Center" — treasury/gauge identity for Costs module
+// "Inteligência de Custos Center" — treasury/gauge identity for Costs module
 export const CostsHero = ({
   custoPeriodo,
   lucroBruto,
@@ -38,7 +38,7 @@ export const CostsHero = ({
         <div>
           <div className="flex items-center gap-2 mb-3">
             <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.25em] text-primary/80">
-              <PiggyBank className="w-3 h-3" /> Cost Intelligence
+              <PiggyBank className="w-3 h-3" /> Inteligência de Custos
             </span>
             <span className="text-[9px] uppercase tracking-widest font-semibold text-muted-foreground">{registros} lançamentos</span>
           </div>

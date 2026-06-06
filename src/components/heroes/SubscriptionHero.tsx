@@ -17,7 +17,7 @@ export const SubscriptionHero = ({ status, expDateLabel }: Props) => {
         <div>
           <div className="flex items-center gap-3 mb-4">
             <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.25em] text-primary/80">
-              <Sparkles className="w-3 h-3" /> Intelligence Access
+              <Sparkles className="w-3 h-3" /> Acesso à Inteligência
             </span>
             <span className="inline-flex items-center gap-2 text-[10px] uppercase tracking-widest font-semibold text-muted-foreground">
               <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`} /> {statusLabel}
@@ -53,7 +53,7 @@ export const SubscriptionHero = ({ status, expDateLabel }: Props) => {
               </div>
               <div>
                 <p className="text-[10px] uppercase tracking-widest font-bold text-primary/80">Acesso Premium</p>
-                <p className="text-sm font-black text-foreground">Decision Engine completo</p>
+                <p className="text-sm font-black text-foreground">Motor de Decisão completo</p>
               </div>
             </div>
             <div className="space-y-2 text-xs text-foreground/90">

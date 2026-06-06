@@ -15,7 +15,7 @@ export const TutorialHero = ({ trilhas, modulos, conclusao }: Props) => (
       <div>
         <div className="flex items-center gap-2 mb-3">
           <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.25em] text-primary/80">
-            <GraduationCap className="w-3 h-3" /> Nytzer University
+            <GraduationCap className="w-3 h-3" /> Universidade Nytzer
           </span>
           <span className="text-[9px] uppercase tracking-widest font-semibold text-muted-foreground">{trilhas} trilhas · {modulos} módulos</span>
         </div>

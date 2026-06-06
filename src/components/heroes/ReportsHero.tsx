@@ -8,7 +8,7 @@ interface Props {
   periodoLabel?: string;
 }
 
-// "Executive Board" — analytical identity for Reports module
+// "Painel Executivo" — analytical identity for Reports module
 export const ReportsHero = ({ oee, qualidade, falhas, operadoresAtivos, periodoLabel }: Props) => {
   return (
     <section className="hairline-gold glass-premium rounded-3xl relative overflow-hidden">
@@ -28,7 +28,7 @@ export const ReportsHero = ({ oee, qualidade, falhas, operadoresAtivos, periodoL
           <div>
             <div className="flex items-center gap-2 mb-3">
               <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.25em] text-primary/80">
-                <FileBarChart className="w-3 h-3" /> Executive Board
+                <FileBarChart className="w-3 h-3" /> Painel Executivo
               </span>
               {periodoLabel && (
                 <span className="text-[9px] uppercase tracking-widest font-semibold text-muted-foreground">{periodoLabel}</span>
