@@ -1,7 +1,7 @@
-import React from 'react';
-import { GraduationCap, BookOpen, Rocket, Network, Target, Wallet, Brain, Crown, ArrowRight, Bell, Info, Sparkles, CheckCircle2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { GraduationCap, BookOpen, Rocket, Network, Target, Wallet, Brain, Crown, ArrowRight, Bell, Info, Sparkles, CheckCircle2, Footprints } from 'lucide-react';
 import { TutorialHero } from '../components/heroes/TutorialHero';
-import { startTour } from '@/lib/tours';
+import { startTour, TOURS, getTourProgressPercent, TOUR_PROGRESS_EVENT } from '@/lib/tours';
 
 interface Track {
   id: string;
@@ -9,19 +9,16 @@ interface Track {
   desc: string;
   icon: React.ComponentType<any>;
   level: 'Iniciante' | 'Intermediário' | 'Avançado';
-  modules: number;
-  progress: number; // 0-100
-  duration: string;
 }
 
 const TRACKS: Track[] = [
-  { id: 'primeiros', title: 'Primeiros Passos', desc: 'Configure sua operação e domine a interface central em minutos.', icon: Rocket, level: 'Iniciante', modules: 5, progress: 100, duration: '20 min' },
-  { id: 'operacoes', title: 'Operações & Remessas', desc: 'Lance metas, registre remessas e domine o ciclo completo de uma operação.', icon: Sparkles, level: 'Iniciante', modules: 7, progress: 60, duration: '45 min' },
-  { id: 'redes', title: 'Redes & Operadores', desc: 'Estruture sua rede, organize operadores e maximize a performance coletiva.', icon: Network, level: 'Intermediário', modules: 6, progress: 35, duration: '40 min' },
-  { id: 'metas', title: 'Missões & Forecast', desc: 'Use o Central de Missões para escalar metas com previsão IA.', icon: Target, level: 'Intermediário', modules: 5, progress: 20, duration: '30 min' },
-  { id: 'custos', title: 'Inteligência de Custos', desc: 'Controle custos, identifique vazamentos e maximize eficiência operacional.', icon: Wallet, level: 'Avançado', modules: 6, progress: 0, duration: '50 min' },
-  { id: 'decision', title: 'Motor de Decisão IA', desc: 'Aprenda a interpretar os sinais do Motor de Decisão e agir com precisão.', icon: Brain, level: 'Avançado', modules: 8, progress: 0, duration: '60 min' },
-  { id: 'assinatura', title: 'Plano & Acesso Premium', desc: 'Entenda as camadas de acesso, renovação e benefícios exclusivos.', icon: Crown, level: 'Iniciante', modules: 3, progress: 100, duration: '10 min' },
+  { id: 'primeiros', title: 'Primeiros Passos', desc: 'Configure sua operação e domine a interface central em minutos.', icon: Rocket, level: 'Iniciante' },
+  { id: 'operacoes', title: 'Operações & Remessas', desc: 'Lance metas, registre remessas e domine o ciclo completo de uma operação.', icon: Sparkles, level: 'Iniciante' },
+  { id: 'redes', title: 'Redes & Operadores', desc: 'Estruture sua rede, organize operadores e maximize a performance coletiva.', icon: Network, level: 'Intermediário' },
+  { id: 'metas', title: 'Missões & Forecast', desc: 'Use o Central de Missões para escalar metas com previsão IA.', icon: Target, level: 'Intermediário' },
+  { id: 'custos', title: 'Inteligência de Custos', desc: 'Controle custos, identifique vazamentos e maximize eficiência operacional.', icon: Wallet, level: 'Avançado' },
+  { id: 'decision', title: 'Motor de Decisão IA', desc: 'Aprenda a interpretar os sinais do Motor de Decisão e agir com precisão.', icon: Brain, level: 'Avançado' },
+  { id: 'assinatura', title: 'Plano & Acesso Premium', desc: 'Entenda as camadas de acesso, renovação e benefícios exclusivos.', icon: Crown, level: 'Iniciante' },
 ];
 
 const LEVEL_TONE: Record<Track['level'], string> = {
@@ -31,13 +28,37 @@ const LEVEL_TONE: Record<Track['level'], string> = {
 };
 
 export default function Tutorial() {
-  const totalModules = TRACKS.reduce((s, t) => s + t.modules, 0);
-  const completedModules = TRACKS.reduce((s, t) => s + Math.round((t.modules * t.progress) / 100), 0);
-  const conclusao = Math.round((completedModules / totalModules) * 100);
+  // Re-render when tour progress changes
+  const [progressTick, setProgressTick] = useState(0);
+  useEffect(() => {
+    const bump = () => setProgressTick((n) => n + 1);
+    window.addEventListener(TOUR_PROGRESS_EVENT, bump);
+    window.addEventListener('storage', bump);
+    return () => {
+      window.removeEventListener(TOUR_PROGRESS_EVENT, bump);
+      window.removeEventListener('storage', bump);
+    };
+  }, []);
+
+  const enriched = TRACKS.map((t) => {
+    const def = TOURS[t.id];
+    const steps = def ? def.steps.length : 0;
+    const progress = getTourProgressPercent(t.id);
+    return { ...t, steps, progress };
+  });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _tick = progressTick;
+
+  const totalSteps = enriched.reduce((s, t) => s + t.steps, 0);
+  const completedSteps = enriched.reduce(
+    (s, t) => s + Math.round((t.steps * t.progress) / 100),
+    0,
+  );
+  const conclusao = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-fade-in relative z-10 w-full text-foreground">
-      <TutorialHero trilhas={TRACKS.length} modulos={totalModules} conclusao={conclusao} />
+      <TutorialHero trilhas={enriched.length} modulos={totalSteps} conclusao={conclusao} />
 
       {/* Tracks grid */}
       <div>
@@ -46,9 +67,10 @@ export default function Tutorial() {
           <h2 className="text-lg font-black tracking-tight text-foreground">Trilhas de Maestria</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {TRACKS.map(t => {
+          {enriched.map(t => {
             const Icon = t.icon;
             const completed = t.progress === 100;
+            const stepsDone = Math.round((t.steps * t.progress) / 100);
             return (
               <div key={t.id} className="surface-2 hairline-gold rounded-2xl p-5 group hover:border-primary/30 transition-all relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-40 h-40 bg-primary/[0.04] rounded-full blur-3xl pointer-events-none group-hover:bg-primary/[0.10] transition-all" />
@@ -66,8 +88,8 @@ export default function Tutorial() {
                 <p className="text-xs text-muted-foreground leading-relaxed mb-4 relative">{t.desc}</p>
 
                 <div className="relative flex items-center gap-3 text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-3">
-                  <span className="inline-flex items-center gap-1"><BookOpen className="w-3 h-3" /> {t.modules} módulos</span>
-                  <span>· {t.duration}</span>
+                  <span className="inline-flex items-center gap-1"><Footprints className="w-3 h-3" /> {t.steps} passos</span>
+                  <span>· {stepsDone}/{t.steps} concluídos</span>
                 </div>
 
                 <div className="relative mb-3">

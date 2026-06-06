@@ -2,7 +2,7 @@ import { GraduationCap, Sparkles, Trophy, BookOpen } from "lucide-react";
 
 interface Props {
   trilhas: number;
-  modulos: number;
+  modulos: number; // total de passos
   conclusao: number; // %
 }
 
@@ -17,7 +17,7 @@ export const TutorialHero = ({ trilhas, modulos, conclusao }: Props) => (
           <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.25em] text-primary/80">
             <GraduationCap className="w-3 h-3" /> Universidade Nytzer
           </span>
-          <span className="text-[9px] uppercase tracking-widest font-semibold text-muted-foreground">{trilhas} trilhas · {modulos} módulos</span>
+          <span className="text-[9px] uppercase tracking-widest font-semibold text-muted-foreground">{trilhas} trilhas · {modulos} passos</span>
         </div>
         <h1 className="text-3xl md:text-5xl font-black tracking-tight gradient-gold-text leading-[1.05]">
           Academia Nytzer
@@ -28,7 +28,7 @@ export const TutorialHero = ({ trilhas, modulos, conclusao }: Props) => (
 
         <div className="mt-6 grid grid-cols-3 gap-2 max-w-md">
           <Tile label="Trilhas" value={String(trilhas)} icon={<BookOpen className="w-3 h-3" />} />
-          <Tile label="Módulos" value={String(modulos)} icon={<Sparkles className="w-3 h-3" />} />
+          <Tile label="Passos" value={String(modulos)} icon={<Sparkles className="w-3 h-3" />} />
           <Tile label="Progresso" value={`${conclusao}%`} icon={<Trophy className="w-3 h-3" />} highlight />
         </div>
       </div>
