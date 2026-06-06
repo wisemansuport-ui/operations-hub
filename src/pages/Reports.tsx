@@ -279,65 +279,59 @@ const Reports = () => {
         </div>
       </div>
 
-      <div className="overflow-x-auto w-full">
-        <table className="w-full text-sm text-left whitespace-nowrap">
-          <thead className="text-[10px] text-muted-foreground uppercase tracking-widest bg-black/20 border-b border-border">
-            <tr>
-              <th className="px-5 py-4 font-semibold text-center w-16">Rank</th>
-              <th className="px-5 py-4 font-semibold">Colaborador</th>
-              <th className="px-5 py-4 font-semibold text-center border-l border-border/30">Contas Totais</th>
-              <th className="px-5 py-4 font-semibold text-center">Lucro Gerado</th>
-              <th className="px-5 py-4 font-semibold text-center">Dias Operados</th>
-              <th className="px-5 py-4 font-semibold text-right">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {operatorPerformance.map((op, i) => (
-              <tr key={i} className="border-b border-border/10 hover:bg-white/[0.02] transition-colors last:border-0 group">
-                <td className="px-5 py-4 text-center">
-                  <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${
-                    i === 0 ? 'bg-yellow-500/20 text-yellow-500 ring-1 ring-yellow-500/30' : 
-                    i === 1 ? 'bg-slate-300/20 text-slate-300 ring-1 ring-slate-300/30' : 
-                    i === 2 ? 'bg-warning/20 text-warning ring-1 ring-warning/30' : 
-                    'bg-muted/50 text-muted-foreground'
-                  }`}>
-                    {op.rank}
-                  </span>
-                </td>
-                <td className="px-5 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold border border-primary/20 shadow-inner group-hover:scale-105 transition-transform">
-                      {op.avatar}
-                    </div>
-                    <span className="font-semibold text-foreground">{op.name}</span>
-                  </div>
-                </td>
-                <td className="px-5 py-4 text-center border-l border-border/20">
-                  <span className="text-primary font-bold tabular-nums">{op.contas}</span>
-                </td>
-                <td className="px-5 py-4 text-center">
-                  <span className={`font-semibold tabular-nums ${op.lucro >= 0 ? 'text-success' : 'text-destructive'}`}>
+      {isMobile ? (
+        <div className="space-y-2">
+          {operatorPerformance.map((op) => (
+            <div key={op.name} className="rounded-xl border border-border/50 bg-background/30 p-3">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold bg-muted/50 text-muted-foreground shrink-0">
+                  {op.rank}
+                </span>
+                <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold border border-primary/20 shrink-0">
+                  {op.avatar}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-foreground truncate">{op.name}</p>
+                  <p className="text-[10px] text-muted-foreground">{op.status}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-sm font-bold tabular-nums text-primary">{op.contas}</p>
+                  <p className={`text-[10px] font-semibold tabular-nums ${op.lucro >= 0 ? 'text-success' : 'text-destructive'}`}>
                     {op.lucro >= 0 ? '+' : ''}R$ {op.lucro.toFixed(2).replace('.', ',')}
-                  </span>
-                </td>
-                <td className="px-5 py-4 text-center">
-                  <span className="text-muted-foreground font-medium tabular-nums">{op.diasOperados} d</span>
-                </td>
-                <td className="px-5 py-4 text-right">
-                  <span className={`inline-flex text-[10px] px-2.5 py-1 rounded bg-card/80 border font-bold uppercase tracking-wider ${
-                    op.status === 'Em Alta' ? 'text-primary border-primary/30' : 
-                    op.status === 'Consistente' ? 'text-blue-400 border-blue-500/30' : 
-                    op.status === 'Estável' ? 'text-primary/80 border-primary/30' :
-                    'text-warning border-warning/30'
-                  }`}>
-                    {op.status}
-                  </span>
-                </td>
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-sm text-left whitespace-nowrap">
+            <thead className="text-[10px] text-muted-foreground uppercase tracking-widest bg-muted/20 border-b border-border">
+              <tr>
+                <th className="px-5 py-4 font-semibold text-center w-16">Rank</th>
+                <th className="px-5 py-4 font-semibold">Colaborador</th>
+                <th className="px-5 py-4 font-semibold text-center border-l border-border/30">Contas Totais</th>
+                <th className="px-5 py-4 font-semibold text-center">Lucro Gerado</th>
+                <th className="px-5 py-4 font-semibold text-center">Dias Operados</th>
+                <th className="px-5 py-4 font-semibold text-right">Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {operatorPerformance.map((op, i) => (
+                <tr key={i} className="border-b border-border/10 hover:bg-muted/20 transition-colors last:border-0 group">
+                  <td className="px-5 py-4 text-center"><span className="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold bg-muted/50 text-muted-foreground">{op.rank}</span></td>
+                  <td className="px-5 py-4"><div className="flex items-center gap-3"><div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold border border-primary/20">{op.avatar}</div><span className="font-semibold text-foreground">{op.name}</span></div></td>
+                  <td className="px-5 py-4 text-center border-l border-border/20"><span className="text-primary font-bold tabular-nums">{op.contas}</span></td>
+                  <td className="px-5 py-4 text-center"><span className={`font-semibold tabular-nums ${op.lucro >= 0 ? 'text-success' : 'text-destructive'}`}>{op.lucro >= 0 ? '+' : ''}R$ {op.lucro.toFixed(2).replace('.', ',')}</span></td>
+                  <td className="px-5 py-4 text-center"><span className="text-muted-foreground font-medium tabular-nums">{op.diasOperados} d</span></td>
+                  <td className="px-5 py-4 text-right"><span className="inline-flex text-[10px] px-2.5 py-1 rounded bg-card/80 border border-border font-bold uppercase tracking-wider text-muted-foreground">{op.status}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   </div>
   );
