@@ -47,7 +47,7 @@ export const DecisionEngine = ({ insights }: { insights: Insight[] }) => {
           <div className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/25 flex items-center justify-center">
             <Sparkles className="w-3.5 h-3.5 text-primary" />
           </div>
-          <h3 className="text-sm font-bold text-foreground tracking-tight">Decision Engine</h3>
+          <h3 className="text-sm font-bold text-foreground tracking-tight">Motor de Decisão</h3>
           <span className="text-[9px] uppercase tracking-widest text-primary/70 font-semibold ml-1">IA</span>
         </div>
         <p className="text-xs text-muted-foreground">
@@ -68,7 +68,7 @@ export const DecisionEngine = ({ insights }: { insights: Insight[] }) => {
           </div>
           <div>
             <h3 className="text-sm font-bold text-foreground tracking-tight inline-flex items-center gap-2">
-              Decision Engine
+              Motor de Decisão
               <span className="text-[9px] uppercase tracking-widest text-primary/70 font-semibold px-1.5 py-0.5 rounded border border-primary/25 bg-primary/5">
                 IA
               </span>

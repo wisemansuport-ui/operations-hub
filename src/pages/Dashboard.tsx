@@ -11,6 +11,7 @@ import { useMemo, useState } from "react";
 import { PeriodFilter, DateFilter, buildDateFilter, isInRange } from "@/components/ui/period-filter";
 import { startOfMonth, endOfMonth } from 'date-fns';
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { DataGate } from "@/components/layout/DataGate";
 
 const areaData = [
   { name: "Seg", tarefas: 12 },
@@ -383,7 +384,7 @@ const Dashboard = () => {
   
   if (pieData.length === 0) pieData.push({ name: "Sem Dados", value: 1 });
 
-  // ----- Decision Engine insights (heuristics from real stats) -----
+  // ----- Motor de Decisão insights (heuristics from real stats) -----
   const insights: Insight[] = useMemo(() => {
     const arr: Insight[] = [];
     const top = stats.rankingRedes[0];
@@ -441,22 +442,12 @@ const Dashboard = () => {
     return arr.slice(0, 6);
   }, [stats]);
 
-  const heroForecastValue = stats.medioporMeta > 0
-    ? stats.receitaMensal + (stats.medioporMeta * stats.metasAtivas * 0.6)
-    : stats.receitaMensal;
-
-  const heroDeltaPct = stats.totalCustos > 0
-    ? ((stats.receitaMensal / (stats.receitaMensal + stats.totalCustos)) * 100).toFixed(0)
-    : "100";
-
-  // Loading check AFTER all hooks (required by React Rules of Hooks)
-
-  if (loading) {
-    return <LoadingScreen message="Sincronizando seus dados" />;
-  }
+  // Standard pattern: gate via <DataGate> in JSX (NEVER early-return on loading
+  // before hooks — see src/components/layout/DataGate.tsx for the convention).
 
   if (role === 'OPERADOR') {
     return (
+      <DataGate loading={loading} message="Sincronizando seus dados">
       <div className="space-y-5 md:space-y-6 relative z-10 pb-20 md:pb-6">
         <div className="flex items-center justify-between">
           <div>
@@ -588,54 +579,67 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+      </DataGate>
     );
   }
 
-  // insights/heroForecastValue/heroDeltaPct computed above (moved before early returns)
 
+  // Hero forecast = previsão fim de período (extrapola média diária)
+  const heroForecastValue = stats.medioporMeta > 0
+    ? stats.receitaMensal + (stats.medioporMeta * stats.metasAtivas * 0.6)
+    : stats.receitaMensal;
+
+  const heroDeltaPct = stats.totalCustos > 0
+    ? ((stats.receitaMensal / (stats.receitaMensal + stats.totalCustos)) * 100).toFixed(0)
+    : "100";
 
   return (
+  <DataGate loading={loading} message="Sincronizando seus dados">
   <div className="space-y-6 md:space-y-8 relative z-10 pb-20 md:pb-6">
     {/* Greeting strip */}
     <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
       <div>
         <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-primary/70 flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-          Financial Intelligence OS · Sincronizado
+          SO de Inteligência Financeira · Sincronizado
         </p>
         <h1 className="mt-1.5 text-2xl md:text-3xl font-extrabold tracking-tight text-foreground capitalize">
           Olá, {(user?.fullName || user?.name || user?.username || 'Operador').split(' ')[0]}
         </h1>
       </div>
-      <PeriodFilter value={dateFilter} onChange={setDateFilter} />
+      <div data-tour="period-filter">
+        <PeriodFilter value={dateFilter} onChange={setDateFilter} />
+      </div>
     </div>
 
-    {/* LEVEL 1 — Hero Command Center */}
-    <HeroPanel
-      status={{ label: "Operação ao vivo", tone: "live" }}
-      primaryLabel="Receita líquida — período"
-      primaryValue={formatBRL(stats.receitaMensal)}
-      primaryDelta={
-        stats.receitaMensal >= 0
-          ? { value: `${heroDeltaPct}% de margem sobre o bruto`, positive: true }
-          : { value: "Margem negativa no período", positive: false }
-      }
-      title="Command Center"
-      subtitle="Visão consolidada de toda a operação — entradas, custos e projeção."
-      forecastLabel="Projeção fim do período"
-      forecastValue={formatBRL(heroForecastValue)}
-      aiInsight={
-        insights[0]
-          ? `${insights[0].title}. ${insights[0].description}`
-          : "Sem sinais críticos no momento. Operação dentro dos parâmetros."
-      }
-      trendData={barData.map(d => ({ name: d.name, value: d.lucro }))}
-      sideStats={[
-        { label: "Bruto", value: formatBRL(stats.lucroBruto), tone: stats.lucroBruto >= 0 ? "primary" : "destructive" },
-        { label: "FAT", value: formatBRL(stats.totalSalarios), tone: "success" },
-        { label: "Custos", value: formatBRL(stats.totalCustos), tone: "destructive" },
-      ]}
-    />
+    {/* LEVEL 1 — Hero Central de Comando */}
+    <div data-tour="hero-lucro">
+      <HeroPanel
+        status={{ label: "Operação ao vivo", tone: "live" }}
+        primaryLabel="Receita líquida — período"
+        primaryValue={formatBRL(stats.receitaMensal)}
+        primaryDelta={
+          stats.receitaMensal >= 0
+            ? { value: `${heroDeltaPct}% de margem sobre o bruto`, positive: true }
+            : { value: "Margem negativa no período", positive: false }
+        }
+        title="Central de Comando"
+        subtitle="Visão consolidada de toda a operação — entradas, custos e projeção."
+        forecastLabel="Projeção fim do período"
+        forecastValue={formatBRL(heroForecastValue)}
+        aiInsight={
+          insights[0]
+            ? `${insights[0].title}. ${insights[0].description}`
+            : "Sem sinais críticos no momento. Operação dentro dos parâmetros."
+        }
+        trendData={barData.map(d => ({ name: d.name, value: d.lucro }))}
+        sideStats={[
+          { label: "Bruto", value: formatBRL(stats.lucroBruto), tone: stats.lucroBruto >= 0 ? "primary" : "destructive" },
+          { label: "FAT", value: formatBRL(stats.totalSalarios), tone: "success" },
+          { label: "Custos", value: formatBRL(stats.totalCustos), tone: "destructive" },
+        ]}
+      />
+    </div>
 
     {/* LEVEL 2 — Strategic KPIs */}
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
@@ -645,8 +649,8 @@ const Dashboard = () => {
       <KPICard title="Lucro / Conta" value={formatBRL(stats.medioporConta)} change={`Média sobre ${stats.contasProcessadas}`} changeType={stats.medioporConta >= 0 ? "positive" : "negative"} icon={DollarSign} color="success" tooltip="Lucro líquido médio gerado por cada conta operada no período." />
     </div>
 
-    {/* LEVEL 3 — Decision Engine */}
-    <DecisionEngine insights={insights} />
+    {/* LEVEL 3 — Motor de Decisão */}
+    <div data-tour="decision-engine"><DecisionEngine insights={insights} /></div>
 
     {/* LEVEL 4 — Intelligence visuals */}
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
@@ -830,6 +834,7 @@ const Dashboard = () => {
       </div>
     </div>
   </div>
+  </DataGate>
   );
 };
 

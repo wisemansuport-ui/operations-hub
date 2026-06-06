@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { AppSidebar } from "./AppSidebar";
 import { TopBar } from "./TopBar";
 import { NetworkParticles } from "./NetworkParticles";
+import { GuidedTour } from "@/components/tutorial/GuidedTour";
 
 export const AppLayout = ({ children }: { children: ReactNode }) => {
   return (
@@ -16,6 +17,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
           </main>
         </div>
       </div>
+      <GuidedTour />
     </div>
   );
 };

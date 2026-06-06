@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { TasksHero } from '@/components/heroes/TasksHero';
 import { createPortal } from 'react-dom';
 import { Target, Plus, X, Search, ArrowUpRight, ArrowLeft, AlertTriangle, CheckSquare, Trash2, RotateCcw, BarChart2, Edit2, ExternalLink, Link as LinkIcon, TrendingUp, CheckCircle2, AlertCircle, Wrench, ArrowDownRight } from 'lucide-react';
 import { toast } from 'sonner';
@@ -1288,7 +1289,7 @@ const Tasks = () => {
   return (
     <div className="space-y-6 animate-fade-in relative z-10 w-full pb-12">
       {/* Header Tabs */}
-      <div className="flex bg-muted/20 border border-border/50 rounded-lg p-1.5 overflow-x-auto hide-scrollbar w-fit">
+      <div data-tour="tasks-tabs" className="flex bg-muted/20 border border-border/50 rounded-lg p-1.5 overflow-x-auto hide-scrollbar w-fit">
         {['Visao geral', 'Minha operacao', 'Metas & Fechamento', 'Lixeira'].map(tab => (
            <button
              key={tab}
@@ -1304,29 +1305,109 @@ const Tasks = () => {
         ))}
       </div>
 
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mt-6">
-        <div className="flex items-center gap-4">
-          <div className="hidden md:block w-1 h-14 rounded-full bg-gradient-to-b from-primary via-primary/50 to-transparent shadow-[0_0_12px_hsl(var(--primary)/0.5)]" />
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-[10px] font-bold text-primary uppercase tracking-[0.25em]">NytzerVision</span>
-              <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
-              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">{activeTab}</span>
-            </div>
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">{activeTab}</h1>
-            <p className="text-sm text-muted-foreground mt-1.5">Gerenciamento automático do hub · sincronização em tempo real.</p>
-          </div>
-        </div>
-        {activeTab === 'Minha operacao' && displayList.length > 0 && (
+      {(() => {
+        const totalProgresso = listActive.reduce((acc, m) => {
+          const r = m.remessas || [];
+          const isRecarga = m.modelo === 'Recarga';
+          const dep = r.reduce((s, x) => s + Number(x.deposito || 0), 0);
+          const ct = r.reduce((s, x) => s + Number(x.contas || 0), 0);
+          const target = Number(m.contas) || 0;
+          if (target <= 0) return acc;
+          const pct = Math.min(100, ((isRecarga ? dep : ct) / target) * 100);
+          return acc + pct;
+        }, 0);
+        const progressoMedio = listActive.length > 0 ? totalProgresso / listActive.length : 0;
+
+        const lucroConsolidado = listFechadas.reduce((acc, m) => {
+          const r = m.remessas || [];
+          const bruto = r.reduce((s, x) => s + (Number(x.saque || 0) - Number(x.deposito || 0)), 0);
+          const sal = Number(m.salarioOperador) || 0;
+          let auto = 0;
+          if (!m.isAdminMeta) {
+            if (m.modelo === 'Recarga') auto = Number(m.pagamentoOperador) || 0;
+            else auto = r.reduce((s, x) => s + (x.naoContabilizarSalario ? 0 : ((Number(x.contasNormais || 0)) * 2 + (Number(x.contasBaixas || 0)) * 1)), 0);
+          }
+          return acc + bruto + sal - auto;
+        }, 0);
+
+        const fmtBRL = (v: number) => `R$ ${v.toFixed(2).replace('.', ',')}`;
+        const pad2 = (n: number) => (n < 10 ? `0${n}` : String(n));
+
+        if (activeTab === 'Visao geral') {
+          return (
+            <TasksHero
+              eyebrow="Visão geral · Operacional"
+              title="Planilhas"
+              description="Panorama tático das suas metas. Acompanhe progresso, fechamentos e lucro consolidado em um só lugar."
+              progressLabel="Progresso médio"
+              progressValue={progressoMedio}
+              kpis={[
+                { label: 'Total de metas', value: String(visibleMetas.length) },
+                { label: 'Abertas', value: pad2(listActive.length) },
+                { label: 'Fechadas', value: String(listFechadas.length) },
+                { label: 'Lucro consolidado', value: fmtBRL(lucroConsolidado), accent: true, tone: lucroConsolidado >= 0 ? 'success' : 'destructive' },
+              ]}
+            />
+          );
+        }
+
+        if (activeTab === 'Minha operacao') {
+          return (
+            <TasksHero
+              eyebrow="Minha operação · Tempo real"
+              title="Operação ativa"
+              pulseDotClass="bg-success"
+              description="Crie metas, registre remessas e analise cada movimento em tempo real. Tudo o que está rodando agora aparece aqui."
+              progressLabel="Progresso médio"
+              progressValue={progressoMedio}
+              kpis={[
+                { label: 'Metas ativas', value: pad2(listActive.length), accent: true },
+                { label: 'Total criadas', value: String(visibleMetas.length) },
+                { label: 'Fechadas', value: String(listFechadas.length), tone: 'muted' },
+              ]}
+            />
+          );
+        }
+
+        if (activeTab === 'Metas & Fechamento') {
+          return (
+            <TasksHero
+              eyebrow="Metas & Fechamento · Arquivo"
+              title="Fechamentos"
+              pulseDotClass="bg-primary"
+              description="Arquivo de todas as metas finalizadas. Consulte o histórico e o lucro consolidado de cada ciclo encerrado."
+              kpis={[
+                { label: 'Metas fechadas', value: String(listFechadas.length), accent: true },
+                { label: 'Lucro consolidado', value: fmtBRL(lucroConsolidado), tone: lucroConsolidado >= 0 ? 'success' : 'destructive' },
+                { label: 'Total criadas', value: String(visibleMetas.length), tone: 'muted' },
+              ]}
+            />
+          );
+        }
+
+        // Lixeira
+        return (
+          <TasksHero
+            eyebrow="Lixeira · Itens removidos"
+            title="Lixeira"
+            pulseDotClass="bg-destructive"
+            description="Metas descartadas ficam guardadas aqui antes de serem apagadas em definitivo. Restaure ou limpe quando quiser."
+            kpis={[
+              { label: 'Na lixeira', value: String(listLixeira.length), accent: true, tone: 'destructive' },
+              { label: 'Ativas', value: pad2(listActive.length), tone: 'muted' },
+              { label: 'Fechadas', value: String(listFechadas.length), tone: 'muted' },
+            ]}
+          />
+        );
+      })()}
+
+      {activeTab === 'Minha operacao' && displayList.length > 0 && (
+        <div className="flex justify-end">
           <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2.5 rounded-xl font-bold transition-all hover:-translate-y-0.5 shadow-[0_8px_30px_-8px_hsl(var(--primary)/0.6)]">
             <Plus className="w-5 h-5" /> Nova meta
           </button>
-        )}
-      </div>
-
-      <div className="relative h-px w-full bg-gradient-to-r from-transparent via-border/60 to-transparent">
-        <div className="absolute left-1/2 -translate-x-1/2 -top-px h-px w-40 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-      </div>
+        </div>
+      )}
 
       {activeTab === 'Visao geral' && (
         <div className="glass-card flex p-6 rounded-2xl border-primary/20 items-center justify-between mb-6 shadow-inner relative overflow-hidden group">
@@ -1341,7 +1422,7 @@ const Tasks = () => {
       )}
 
       {displayList.length === 0 ? (
-        <div className="mt-6 relative overflow-hidden rounded-3xl border border-border/40 bg-gradient-to-br from-card/60 via-card/30 to-transparent backdrop-blur-2xl">
+        <div data-tour="tasks-meta-entry" className="mt-6 relative overflow-hidden rounded-3xl border border-border/40 bg-gradient-to-br from-card/60 via-card/30 to-transparent backdrop-blur-2xl">
           <div className="absolute -top-32 -right-32 w-80 h-80 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
           <div className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
           <div
@@ -1410,7 +1491,7 @@ const Tasks = () => {
           </div>
         </div>
       ) : (
-        <div className="mt-4 space-y-3">
+        <div data-tour="tasks-meta-entry" className="mt-4 space-y-3">
           {paginatedList.map(meta => {
             const rem = meta.remessas || [];
             const lucroBruto = rem.reduce((acc, r) => acc + (r.saque - r.deposito), 0);

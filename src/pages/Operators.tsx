@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { TasksHero, type HeroKpi } from '@/components/heroes/TasksHero';
 import {
   Users, Link as LinkIcon, Pencil, Trash2, Check, X, Crown, Trophy, Medal,
   TrendingUp, DollarSign, Target, UserCheck, Wallet, ArrowUpRight,
@@ -460,18 +461,113 @@ const Operators = () => {
   return (
     <div className="space-y-6 animate-fade-in max-w-6xl mx-auto pb-16 relative z-10 w-full">
 
-      {/* Minimal header */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 pt-2">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">EQUIPE OPERACIONAL</span>
-          </div>
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">Operadores</h1>
-          <p className="text-sm text-muted-foreground mt-1.5">Performance, ranking e folha de pagamento em tempo real.</p>
-        </div>
+      {/* Tabs — pill style (igual Planilhas), acima do hero */}
+      <div className="flex bg-muted/20 border border-border/50 rounded-lg p-1.5 overflow-x-auto hide-scrollbar w-fit">
+        {TABS.map((tab) => {
+          const active = activeTab === tab;
+          return (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-5 py-2 text-sm font-semibold rounded-md transition-all whitespace-nowrap ${
+                active
+                  ? 'bg-muted text-foreground shadow-sm border border-border/50'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
+              }`}
+            >
+              {tab}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Hero — varia por aba (mesma estratégia de Planilhas) */}
+      {(() => {
+        const netEquipe = totalLucroEquipe - folhaTotal - custoTotal;
+        const folhaPaga = Math.max(0, folhaTotal - folhaPendente);
+        const pctPaga = folhaTotal > 0 ? (folhaPaga / folhaTotal) * 100 : 0;
+
+        if (activeTab === 'Ranking') {
+          return (
+            <TasksHero
+              eyebrow="Ranking · Performance Arena"
+              title="Pódio em tempo real"
+              description="Quem está liderando, quem precisa subir. Lucro líquido define a posição."
+              pulseDotClass="bg-success"
+              kpis={[
+                { label: 'Operadores', value: String(operatorData.length), accent: true },
+                { label: 'Metas executadas', value: String(totalMetas) },
+                { label: 'Contas geradas', value: totalContas.toLocaleString('pt-BR') },
+                {
+                  label: 'Líquido da equipe',
+                  value: formatBRL(netEquipe),
+                  tone: netEquipe >= 0 ? 'success' : 'destructive',
+                },
+              ] as HeroKpi[]}
+            />
+          );
+        }
+        if (activeTab === 'Equipe') {
+          return (
+            <TasksHero
+              eyebrow="Equipe · Gestão de operadores"
+              title="Sua tripulação"
+              description="Cadastros, vínculos e identidade de cada operador afiliado."
+              pulseDotClass="bg-primary"
+              kpis={[
+                { label: 'Operadores afiliados', value: String(affiliatedUsers.length), accent: true },
+                { label: 'Ativos no período', value: String(operatorData.length) },
+                { label: 'Metas no período', value: String(totalMetas), tone: 'muted' },
+                { label: 'Contas geradas', value: totalContas.toLocaleString('pt-BR'), tone: 'muted' },
+              ] as HeroKpi[]}
+            />
+          );
+        }
+        if (activeTab === 'Folha de pagamento') {
+          return (
+            <TasksHero
+              eyebrow="Folha · Pagamentos"
+              title="Folha da equipe"
+              description="Quanto foi pago, quanto ainda está pendente e o impacto no líquido."
+              pulseDotClass={folhaPendente > 0 ? 'bg-destructive' : 'bg-success'}
+              progressLabel="Folha quitada"
+              progressValue={pctPaga}
+              kpis={[
+                { label: 'Folha total', value: formatBRL(folhaTotal) },
+                {
+                  label: 'Pendente',
+                  value: formatBRL(folhaPendente),
+                  accent: true,
+                  tone: folhaPendente > 0 ? 'destructive' : 'success',
+                },
+                { label: 'Já pago', value: formatBRL(folhaPaga), tone: 'success' },
+                { label: 'Operadores', value: String(operatorData.length), tone: 'muted' },
+              ] as HeroKpi[]}
+            />
+          );
+        }
+        // Configurações
+        return (
+          <TasksHero
+            eyebrow="Configurações · Modelo de pagamento"
+            title="Regras da operação"
+            description="Defina o modelo global e personalize por operador. Tudo o que rege a folha vive aqui."
+            pulseDotClass="bg-primary"
+            kpis={[
+              { label: 'Modelo global', value: payConfig.model.toUpperCase(), accent: true },
+              { label: 'R$ por normal', value: formatBRL(payConfig.valorNormal) },
+              { label: 'R$ por baixa', value: formatBRL(payConfig.valorBaixa) },
+              { label: '% do lucro', value: `${payConfig.percent}%` },
+            ] as HeroKpi[]}
+          />
+        );
+      })()}
+
+      <div className="flex justify-end -mt-2">
         <button
+          data-tour="operators-invite"
           onClick={handleCopyLink}
-          className="group inline-flex items-center gap-2 self-start sm:self-auto bg-foreground/[0.04] hover:bg-foreground/[0.08] text-foreground border border-border/60 hover:border-primary/40 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all"
+          className="group inline-flex items-center gap-2 bg-foreground/[0.04] hover:bg-foreground/[0.08] text-foreground border border-border/60 hover:border-primary/40 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all"
         >
           <LinkIcon className="w-4 h-4 text-primary" />
           Gerar link de cadastro
@@ -479,24 +575,8 @@ const Operators = () => {
         </button>
       </div>
 
-      {/* Tabs — minimal underline */}
-      <div className="flex items-center gap-1 border-b border-border/40 overflow-x-auto hide-scrollbar">
-        {TABS.map((tab) => {
-          const active = activeTab === tab;
-          return (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`relative px-4 py-3 text-sm font-semibold transition-all whitespace-nowrap ${
-                active ? 'text-foreground' : 'text-muted-foreground/70 hover:text-foreground'
-              }`}
-            >
-              {tab}
-              {active && <span className="absolute left-3 right-3 -bottom-px h-[2px] bg-primary rounded-full" />}
-            </button>
-          );
-        })}
-      </div>
+
+
 
       {/* Period filter */}
       {activeTab !== 'Configurações' && (
@@ -556,33 +636,11 @@ const Operators = () => {
       {activeTab === 'Ranking' && (
         <div className="space-y-8 animate-fade-in">
 
-          {/* Executive summary band */}
-          <div className="relative rounded-3xl border border-border/50 bg-gradient-to-br from-card/60 via-card/30 to-background/40 backdrop-blur-sm overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,hsl(var(--primary)/0.08),transparent_60%)] pointer-events-none" />
-            <div className="relative grid grid-cols-2 lg:grid-cols-5 divide-y lg:divide-y-0 lg:divide-x divide-border/40">
-              {[
-                { icon: UserCheck, label: 'Operadores ativos', value: String(operatorData.length), sub: 'no período', tone: 'text-foreground' },
-                { icon: Target, label: 'Metas executadas', value: String(totalMetas), sub: 'fechadas', tone: 'text-foreground' },
-                { icon: TrendingUp, label: 'Contas geradas', value: totalContas.toLocaleString('pt-BR'), sub: 'depositantes', tone: 'text-foreground' },
-                { icon: DollarSign, label: 'Receita bruta', value: formatBRL(totalLucroEquipe), sub: 'antes de descontos', tone: totalLucroEquipe >= 0 ? 'text-success' : 'text-destructive' },
-                { icon: Wallet, label: 'Resultado líquido', value: formatBRL(totalLucroEquipe - folhaTotal - custoTotal), sub: 'pós folha + custos', tone: (totalLucroEquipe - folhaTotal - custoTotal) >= 0 ? 'text-success' : 'text-destructive' },
-              ].map((k) => (
-                <div key={k.label} className="p-5 group">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-7 h-7 rounded-lg border border-border/40 bg-background/40 flex items-center justify-center group-hover:border-primary/40 transition-colors">
-                      <k.icon className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </div>
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.18em]">{k.label}</p>
-                  </div>
-                  <p className={`text-2xl font-bold tracking-tight ${k.tone}`}>{k.value}</p>
-                  <p className="text-[10px] text-muted-foreground/70 mt-1">{k.sub}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
+          {/* KPIs já vivem no hero — área limpa para pódio + leaderboard */}
           {operatorData.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-border/60 p-16 text-center">
+
+
               <div className="w-12 h-12 mx-auto rounded-xl bg-muted/20 border border-border/40 flex items-center justify-center mb-3">
                 <Users className="w-5 h-5 text-muted-foreground/60" />
               </div>
@@ -674,7 +732,7 @@ const Operators = () => {
                   </span>
                 </div>
 
-                <div className="rounded-2xl border border-border/50 bg-card/20 overflow-hidden">
+                <div data-tour="operators-leaderboard" className="rounded-2xl border border-border/50 bg-card/20 overflow-hidden">
                   {/* Header columns — desktop only */}
                   <div className="hidden lg:grid grid-cols-[60px_1fr_100px_100px_120px_180px] gap-4 px-5 py-3 border-b border-border/40 bg-background/30">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">#</span>
@@ -784,7 +842,7 @@ const Operators = () => {
 
       {/* EQUIPE */}
       {activeTab === 'Equipe' && (
-        <div className="animate-fade-in space-y-5">
+        <div data-tour="operators-team" className="animate-fade-in space-y-5">
           <div>
             <h2 className="text-base font-bold text-foreground tracking-tight">Membros da equipe</h2>
             <p className="text-xs text-muted-foreground mt-0.5">{affiliatedUsers.length} operador(es) vinculado(s).</p>

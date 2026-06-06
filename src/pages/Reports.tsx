@@ -1,4 +1,5 @@
 import { KPICard } from "@/components/dashboard/KPICard";
+import { TasksHero, type HeroKpi } from "@/components/heroes/TasksHero";
 import { TrendingUp, CheckCircle, AlertTriangle, Clock, Users, Trophy } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 
@@ -208,26 +209,28 @@ const Reports = () => {
 
   return (
   <div className="space-y-6 relative z-10">
-    <div className="flex items-center justify-between">
-      <div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-foreground">KPIs & Relatórios</h1>
-        <p className="text-sm text-primary/70 mt-1 uppercase tracking-widest font-semibold flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--primary))]" />
-          Indicadores chave de performance
-        </p>
-      </div>
-    </div>
+    <TasksHero
+      eyebrow="Relatórios · Performance industrial"
+      title="Painel de relatórios"
+      description="OEE, qualidade e falhas. A leitura técnica da sua operação em um só lugar."
+      pulseDotClass="bg-primary"
+      progressLabel="Qualidade"
+      progressValue={parseFloat(kpis.qualidade)}
+      kpis={[
+        { label: 'OEE', value: kpis.oee, accent: true },
+        { label: 'Qualidade', value: kpis.qualidade, tone: 'success' },
+        { label: 'Falhas', value: String(kpis.falhas), tone: kpis.falhas > 0 ? 'destructive' : 'muted' },
+        { label: 'Operadores ativos', value: String(operatorPerformance.length) },
+      ] as HeroKpi[]}
+    />
 
-    <PeriodFilter value={dateFilter} onChange={setDateFilter} />
 
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <KPICard title="OEE Geral" value={kpis.oee} change="Volume sucesso" changeType="neutral" icon={TrendingUp} color="success" />
-      <KPICard title="Taxa de Qualidade" value={kpis.qualidade} change="Contas finalizadas" changeType="positive" icon={CheckCircle} color="primary" />
+    <div className="flex items-center justify-between gap-3 flex-wrap">
+      <PeriodFilter value={dateFilter} onChange={setDateFilter} />
       <KPICard title="Tempo Parado" value="0.0h" change="N/D" changeType="neutral" icon={Clock} color="warning" />
-      <KPICard title="Não Conformidades" value={String(kpis.falhas)} change="Remessas negativas" changeType="negative" icon={AlertTriangle} color="destructive" />
     </div>
 
-    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-4">
+    <div data-tour="reports-charts" className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-4">
       <div className="glass-card rounded-2xl p-6 border-primary/10 relative overflow-hidden group">
         <h3 className="text-base font-bold text-foreground mb-1">Volume de Contas Semanal</h3>
         <p className="text-xs text-muted-foreground mb-6">Acompanhamento histórico da capacidade de produção operacional.</p>
@@ -272,7 +275,7 @@ const Reports = () => {
     </div>
 
     {/* Operator Performance Ranking */}
-    <div className="glass-card rounded-2xl p-6 border-primary/20 mt-6 bg-card/60 relative overflow-hidden">
+    <div data-tour="reports-ranking" className="glass-card rounded-2xl p-6 border-primary/20 mt-6 bg-card/60 relative overflow-hidden">
       <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10 pointer-events-none" />
       
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
