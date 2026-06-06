@@ -7,7 +7,7 @@ import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useFirestoreData } from "../hooks/useFirestoreData";
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { format, startOfDay, subDays } from "date-fns";
+import { format, startOfDay, subDays, startOfWeek, startOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 interface PaymentHistoryEntry {
