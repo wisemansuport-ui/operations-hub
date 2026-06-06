@@ -209,12 +209,21 @@ const Reports = () => {
 
   return (
   <div className="space-y-6 relative z-10">
-    <ReportsHero
-      oee={kpis.oee}
-      qualidade={kpis.qualidade}
-      falhas={kpis.falhas}
-      operadoresAtivos={operatorPerformance.length}
+    <TasksHero
+      eyebrow="Relatórios · Performance industrial"
+      title="Painel de relatórios"
+      description="OEE, qualidade e falhas. A leitura técnica da sua operação em um só lugar."
+      pulseDotClass="bg-primary"
+      progressLabel="Qualidade"
+      progressValue={parseFloat(kpis.qualidade)}
+      kpis={[
+        { label: 'OEE', value: kpis.oee, accent: true },
+        { label: 'Qualidade', value: kpis.qualidade, tone: 'success' },
+        { label: 'Falhas', value: String(kpis.falhas), tone: kpis.falhas > 0 ? 'destructive' : 'muted' },
+        { label: 'Operadores ativos', value: String(operatorPerformance.length) },
+      ] as HeroKpi[]}
     />
+
 
     <div className="flex items-center justify-between gap-3 flex-wrap">
       <PeriodFilter value={dateFilter} onChange={setDateFilter} />
