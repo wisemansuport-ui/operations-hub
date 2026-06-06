@@ -283,31 +283,14 @@ const Networks = () => {
   return (
     <div className="space-y-8 animate-fade-in max-w-6xl mx-auto pb-16 relative z-10 w-full">
 
-      {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-6">
-        <div className="flex items-start justify-between gap-6 flex-wrap">
-          <div className="flex items-start gap-4">
-            <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-              <Radio className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <Sparkles className="w-3 h-3 text-primary" />
-                <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Intelligence Layer</span>
-              </div>
-              <h1 className="text-2xl font-bold text-foreground tracking-tight">Sistema Estratégico de Decisão</h1>
-              <p className="text-sm text-muted-foreground mt-1.5 max-w-2xl">
-                Heatmap de performance, scoring inteligente, eficiência por capital alocado e recomendações automatizadas por rede.
-                Apenas metas <span className="text-primary font-semibold">fechadas</span>.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 px-2.5 py-1 rounded-md border border-success/30 bg-success/10">
-            <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-            <span className="text-[10px] font-semibold text-success uppercase tracking-widest">Live</span>
-          </div>
-        </div>
-      </div>
+      <NetworksHero
+        totalRedes={totalRedes}
+        redesLucrativas={redesLucrativas}
+        scoreMedio={scoreMedio}
+        roiMedio={fPerc(roiMedio)}
+        lucroTotal={fBRL(lucroTotal)}
+        lucroPositive={lucroTotal >= 0}
+      />
 
       {networkData.length === 0 && (
         <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4 flex items-center gap-3">

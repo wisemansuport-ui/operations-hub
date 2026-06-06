@@ -208,23 +208,16 @@ const Reports = () => {
 
   return (
   <div className="space-y-6 relative z-10">
-    <div className="flex items-center justify-between">
-      <div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-foreground">KPIs & Relatórios</h1>
-        <p className="text-sm text-primary/70 mt-1 uppercase tracking-widest font-semibold flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--primary))]" />
-          Indicadores chave de performance
-        </p>
-      </div>
-    </div>
+    <ReportsHero
+      oee={kpis.oee}
+      qualidade={kpis.qualidade}
+      falhas={kpis.falhas}
+      operadoresAtivos={operatorPerformance.length}
+    />
 
-    <PeriodFilter value={dateFilter} onChange={setDateFilter} />
-
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <KPICard title="OEE Geral" value={kpis.oee} change="Volume sucesso" changeType="neutral" icon={TrendingUp} color="success" />
-      <KPICard title="Taxa de Qualidade" value={kpis.qualidade} change="Contas finalizadas" changeType="positive" icon={CheckCircle} color="primary" />
+    <div className="flex items-center justify-between gap-3 flex-wrap">
+      <PeriodFilter value={dateFilter} onChange={setDateFilter} />
       <KPICard title="Tempo Parado" value="0.0h" change="N/D" changeType="neutral" icon={Clock} color="warning" />
-      <KPICard title="Não Conformidades" value={String(kpis.falhas)} change="Remessas negativas" changeType="negative" icon={AlertTriangle} color="destructive" />
     </div>
 
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-4">

@@ -1304,29 +1304,51 @@ const Tasks = () => {
         ))}
       </div>
 
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mt-6">
-        <div className="flex items-center gap-4">
-          <div className="hidden md:block w-1 h-14 rounded-full bg-gradient-to-b from-primary via-primary/50 to-transparent shadow-[0_0_12px_hsl(var(--primary)/0.5)]" />
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-[10px] font-bold text-primary uppercase tracking-[0.25em]">NytzerVision</span>
-              <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
-              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">{activeTab}</span>
-            </div>
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">{activeTab}</h1>
-            <p className="text-sm text-muted-foreground mt-1.5">Gerenciamento automático do hub · sincronização em tempo real.</p>
-          </div>
-        </div>
-        {activeTab === 'Minha operacao' && displayList.length > 0 && (
+      {(() => {
+        const totalProgresso = listActive.reduce((acc, m) => {
+          const r = m.remessas || [];
+          const isRecarga = m.modelo === 'Recarga';
+          const dep = r.reduce((s, x) => s + Number(x.deposito || 0), 0);
+          const ct = r.reduce((s, x) => s + Number(x.contas || 0), 0);
+          const target = Number(m.contas) || 0;
+          if (target <= 0) return acc;
+          const pct = Math.min(100, ((isRecarga ? dep : ct) / target) * 100);
+          return acc + pct;
+        }, 0);
+        const progressoMedio = listActive.length > 0 ? totalProgresso / listActive.length : 0;
+
+        const lucroConsolidado = listFechadas.reduce((acc, m) => {
+          const r = m.remessas || [];
+          const bruto = r.reduce((s, x) => s + (Number(x.saque || 0) - Number(x.deposito || 0)), 0);
+          const sal = Number(m.salarioOperador) || 0;
+          let auto = 0;
+          if (!m.isAdminMeta) {
+            if (m.modelo === 'Recarga') auto = Number(m.pagamentoOperador) || 0;
+            else auto = r.reduce((s, x) => s + (x.naoContabilizarSalario ? 0 : ((Number(x.contasNormais || 0)) * 2 + (Number(x.contasBaixas || 0)) * 1)), 0);
+          }
+          return acc + bruto + sal - auto;
+        }, 0);
+
+        return (
+          <TasksHero
+            totalMetas={visibleMetas.length}
+            abertas={listActive.length}
+            fechadas={listFechadas.length}
+            progressoMedio={progressoMedio}
+            resultadoLabel="Lucro consolidado (fechadas)"
+            resultadoValue={`R$ ${lucroConsolidado.toFixed(2).replace('.', ',')}`}
+            resultadoPositive={lucroConsolidado >= 0}
+          />
+        );
+      })()}
+
+      {activeTab === 'Minha operacao' && displayList.length > 0 && (
+        <div className="flex justify-end">
           <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2.5 rounded-xl font-bold transition-all hover:-translate-y-0.5 shadow-[0_8px_30px_-8px_hsl(var(--primary)/0.6)]">
             <Plus className="w-5 h-5" /> Nova meta
           </button>
-        )}
-      </div>
-
-      <div className="relative h-px w-full bg-gradient-to-r from-transparent via-border/60 to-transparent">
-        <div className="absolute left-1/2 -translate-x-1/2 -top-px h-px w-40 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-      </div>
+        </div>
+      )}
 
       {activeTab === 'Visao geral' && (
         <div className="glass-card flex p-6 rounded-2xl border-primary/20 items-center justify-between mb-6 shadow-inner relative overflow-hidden group">

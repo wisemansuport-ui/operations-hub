@@ -191,29 +191,24 @@ const Costs = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-20">
-      {/* Header */}
-      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5 flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-            <Wallet className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Custos Operacionais</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Proxy, SMS, bot, VPS e outros gastos operacionais
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <PeriodFilter value={dateFilter} onChange={setDateFilter} />
-          <button
-            onClick={() => setOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-b from-secondary to-card border border-border hover:border-primary/40 text-sm font-medium text-foreground transition-all hover:shadow-[0_0_20px_hsl(var(--primary)/0.15)]"
-          >
-            <Plus className="w-4 h-4" />
-            Adicionar custo
-          </button>
-        </div>
+      <CostsHero
+        custoPeriodo={formatBRL(custoPeriodo)}
+        lucroBruto={formatBRL(lucroBrutoPeriodo)}
+        lucroLiquido={formatBRL(lucroLiquidoPeriodo)}
+        liquidoPositive={lucroLiquidoPeriodo >= 0}
+        eficiencia={lucroBrutoPeriodo > 0 ? ((lucroBrutoPeriodo - custoPeriodo) / lucroBrutoPeriodo) * 100 : 0}
+        registros={filteredCosts.length}
+        topCategory={porTipo[0] && porTipo[0].value > 0 ? { label: porTipo[0].label, value: formatBRL(porTipo[0].value) } : undefined}
+      />
+      <div className="flex items-center justify-end gap-3 flex-wrap">
+        <PeriodFilter value={dateFilter} onChange={setDateFilter} />
+        <button
+          onClick={() => setOpen(true)}
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-b from-secondary to-card border border-border hover:border-primary/40 text-sm font-medium text-foreground transition-all hover:shadow-[0_0_20px_hsl(var(--primary)/0.15)]"
+        >
+          <Plus className="w-4 h-4" />
+          Adicionar custo
+        </button>
       </div>
 
       {/* Aviso quando vazio */}
