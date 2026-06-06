@@ -88,10 +88,10 @@ const Operators = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
   const [search, setSearch] = useState('');
-  const [confirmPayId, setConfirmPayId] = useState<string | null>(null);
+  
   const [history, setHistory] = useState<PaymentHistoryEntry[]>([]);
-  const [expandedHistory, setExpandedHistory] = useState<string | null>(null);
-  const [confirmUndoId, setConfirmUndoId] = useState<string | null>(null);
+  
+  
   const [sheetOpenId, setSheetOpenId] = useState<string | null>(null);
 
   // Payment model config (por admin)
@@ -232,7 +232,6 @@ const Operators = () => {
         newPaidUntil: safePaidUntil,
       });
       toast.success(`Pagamento de ${op.name} registrado: ${formatBRL(op.pendingSalary)}`);
-      setConfirmPayId(null);
     } catch { toast.error('Erro ao registrar pagamento.'); }
     finally { setLoadingAction(false); }
   };
@@ -248,7 +247,6 @@ const Operators = () => {
       const last = opHistory[0];
       await deleteDoc(doc(db, 'operatorPaymentHistory', last.id));
       toast.success(`Último pagamento de ${op.name} desfeito (${formatBRL(last.amount)}).`);
-      setConfirmUndoId(null);
     } catch { toast.error('Erro ao desfazer pagamento.'); }
     finally { setLoadingAction(false); }
   };
@@ -971,11 +969,7 @@ const Operators = () => {
                 const opHistory = historyByOperator.get(op.id) || [];
                 const paidUntil = opHistory.length > 0 && opHistory[0].newPaidUntil ? opHistory[0].newPaidUntil : null;
                 const isPaidUp = op.pendingSalary === 0 && (paidUntil || op.salary === 0);
-                const isConfirm = confirmPayId === op.id;
-                const isUndoConfirm = confirmUndoId === op.id;
                 const lastPaidLabel = opHistory.length > 0 ? format(new Date(opHistory[0].paidAt), "dd MMM 'às' HH:mm", { locale: ptBR }) : null;
-                const isExpanded = expandedHistory === op.id;
-                const totalPaidAllTime = opHistory.reduce((s, h) => s + (h.amount || 0), 0);
 
                 return (
                   <div key={op.id} className={`group rounded-xl border transition-all ${
@@ -983,239 +977,44 @@ const Operators = () => {
                       ? 'border-success/30 bg-success/[0.03]'
                       : 'border-border/50 bg-card/30 hover:bg-card/50 hover:border-border'
                   }`}>
-                    {/* MOBILE — linha compacta clicável que abre dialog */}
-                    {isMobile ? (
-                      <button
-                        onClick={() => setSheetOpenId(op.id)}
-                        className="w-full flex items-center gap-3 p-3.5 text-left"
-                      >
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
-                          isPaidUp ? 'bg-success/15 border border-success/40 text-success' : 'bg-primary/10 border border-primary/30 text-primary'
-                        }`}>
-                          {op.initials}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <p className="font-bold text-foreground text-sm truncate">{op.name}</p>
-                            {isPaidUp && (
-                              <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border border-success/40 bg-success/10 text-success">
-                                <BadgeCheck className="w-2.5 h-2.5" /> Pago
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
-                            {op.metas} metas · {op.deps} deps
-                            {lastPaidLabel && <span className="ml-1 text-success/80">· {lastPaidLabel}</span>}
-                          </p>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">A pagar</p>
-                          <p className={`text-base font-bold tracking-tight ${op.pendingSalary > 0 ? 'text-success' : 'text-muted-foreground/60'}`}>
-                            {formatBRL(op.pendingSalary)}
-                          </p>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-muted-foreground/60 shrink-0" />
-                      </button>
-                    ) : (
-                    <div className="flex items-center gap-4 flex-wrap p-4">
+                    <button
+                      onClick={() => setSheetOpenId(op.id)}
+                      className="w-full flex items-center gap-3 p-3.5 md:p-4 text-left"
+                    >
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
                         isPaidUp ? 'bg-success/15 border border-success/40 text-success' : 'bg-primary/10 border border-primary/30 text-primary'
                       }`}>
                         {op.initials}
                       </div>
-
-                      <div className="flex-1 min-w-[180px]">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-bold text-foreground text-sm">{op.name}</p>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <p className="font-bold text-foreground text-sm truncate">{op.name}</p>
                           {isPaidUp && (
                             <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border border-success/40 bg-success/10 text-success">
                               <BadgeCheck className="w-2.5 h-2.5" /> Pago
                             </span>
                           )}
-                          {opHistory.length > 0 && (
-                            <span className="inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded border border-border/50 bg-muted/30 text-muted-foreground">
-                              {opHistory.length} pgto{opHistory.length > 1 ? 's' : ''}
-                            </span>
-                          )}
                         </div>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                        <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
                           {op.metas} metas · {op.deps} deps
-                          {lastPaidLabel && <span className="ml-2 text-success/80">· último pgto {lastPaidLabel}</span>}
-                          {totalPaidAllTime > 0 && <span className="ml-2">· total pago {formatBRL(totalPaidAllTime)}</span>}
+                          {lastPaidLabel && <span className="ml-1 text-success/80">· {lastPaidLabel}</span>}
                         </p>
                       </div>
-
-                      <div className="flex items-center gap-6">
-                        <div className="text-right">
-                          <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">Total período</p>
-                          <p className="text-sm font-bold text-foreground/80 mt-0.5">{formatBRL(op.salary)}</p>
-                        </div>
-                        <div className="text-right min-w-[90px]">
-                          <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">A pagar</p>
-                          <p className={`text-lg font-bold tracking-tight mt-0.5 ${op.pendingSalary > 0 ? 'text-success' : 'text-muted-foreground/60'}`}>
-                            {formatBRL(op.pendingSalary)}
-                          </p>
-                          <p className="text-[9px] text-muted-foreground/80 mt-0.5">
-                            {op.pendingNormais}×R$2 · {op.pendingBaixas}×R$1
-                          </p>
-                        </div>
-
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          {isConfirm ? (
-                            <>
-                              <span className="text-[10px] font-bold text-success mr-1">Confirmar?</span>
-                              <button
-                                onClick={() => handleMarkPaid(op)}
-                                disabled={loadingAction}
-                                className="p-2 rounded-lg bg-success/15 hover:bg-success/25 text-success border border-success/40 transition-colors"
-                                title="Confirmar pagamento"
-                              >
-                                <Check className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => setConfirmPayId(null)}
-                                className="p-2 rounded-lg bg-muted/20 hover:bg-muted/40 text-muted-foreground border border-border/40 transition-colors"
-                                title="Cancelar"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </>
-                          ) : isUndoConfirm ? (
-                            <>
-                              <span className="text-[10px] font-bold text-warning mr-1">Desfazer último?</span>
-                              <button
-                                onClick={() => handleUndoLastPayment(op)}
-                                disabled={loadingAction}
-                                className="p-2 rounded-lg bg-warning/15 hover:bg-warning/25 text-warning border border-warning/40 transition-colors"
-                                title="Confirmar desfazer"
-                              >
-                                <Check className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => setConfirmUndoId(null)}
-                                className="p-2 rounded-lg bg-muted/20 hover:bg-muted/40 text-muted-foreground border border-border/40 transition-colors"
-                                title="Cancelar"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </>
-                          ) : (
-                            <>
-                              {opHistory.length > 0 && (
-                                <button
-                                  onClick={() => setExpandedHistory(isExpanded ? null : op.id)}
-                                  className={`p-2 rounded-lg border transition-colors ${
-                                    isExpanded
-                                      ? 'bg-primary/15 text-primary border-primary/40'
-                                      : 'bg-muted/10 hover:bg-muted/30 text-muted-foreground hover:text-foreground border-border/40'
-                                  }`}
-                                  title="Ver histórico"
-                                >
-                                  <History className="w-4 h-4" />
-                                </button>
-                              )}
-                              {opHistory.length > 0 && (
-                                <button
-                                  onClick={() => setConfirmUndoId(op.id)}
-                                  disabled={loadingAction}
-                                  className="p-2 rounded-lg bg-warning/10 hover:bg-warning/20 text-warning border border-warning/30 transition-colors"
-                                  title="Desfazer último pagamento"
-                                >
-                                  <Undo2 className="w-4 h-4" />
-                                </button>
-                              )}
-                              <button
-                                onClick={() => setConfirmPayId(op.id)}
-                                disabled={op.pendingSalary === 0}
-                                className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold border transition-all ${
-                                  op.pendingSalary === 0
-                                    ? 'bg-muted/10 text-muted-foreground/50 border-border/30 cursor-not-allowed'
-                                    : 'bg-success/10 hover:bg-success/20 text-success border-success/30 md:hover:-translate-y-0.5'
-                                }`}
-                                title="Marcar como pago"
-                              >
-                                <CheckCircle2 className="w-3.5 h-3.5" />
-                                Marcar pago
-                              </button>
-                            </>
-                          )}
-                        </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">A pagar</p>
+                        <p className={`text-base font-bold tracking-tight ${op.pendingSalary > 0 ? 'text-success' : 'text-muted-foreground/60'}`}>
+                          {formatBRL(op.pendingSalary)}
+                        </p>
                       </div>
-                    </div>
-                    )}
-
-                    {!isMobile && isExpanded && opHistory.length > 0 && (
-                      <div className="border-t border-border/40 bg-muted/[0.02] px-4 py-3 animate-fade-in">
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
-                            <History className="w-3 h-3" /> Histórico de pagamentos
-                          </p>
-                          <p className="text-[10px] text-muted-foreground">
-                            {opHistory.length} registro{opHistory.length > 1 ? 's' : ''} · total {formatBRL(totalPaidAllTime)}
-                          </p>
-                        </div>
-                        <div className="space-y-1">
-                          {opHistory.map((h, idx) => (
-                            <div
-                              key={h.id}
-                              className={`flex items-center gap-3 rounded-lg border px-3 py-2 text-xs ${
-                                idx === 0
-                                  ? 'border-success/30 bg-success/[0.04]'
-                                  : 'border-border/40 bg-card/30'
-                              }`}
-                            >
-                              <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
-                                idx === 0 ? 'bg-success/15 text-success border border-success/30' : 'bg-muted/30 text-muted-foreground border border-border/40'
-                              }`}>
-                                <CheckCircle2 className="w-3.5 h-3.5" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="font-bold text-foreground">{formatBRL(h.amount)}</span>
-                                  {idx === 0 && (
-                                    <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border border-success/40 bg-success/10 text-success">
-                                      Mais recente
-                                    </span>
-                                  )}
-                                </div>
-                                <p className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-2 flex-wrap">
-                                  <CalendarIcon className="w-2.5 h-2.5" />
-                                  {format(new Date(h.paidAt), "dd MMM yyyy 'às' HH:mm", { locale: ptBR })}
-                                  <span className="opacity-50">·</span>
-                                  <UserIcon className="w-2.5 h-2.5" /> {h.paidBy || '—'}
-                                </p>
-                              </div>
-                              {idx === 0 ? (
-                                <button
-                                  onClick={() => handleUndoLastPayment(op)}
-                                  disabled={loadingAction}
-                                  className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-warning/10 hover:bg-warning/20 text-warning border border-warning/30 text-[10px] font-bold transition-colors"
-                                  title="Desfazer este pagamento"
-                                >
-                                  <Undo2 className="w-3 h-3" /> Desfazer
-                                </button>
-                              ) : (
-                                <button
-                                  onClick={() => handleDeleteHistoryEntry(h)}
-                                  disabled={loadingAction}
-                                  className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                                  title="Remover registro"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                      <ChevronRight className="w-4 h-4 text-muted-foreground/60 shrink-0" />
+                    </button>
                   </div>
                 );
               })}
             </div>
           )}
 
-          {/* Mobile payment sheet */}
+          {/* Operator payment sheet */}
           <OperatorPayrollSheet
             open={!!sheetOpenId}
             onOpenChange={(o) => !o && setSheetOpenId(null)}
