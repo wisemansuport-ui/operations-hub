@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { CostsHero } from '@/components/heroes/CostsHero';
+import { TasksHero, type HeroKpi } from '@/components/heroes/TasksHero';
 import {
   Plus, Wallet, TrendingDown, TrendingUp, X, Shield, MessageSquare,
   Camera, Bot, Server, DollarSign, Trash2, Calendar as CalendarIcon
@@ -192,12 +192,27 @@ const Costs = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-20">
-      <CostsHero
-        custoPeriodo={formatBRL(custoPeriodo)}
-        registros={filteredCosts.length}
-        mediaPorLancamento={filteredCosts.length > 0 ? formatBRL(custoPeriodo / filteredCosts.length) : undefined}
-        topCategory={porTipo[0] && porTipo[0].value > 0 ? { label: porTipo[0].label, value: formatBRL(porTipo[0].value) } : undefined}
+      <TasksHero
+        eyebrow="Custos · Centro de despesas"
+        title="Custos da operação"
+        description="Cada centavo que sai. Lançamentos, categorias e média por gasto."
+        pulseDotClass="bg-destructive"
+        kpis={[
+          { label: 'Custo do período', value: formatBRL(custoPeriodo), accent: true, tone: 'destructive' },
+          { label: 'Lançamentos', value: String(filteredCosts.length) },
+          {
+            label: 'Média por gasto',
+            value: filteredCosts.length > 0 ? formatBRL(custoPeriodo / filteredCosts.length) : '—',
+            tone: 'muted',
+          },
+          {
+            label: 'Top categoria',
+            value: porTipo[0] && porTipo[0].value > 0 ? porTipo[0].label : '—',
+            tone: 'muted',
+          },
+        ] as HeroKpi[]}
       />
+
       <div data-tour="costs-center" className="flex items-center justify-end gap-3 flex-wrap">
         <PeriodFilter value={dateFilter} onChange={setDateFilter} />
         <button
