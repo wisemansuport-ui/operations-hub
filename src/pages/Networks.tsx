@@ -284,14 +284,25 @@ const Networks = () => {
   return (
     <div className="space-y-8 animate-fade-in max-w-6xl mx-auto pb-16 relative z-10 w-full">
 
-      <NetworksHero
-        totalRedes={totalRedes}
-        redesLucrativas={redesLucrativas}
-        scoreMedio={scoreMedio}
-        roiMedio={fPerc(roiMedio)}
-        lucroTotal={fBRL(lucroTotal)}
-        lucroPositive={lucroTotal >= 0}
+      <TasksHero
+        eyebrow="Redes · Inteligência competitiva"
+        title="Mapa de redes"
+        description="Ranking, ROI e win rate de cada rede. Onde o capital rende e onde sangra."
+        pulseDotClass={lucroTotal >= 0 ? 'bg-success' : 'bg-destructive'}
+        progressLabel="ROI médio"
+        progressValue={Math.max(0, Math.min(100, roiMedio))}
+        kpis={[
+          { label: 'Total de redes', value: String(totalRedes), accent: true },
+          { label: 'Lucrativas', value: String(redesLucrativas), tone: 'success' },
+          { label: 'Score médio', value: `${scoreMedio}/100` },
+          {
+            label: 'Lucro total',
+            value: fBRL(lucroTotal),
+            tone: lucroTotal >= 0 ? 'success' : 'destructive',
+          },
+        ] as HeroKpi[]}
       />
+
 
       {networkData.length === 0 && (
         <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4 flex items-center gap-3">
