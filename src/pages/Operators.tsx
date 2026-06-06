@@ -575,9 +575,7 @@ const Operators = () => {
         </button>
       </div>
 
-          );
-        })}
-      </div>
+
 
 
       {/* Period filter */}
