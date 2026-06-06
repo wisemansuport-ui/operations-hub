@@ -1,5 +1,4 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { TasksHero, type HeroKpi } from '@/components/heroes/TasksHero';
 import {
   Radio, TrendingUp, TrendingDown, Minus, Trophy, Activity, Target, DollarSign,
   Sparkles, Eye, CheckCircle, AlertTriangle, XCircle, BarChart2, LayoutGrid,
@@ -284,25 +283,31 @@ const Networks = () => {
   return (
     <div className="space-y-8 animate-fade-in max-w-6xl mx-auto pb-16 relative z-10 w-full">
 
-      <TasksHero
-        eyebrow="Redes · Inteligência competitiva"
-        title="Mapa de redes"
-        description="Ranking, ROI e win rate de cada rede. Onde o capital rende e onde sangra."
-        pulseDotClass={lucroTotal >= 0 ? 'bg-success' : 'bg-destructive'}
-        progressLabel="ROI médio"
-        progressValue={Math.max(0, Math.min(100, roiMedio))}
-        kpis={[
-          { label: 'Total de redes', value: String(totalRedes), accent: true },
-          { label: 'Lucrativas', value: String(redesLucrativas), tone: 'success' },
-          { label: 'Score médio', value: `${scoreMedio}/100` },
-          {
-            label: 'Lucro total',
-            value: fBRL(lucroTotal),
-            tone: lucroTotal >= 0 ? 'success' : 'destructive',
-          },
-        ] as HeroKpi[]}
-      />
-
+      {/* ── Header ──────────────────────────────────────────────────────────── */}
+      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-6">
+        <div className="flex items-start justify-between gap-6 flex-wrap">
+          <div className="flex items-start gap-4">
+            <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+              <Radio className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Sparkles className="w-3 h-3 text-primary" />
+                <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Intelligence Layer</span>
+              </div>
+              <h1 className="text-2xl font-bold text-foreground tracking-tight">Sistema Estratégico de Decisão</h1>
+              <p className="text-sm text-muted-foreground mt-1.5 max-w-2xl">
+                Heatmap de performance, scoring inteligente, eficiência por capital alocado e recomendações automatizadas por rede.
+                Apenas metas <span className="text-primary font-semibold">fechadas</span>.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 px-2.5 py-1 rounded-md border border-success/30 bg-success/10">
+            <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+            <span className="text-[10px] font-semibold text-success uppercase tracking-widest">Live</span>
+          </div>
+        </div>
+      </div>
 
       {networkData.length === 0 && (
         <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4 flex items-center gap-3">
@@ -324,7 +329,7 @@ const Networks = () => {
 
       {/* ── Heatmap de Performance ───────────────────────────────────────────── */}
       {networkData.length > 0 && (
-        <div data-tour="networks-heatmap" className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5 overflow-x-auto">
+        <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5 overflow-x-auto">
           <div className="flex items-center gap-2.5 mb-5 pb-3 border-b border-border/60">
             <LayoutGrid className="w-4 h-4 text-primary" />
             <h2 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">Heatmap de Performance</h2>
@@ -393,7 +398,7 @@ const Networks = () => {
       )}
 
       {/* ── Ranking por Network Score (redesign profissional) ──────────────── */}
-      <div data-tour="networks-ranking" className="rounded-2xl border border-border bg-card/60 backdrop-blur overflow-hidden">
+      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur overflow-hidden">
         <div className="flex items-end justify-between px-6 pt-5 pb-4 border-b border-border/60">
           <div className="flex items-center gap-2.5">
             <Trophy className="w-4 h-4 text-primary" />

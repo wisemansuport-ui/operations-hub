@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { TasksHero, type HeroKpi } from '@/components/heroes/TasksHero';
 import {
   Plus, Wallet, TrendingDown, TrendingUp, X, Shield, MessageSquare,
   Camera, Bot, Server, DollarSign, Trash2, Calendar as CalendarIcon
@@ -192,36 +191,29 @@ const Costs = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-20">
-      <TasksHero
-        eyebrow="Custos · Centro de despesas"
-        title="Custos da operação"
-        description="Cada centavo que sai. Lançamentos, categorias e média por gasto."
-        pulseDotClass="bg-destructive"
-        kpis={[
-          { label: 'Custo do período', value: formatBRL(custoPeriodo), accent: true, tone: 'destructive' },
-          { label: 'Lançamentos', value: String(filteredCosts.length) },
-          {
-            label: 'Média por gasto',
-            value: filteredCosts.length > 0 ? formatBRL(custoPeriodo / filteredCosts.length) : '—',
-            tone: 'muted',
-          },
-          {
-            label: 'Top categoria',
-            value: porTipo[0] && porTipo[0].value > 0 ? porTipo[0].label : '—',
-            tone: 'muted',
-          },
-        ] as HeroKpi[]}
-      />
-
-      <div data-tour="costs-center" className="flex items-center justify-end gap-3 flex-wrap">
-        <PeriodFilter value={dateFilter} onChange={setDateFilter} />
-        <button
-          onClick={() => setOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-b from-secondary to-card border border-border hover:border-primary/40 text-sm font-medium text-foreground transition-all hover:shadow-[0_0_20px_hsl(var(--primary)/0.15)]"
-        >
-          <Plus className="w-4 h-4" />
-          Adicionar custo
-        </button>
+      {/* Header */}
+      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5 flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+            <Wallet className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Custos Operacionais</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Proxy, SMS, bot, VPS e outros gastos operacionais
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <PeriodFilter value={dateFilter} onChange={setDateFilter} />
+          <button
+            onClick={() => setOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-b from-secondary to-card border border-border hover:border-primary/40 text-sm font-medium text-foreground transition-all hover:shadow-[0_0_20px_hsl(var(--primary)/0.15)]"
+          >
+            <Plus className="w-4 h-4" />
+            Adicionar custo
+          </button>
+        </div>
       </div>
 
       {/* Aviso quando vazio */}
@@ -239,28 +231,30 @@ const Costs = () => {
         <KpiCard
           label="Custo do período"
           value={formatBRL(custoPeriodo)}
-          hint={filteredCosts.length > 0 ? `${filteredCosts.length} lançamento${filteredCosts.length === 1 ? '' : 's'}` : 'sem lançamentos'}
+          hint={lucroBrutoPeriodo === 0 ? 'sem lucro registrado' : `de ${formatBRL(lucroBrutoPeriodo)} bruto`}
           icon={TrendingDown}
         />
         <div className="rounded-2xl border border-border bg-gradient-to-br from-card to-secondary/40 p-5 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
           <div className="relative">
-            <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">Distribuição de custos</div>
+            <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">Lucro vs custo (Período)</div>
             <div className="mt-3 space-y-1.5 text-sm">
-              {porTipo.slice(0, 3).map((t) => (
-                <div key={t.label} className="flex justify-between">
-                  <span className="text-muted-foreground">{t.label}</span>
-                  <span className="text-destructive font-medium tabular-nums">- {formatBRL(t.value)}</span>
-                </div>
-              ))}
-              {porTipo.length === 0 && (
-                <div className="text-xs text-muted-foreground">Nenhum custo registrado ainda.</div>
-              )}
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Lucro bruto</span>
+                <span className="text-foreground font-medium">{formatBRL(lucroBrutoPeriodo)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Custos</span>
+                <span className="text-destructive font-medium">- {formatBRL(custoPeriodo)}</span>
+              </div>
               <div className="border-t border-border my-2" />
               <div className="flex justify-between items-center">
-                <span className="font-semibold text-foreground">Total</span>
-                <span className="text-lg font-bold tabular-nums text-destructive">
-                  - {formatBRL(custoPeriodo)}
+                <span className="font-semibold text-foreground">Lucro líquido</span>
+                <span className={cn(
+                  'text-lg font-bold tabular-nums',
+                  lucroLiquidoPeriodo >= 0 ? 'text-primary' : 'text-destructive'
+                )}>
+                  {formatBRL(lucroLiquidoPeriodo)}
                 </span>
               </div>
             </div>
@@ -275,7 +269,7 @@ const Costs = () => {
       </div>
 
       {/* Custos por tipo */}
-      <div data-tour="costs-leaks" className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5">
+      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5">
         <h2 className="text-base font-semibold text-foreground mb-4">Custos por tipo</h2>
         <div className="space-y-3">
           {porTipo.map(({ key, label, icon: Icon, value }) => {
@@ -367,35 +361,20 @@ const Costs = () => {
                   Anterior
                 </button>
                 
-                {(() => {
-                  // Compact pagination: show up to 5 page numbers around current with ellipsis
-                  const pages: (number | 'ellipsis')[] = [];
-                  const windowSize = 1; // neighbors around current
-                  const add = (n: number) => { if (!pages.includes(n)) pages.push(n); };
-                  add(1);
-                  if (currentPage - windowSize > 2) pages.push('ellipsis');
-                  for (let p = Math.max(2, currentPage - windowSize); p <= Math.min(totalPages - 1, currentPage + windowSize); p++) add(p);
-                  if (currentPage + windowSize < totalPages - 1) pages.push('ellipsis');
-                  if (totalPages > 1) add(totalPages);
-                  return pages.map((page, i) =>
-                    page === 'ellipsis' ? (
-                      <span key={`e${i}`} className="px-1 text-xs text-muted-foreground select-none">…</span>
-                    ) : (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={cn(
-                          "min-w-[32px] h-8 px-2 flex items-center justify-center rounded-lg text-xs font-bold border transition-all",
-                          currentPage === page
-                            ? "bg-primary border-primary/50 text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.2)]"
-                            : "bg-card/30 border-border text-muted-foreground hover:bg-card/50 hover:text-foreground"
-                        )}
-                      >
-                        {page}
-                      </button>
-                    )
-                  );
-                })()}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={cn(
+                      "min-w-[32px] h-8 px-2 flex items-center justify-center rounded-lg text-xs font-bold border transition-all",
+                      currentPage === page
+                        ? "bg-primary border-primary/50 text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.2)]"
+                        : "bg-card/30 border-border text-muted-foreground hover:bg-card/50 hover:text-foreground"
+                    )}
+                  >
+                    {page}
+                  </button>
+                ))}
 
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
