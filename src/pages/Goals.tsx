@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSyncedState } from '../hooks/useSyncedState';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import { Target, Edit3, Plus, Trash2, Check, TrendingUp, Trophy, Sparkles, BrainCircuit, Calendar, Infinity as InfinityIcon } from 'lucide-react';
+import { Target, Plus, Trash2, TrendingUp, Trophy, Sparkles, Calendar, Infinity as InfinityIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNotifications } from '../contexts/NotificationContext';
 import { pushNotify } from '../lib/notifications';
+import { GoalsHero } from '../components/heroes/GoalsHero';
 
 import { useFirestoreData } from '../hooks/useFirestoreData';
 
@@ -495,224 +496,195 @@ export default function Goals() {
     return { target, current, reached, pct: target ? (current / target) * 100 : 0 };
   }, [goalsWithProgress]);
 
+  const lucroGerado = useMemo(() => {
+    const totalReachedProfit = goalsWithProgress
+      .filter(g => g.progress >= g.target && g.target > 0)
+      .reduce((s, g) => s + g.target, 0);
+    return totalReachedProfit;
+  }, [goalsWithProgress]);
+
+  const taxa = goals.length > 0 ? (totals.reached / goals.length) * 100 : 0;
+  const progressoGlobal = totals.target > 0 ? Math.min(100, (totals.current / totals.target) * 100) : 0;
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-fade-in relative z-10 w-full text-foreground">
-      {/* Header */}
-      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5 flex items-center justify-between gap-4 flex-wrap shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-primary/10 blur-xl"></div>
-            <Target className="w-6 h-6 text-primary relative z-10 drop-shadow-md" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-foreground bg-clip-text">
-              Objetivos Inteligentes
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5">
-              <BrainCircuit className="w-3.5 h-3.5 text-primary/70" />
-              Previsão algorítmica IA ativada em tempo real.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: 'Metas ativas', value: goals.length, tone: 'text-foreground', bg: 'bg-card/60' },
-          { label: 'Concluídas', value: totals.reached, tone: 'text-success', bg: 'bg-success/5' },
-          { label: 'Soma dos Progressos', value: formatBRL(totals.current), tone: 'text-primary', bg: 'bg-primary/5' },
-          { label: 'Total Alvo (Soma)', value: formatBRL(totals.target), tone: 'text-warning', bg: 'bg-warning/5' },
-        ].map(s => (
-          <div key={s.label} className={`rounded-2xl border border-border ${s.bg} backdrop-blur p-5 shadow-sm transition-all hover:shadow-md`}>
-            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-2 flex items-center gap-2">
-              {s.label}
-            </p>
-            <p className={`text-2xl font-bold tabular-nums tracking-tight drop-shadow-sm ${s.tone}`}>{s.value}</p>
-          </div>
-        ))}
-      </div>
+      <GoalsHero
+        ativas={goals.length}
+        concluidas={totals.reached}
+        taxaConclusao={taxa}
+        lucroGerado={formatBRL(lucroGerado)}
+        progressoGlobal={progressoGlobal}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Create */}
+        {/* Mission launcher */}
         <div className="lg:col-span-4">
-          <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-6 sticky top-6 shadow-sm">
+          <div className="surface-2 hairline-gold rounded-2xl p-6 sticky top-6">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
                 <Plus className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-foreground">Nova meta</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">Estipule um objetivo inteligente</p>
+                <h3 className="text-base font-black text-foreground tracking-tight">Lançar missão</h3>
+                <p className="text-[11px] text-muted-foreground mt-0.5 uppercase tracking-widest font-bold">Mission Builder</p>
               </div>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">Título da Meta</label>
+                <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">Codinome da Missão</label>
                 <input
                   value={title}
                   onChange={e => setTitle(e.target.value)}
-                  placeholder="Ex: Faturamento de Maio"
-                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/40 transition-all placeholder:text-muted-foreground/50 shadow-inner"
+                  placeholder="Ex: Escalar Rede VOY"
+                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/40 transition-all placeholder:text-muted-foreground/50"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">Valor Alvo (R$)</label>
+                <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">Alvo Operacional (R$)</label>
                 <input
                   value={target}
                   onChange={e => setTarget(e.target.value)}
                   placeholder="10000"
                   inputMode="decimal"
-                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm font-medium tabular-nums text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/40 transition-all shadow-inner"
+                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm font-medium tabular-nums text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/40 transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">Período de Apuração</label>
-                <div className="grid grid-cols-2 gap-2 p-1 bg-background rounded-xl border border-border shadow-inner">
+                <label className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">Janela de Apuração</label>
+                <div className="grid grid-cols-2 gap-2 p-1 bg-background rounded-xl border border-border">
                   <button
                     onClick={() => setGoalType('monthly')}
                     className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all ${goalType === 'monthly' ? 'bg-primary text-primary-foreground shadow-md' : 'text-muted-foreground hover:bg-muted/50'}`}
                   >
-                    <Calendar className="w-3.5 h-3.5" />
-                    Mensal
+                    <Calendar className="w-3.5 h-3.5" /> Mensal
                   </button>
                   <button
                     onClick={() => setGoalType('custom')}
                     className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all ${goalType === 'custom' ? 'bg-primary text-primary-foreground shadow-md' : 'text-muted-foreground hover:bg-muted/50'}`}
                   >
-                    <InfinityIcon className="w-3.5 h-3.5" />
-                    Contínua
+                    <InfinityIcon className="w-3.5 h-3.5" /> Contínua
                   </button>
                 </div>
                 <p className="text-[10px] text-muted-foreground mt-2 px-1">
-                  {goalType === 'monthly' ? 'A meta reinicia todo mês. Calcula apenas os resultados do mês atual.' : 'A meta acumula continuamente até atingir o alvo (fechar como batida).'}
+                  {goalType === 'monthly' ? 'A missão reinicia todo mês.' : 'A missão acumula continuamente até batida.'}
                 </p>
               </div>
 
               <button
                 onClick={addGoal}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-3.5 mt-2 rounded-xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-sm font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all"
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-3.5 mt-2 rounded-xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-sm font-black shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all"
               >
-                <Target className="w-4 h-4" />
-                Lançar Meta Inteligente
+                <Target className="w-4 h-4" /> Iniciar lançamento
               </button>
             </div>
           </div>
         </div>
 
-        {/* List */}
-        <div className="lg:col-span-8 space-y-5">
+        {/* Mission list */}
+        <div className="lg:col-span-8 space-y-4">
           {goalsWithProgress.length === 0 && (
             <div className="rounded-3xl border border-dashed border-border bg-card/30 p-16 text-center flex flex-col items-center">
               <div className="w-16 h-16 rounded-full bg-muted/20 flex items-center justify-center mb-4">
                 <Target className="w-8 h-8 text-muted-foreground/40" />
               </div>
-              <p className="text-base font-semibold text-foreground mb-1">Nenhum objetivo traçado</p>
-              <p className="text-sm text-muted-foreground">Comece criando sua primeira meta para ativar a previsão IA.</p>
+              <p className="text-base font-bold text-foreground mb-1">Nenhuma missão em órbita</p>
+              <p className="text-sm text-muted-foreground">Lance sua primeira missão para ativar o Decision Engine.</p>
             </div>
           )}
 
-          {goalsWithProgress.map(g => {
+          {goalsWithProgress.map((g, idx) => {
             const pct = g.target > 0 ? (g.progress / g.target) * 100 : 0;
             const reached = pct >= 100;
-            
+            const remaining = Math.max(0, g.target - g.progress);
+            const statusLabel = reached ? "CONCLUÍDA" : pct >= 60 ? "EM ROTA" : pct >= 20 ? "EM TRAJETÓRIA" : "INICIANDO";
+            const statusTone = reached ? "text-success bg-success/10 border-success/30" : pct >= 60 ? "text-primary bg-primary/10 border-primary/30" : "text-muted-foreground bg-muted/30 border-border";
             return (
-              <div key={g.id} className="rounded-3xl border border-border bg-card/60 backdrop-blur p-6 shadow-sm relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none group-hover:bg-primary/10 transition-all"></div>
-                
-                <div className="flex items-start justify-between gap-3 mb-5 relative z-10">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <h3 className="text-lg font-extrabold text-foreground truncate drop-shadow-sm">{g.title}</h3>
-                      {reached && <Trophy className="w-4 h-4 text-success shrink-0" />}
-                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${g.type === 'monthly' ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-secondary text-secondary-foreground border border-border'}`}>
-                        {g.type === 'monthly' ? 'Mensal' : 'Contínua'}
-                      </span>
+              <div key={g.id} className="surface-2 hairline-gold rounded-2xl p-5 md:p-6 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/[0.04] rounded-full blur-3xl pointer-events-none group-hover:bg-primary/[0.08] transition-all" />
+
+                <div className="relative flex items-start justify-between gap-3 mb-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="hidden sm:flex flex-col items-center justify-center w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 shrink-0">
+                      <span className="text-[8px] font-bold uppercase tracking-widest text-primary/70">Missão</span>
+                      <span className="text-sm font-black tabular-nums text-primary -mt-0.5">#{String(goalsWithProgress.length - idx).padStart(2, "0")}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground font-medium">
-                      Progresso real filtrado em tempo real
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-lg font-black text-foreground tracking-tight truncate">{g.title}</h3>
+                        {reached && <Trophy className="w-4 h-4 text-success shrink-0" />}
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${statusTone}`}>{statusLabel}</span>
+                        <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest bg-secondary text-muted-foreground border border-border">
+                          {g.type === 'monthly' ? 'Mensal' : 'Contínua'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                   <button
                     onClick={() => removeGoal(g.id)}
-                    className="p-2.5 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors bg-background border border-border shadow-sm"
+                    className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors border border-border"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 relative z-10">
-                  <RocketProgress percent={pct} />
+                <div className="relative grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+                  <div className="surface-1 rounded-xl p-3">
+                    <p className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Atingido</p>
+                    <p className="text-sm font-black tabular-nums text-foreground mt-0.5">{formatBRL(Math.max(0, g.progress))}</p>
+                  </div>
+                  <div className="surface-1 rounded-xl p-3">
+                    <p className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Alvo</p>
+                    <p className="text-sm font-black tabular-nums text-foreground mt-0.5">{formatBRL(g.target)}</p>
+                  </div>
+                  <div className="surface-1 rounded-xl p-3">
+                    <p className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Restante</p>
+                    <p className={`text-sm font-black tabular-nums mt-0.5 ${reached ? "text-success" : "text-foreground"}`}>{reached ? "—" : formatBRL(remaining)}</p>
+                  </div>
+                  <div className="surface-3 hairline-gold rounded-xl p-3">
+                    <p className="text-[9px] uppercase tracking-widest font-bold text-primary/80">Forecast IA</p>
+                    <p className="text-sm font-black tabular-nums text-foreground mt-0.5">
+                      {reached ? "Batida" : g.forecastDays != null ? `~${g.forecastDays}d` : "—"}
+                    </p>
+                  </div>
+                </div>
 
-                  <div className="space-y-4 flex flex-col justify-center">
-                    
-                    {/* IA Forecast Badge */}
-                    <div className="rounded-xl border border-border bg-background/50 p-4 relative overflow-hidden group/ai">
-                      <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent pointer-events-none"></div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Sparkles className="w-4 h-4 text-primary animate-pulse" />
-                        <span className="text-[10px] font-bold text-primary uppercase tracking-widest drop-shadow-sm">
-                          Previsão Inteligente IA
-                        </span>
-                      </div>
-                      <p className="text-sm font-medium text-foreground relative z-10">
-                        {reached ? (
-                          <span className="text-success font-bold flex items-center gap-1.5">
-                            <Check className="w-4 h-4" /> Alvo alcançado com sucesso!
-                          </span>
-                        ) : g.forecastDays !== null ? (
-                          <span className="flex items-center gap-1.5">
-                            Estimativa para bater a meta: <strong className="text-primary text-base">~{g.forecastDays} dias</strong>
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">Coletando dados suficientes para prever...</span>
-                        )}
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="rounded-xl border border-border bg-background p-3.5 shadow-sm">
-                        <label className="block text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-1.5">
-                          Atualmente
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <span className="text-base font-bold text-foreground tabular-nums">{formatBRL(g.progress)}</span>
-                          <TrendingUp className="w-3.5 h-3.5 text-primary opacity-70" />
-                        </div>
-                      </div>
-
-                      <div className="rounded-xl border border-border bg-background p-3.5 shadow-sm">
-                        <label className="block text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-1.5">
-                          Alvo Restante
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <span className={`text-base font-bold tabular-nums ${reached ? 'text-success' : 'text-foreground'}`}>
-                            {reached ? 'Batida!' : formatBRL(Math.max(0, g.target - g.progress))}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pt-2">
-                      <div className="h-2.5 rounded-full bg-muted overflow-hidden shadow-inner border border-border/50">
-                        <div
-                          className={`h-full transition-all duration-1000 ease-out relative ${reached ? 'bg-success shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)]'}`}
-                          style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
-                        >
-                          <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center mt-1.5 px-0.5">
-                        <span className="text-[10px] font-semibold text-muted-foreground">0%</span>
-                        <span className={`text-[11px] font-bold tabular-nums ${reached ? 'text-success' : 'text-primary'}`}>
-                          {pct.toFixed(1)}%
-                        </span>
-                      </div>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground inline-flex items-center gap-1.5">
+                      <TrendingUp className="w-3 h-3 text-primary" /> Trajetória
+                    </span>
+                    <span className={`text-sm font-black tabular-nums ${reached ? "text-success" : "text-primary"}`}>{pct.toFixed(1)}%</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-muted/60 overflow-hidden border border-border/50">
+                    <div
+                      className={`h-full transition-all duration-1000 ease-out relative ${reached ? 'bg-success' : 'bg-gradient-to-r from-primary/80 to-primary'}`}
+                      style={{
+                        width: `${Math.min(100, Math.max(0, pct))}%`,
+                        boxShadow: reached ? "0 0 12px hsl(var(--success)/0.5)" : "0 0 12px hsl(var(--primary)/0.4)",
+                      }}
+                    >
+                      <div className="absolute inset-0 bg-white/10 animate-pulse" />
                     </div>
                   </div>
+                  {[25, 50, 75].map(m => (
+                    <div key={m} className="absolute top-[26px] w-px h-2 bg-border/60" style={{ left: `${m}%` }} />
+                  ))}
+                </div>
+
+                <div className="mt-4 flex items-center gap-2 p-3 rounded-xl surface-1 border-primary/15">
+                  <Sparkles className="w-3.5 h-3.5 text-primary shrink-0" />
+                  <p className="text-[11px] text-foreground/90">
+                    {reached
+                      ? <>Missão <span className="text-success font-bold">concluída</span> com sucesso. Pronto para o próximo lançamento.</>
+                      : g.forecastDays != null
+                        ? <>Estimativa de batida: <span className="text-primary font-bold">~{g.forecastDays} dias</span> mantendo o ritmo atual.</>
+                        : <span className="text-muted-foreground">Coletando dados de trajetória para projeção IA.</span>}
+                  </p>
                 </div>
               </div>
             );
