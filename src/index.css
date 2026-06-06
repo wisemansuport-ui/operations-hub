@@ -187,3 +187,49 @@
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.5);
 }
+
+/* ============================================================
+ * Mobile performance overrides
+ * iPhone Safari struggles with stacked backdrop-filter, large
+ * shadows and infinite glow animations. Strip them under 768px
+ * so navigation, scroll and route transitions stay buttery.
+ * ============================================================ */
+@media (max-width: 767px) {
+  .glass-card,
+  .glass-premium,
+  .surface-1,
+  .surface-2,
+  .surface-3 {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  .glass-card { background-color: hsl(var(--card) / 0.96) !important; }
+  .glass-premium { background: hsl(var(--card) / 0.96) !important; }
+  .surface-1 { background-color: hsl(var(--card) / 0.92) !important; }
+  .surface-2 { background-color: hsl(var(--card) / 0.94) !important; }
+  .surface-3 { background-color: hsl(var(--card) / 0.96) !important; }
+
+  /* Drop generic backdrop-blur utilities on mobile */
+  [class*="backdrop-blur"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Soften heavy shadows that force compositor layers */
+  .glow-primary,
+  .glow-gold,
+  .animate-pulse-glow {
+    box-shadow: none !important;
+    animation: none !important;
+  }
+  .animate-shimmer-gold { animation: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
