@@ -1,19 +1,22 @@
 import { KPICard } from "@/components/dashboard/KPICard";
 import { TasksHero, type HeroKpi } from "@/components/heroes/TasksHero";
 import { TrendingUp, CheckCircle, AlertTriangle, Clock, Users, Trophy } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 
 import { useFirestoreData } from "../hooks/useFirestoreData";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { OperationMeta } from "./Tasks";
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { PeriodFilter, DateFilter, buildDateFilter, isInRange } from "@/components/ui/period-filter";
+import { useIsMobile } from "../hooks/use-mobile";
+
+const ReportsCharts = lazy(() => import("@/components/reports/ReportsCharts"));
 
 const Reports = () => {
   const { metas, users } = useFirestoreData();
   const [user] = useLocalStorage<any>('nytzer-user', null);
   const activeOperator = user?.username || 'admin';
   const role = user?.role || 'ADMIN';
+  const isMobile = useIsMobile();
 
   const [dateFilter, setDateFilter] = useState<DateFilter>(
     buildDateFilter('MES')
@@ -230,53 +233,35 @@ const Reports = () => {
       <KPICard title="Tempo Parado" value="0.0h" change="N/D" changeType="neutral" icon={Clock} color="warning" />
     </div>
 
-    <div data-tour="reports-charts" className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-4">
-      <div className="glass-card rounded-2xl p-6 border-primary/10 relative overflow-hidden group">
-        <h3 className="text-base font-bold text-foreground mb-1">Volume de Contas Semanal</h3>
-        <p className="text-xs text-muted-foreground mb-6">Acompanhamento histórico da capacidade de produção operacional.</p>
-        <ResponsiveContainer width="100%" height={260}>
-          <BarChart data={weeklyData} margin={{ left: -20, right: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
-            <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
-            <Tooltip 
-              cursor={{ fill: 'hsl(var(--primary)/0.05)' }}
-              contentStyle={{ background: "rgba(10, 10, 10, 0.9)", backdropFilter: "blur(12px)", border: "1px solid hsl(var(--primary)/0.2)", borderRadius: 12 }} 
-              itemStyle={{ color: "hsl(var(--foreground))", fontSize: '13px', fontWeight: 'bold' }}
-            />
-            <Bar dataKey="contas" name="Contas Totais" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} maxBarSize={40} />
-          </BarChart>
-        </ResponsiveContainer>
+    {isMobile ? (
+      <div data-tour="reports-charts" className="rounded-2xl border border-border bg-card/60 p-4 mt-4">
+        <h3 className="text-base font-bold text-foreground mb-3">Resumo semanal</h3>
+        <div className="space-y-2">
+          {weeklyData.map((week) => (
+            <div key={week.name} className="flex items-center justify-between gap-3 rounded-xl border border-border/50 bg-background/30 px-3 py-2.5">
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-foreground truncate">{week.name}</p>
+                <p className="text-[10px] text-muted-foreground">{week.diasOperados} dia{week.diasOperados !== 1 ? 's' : ''} operado{week.diasOperados !== 1 ? 's' : ''}</p>
+              </div>
+              <div className="text-right shrink-0">
+                <p className="text-sm font-black tabular-nums text-primary">{week.contas}</p>
+                <p className={`text-[10px] font-bold tabular-nums ${week.lucro >= 0 ? 'text-success' : 'text-destructive'}`}>
+                  {week.lucro >= 0 ? '+' : ''}R$ {week.lucro.toFixed(2).replace('.', ',')}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
-
-      <div className="glass-card rounded-2xl p-6 border-primary/10 relative overflow-hidden">
-        <h3 className="text-base font-bold text-foreground mb-1">Lucratividade e Presença</h3>
-        <p className="text-xs text-muted-foreground mb-6">Relação entre o lucro gerado e o número de dias operados semanalmente.</p>
-        <ResponsiveContainer width="100%" height={260}>
-          <LineChart data={weeklyData} margin={{ left: -20, right: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
-            <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis yAxisId="left" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis yAxisId="right" orientation="right" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
-            <Tooltip 
-              contentStyle={{ background: "rgba(10, 10, 10, 0.9)", backdropFilter: "blur(12px)", border: "1px solid hsl(var(--primary)/0.2)", borderRadius: 12 }} 
-              itemStyle={{ color: "hsl(var(--foreground))", fontSize: '13px', fontWeight: 'bold' }}
-              formatter={(value: any, name: string) => {
-                 if (name === "Lucro Gerado") return `R$ ${Number(value).toFixed(2)}`;
-                 if (name === "Dias Operados") return `${value} dias`;
-                 return value;
-              }}
-            />
-            <Line yAxisId="left" type="monotone" name="Lucro Gerado" dataKey="lucro" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 4, fill: "hsl(var(--primary))" }} />
-            <Line yAxisId="right" type="monotone" name="Dias Operados" dataKey="diasOperados" stroke="hsl(var(--warning))" strokeWidth={2} dot={true} />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
+    ) : (
+      <Suspense fallback={<div className="rounded-2xl border border-border bg-card/60 p-6 mt-4 text-sm text-muted-foreground">Carregando gráficos…</div>}>
+        <ReportsCharts weeklyData={weeklyData} />
+      </Suspense>
+    )}
 
     {/* Operator Performance Ranking */}
-    <div data-tour="reports-ranking" className="glass-card rounded-2xl p-6 border-primary/20 mt-6 bg-card/60 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10 pointer-events-none" />
+    <div data-tour="reports-ranking" className="glass-card rounded-2xl p-4 sm:p-6 border-primary/20 mt-6 bg-card/60 relative overflow-hidden">
+      <div className="hidden md:block absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10 pointer-events-none" />
       
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
         <div className="flex items-center gap-3">
