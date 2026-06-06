@@ -88,10 +88,10 @@ const Operators = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
   const [search, setSearch] = useState('');
-  const [confirmPayId, setConfirmPayId] = useState<string | null>(null);
+  
   const [history, setHistory] = useState<PaymentHistoryEntry[]>([]);
-  const [expandedHistory, setExpandedHistory] = useState<string | null>(null);
-  const [confirmUndoId, setConfirmUndoId] = useState<string | null>(null);
+  
+  
   const [sheetOpenId, setSheetOpenId] = useState<string | null>(null);
 
   // Payment model config (por admin)
