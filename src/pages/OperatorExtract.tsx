@@ -172,6 +172,28 @@ export default function OperatorExtract() {
   const totalValor = extratoData.reduce((s, e) => s + (Number(e.valor) || 0), 0);
   const finalizadas = extratoData.filter(e => e.status === 'Finalizada').length;
 
+  // ===== A Receber =====
+  // Tudo que foi gerado após a data coberta pelo último pagamento ainda é "a receber"
+  const paidUntilTs = lastPayment?.newPaidUntil ? new Date(lastPayment.newPaidUntil).getTime() : 0;
+  const now = new Date();
+  const todayStart = startOfDay(now).getTime();
+  const weekStart = startOfWeek(now, { weekStartsOn: 1 }).getTime();
+  const monthStart = startOfMonth(now).getTime();
+
+  const aReceber = useMemo(() => {
+    let total = 0, dia = 0, semana = 0, mes = 0;
+    extratoData.forEach(e => {
+      const ts = e.timestamp || 0;
+      const v = Number(e.valor) || 0;
+      if (ts <= paidUntilTs) return; // já pago
+      total += v;
+      if (ts >= todayStart) dia += v;
+      if (ts >= weekStart) semana += v;
+      if (ts >= monthStart) mes += v;
+    });
+    return { total, dia, semana, mes };
+  }, [extratoData, paidUntilTs, todayStart, weekStart, monthStart]);
+
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-fade-in relative z-10">
       {/* HERO — Extrato */}
