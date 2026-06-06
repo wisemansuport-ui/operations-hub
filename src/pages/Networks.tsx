@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { NetworksHero } from '@/components/heroes/NetworksHero';
+import { TasksHero, type HeroKpi } from '@/components/heroes/TasksHero';
 import {
   Radio, TrendingUp, TrendingDown, Minus, Trophy, Activity, Target, DollarSign,
   Sparkles, Eye, CheckCircle, AlertTriangle, XCircle, BarChart2, LayoutGrid,
