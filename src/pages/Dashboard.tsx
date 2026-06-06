@@ -684,76 +684,46 @@ const Dashboard = () => {
     </div>
 
 
-    {/* LEVEL 4 — Intelligence visuals */}
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-      <div className="lg:col-span-2 hairline-gold surface-3 rounded-2xl p-4 md:p-6 relative overflow-hidden group">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10 group-hover:bg-primary/10 transition-all duration-700" />
-        <div className="flex items-center justify-between mb-1">
-          <h3 className="text-base font-bold text-foreground tracking-tight">Evolução do Faturamento</h3>
-          <span className="text-[10px] uppercase tracking-widest text-primary/70 font-semibold">série temporal</span>
-        </div>
-        <p className="text-xs text-muted-foreground mb-6">Métricas fiéis ligadas ao seu processamento.</p>
-        <ResponsiveContainer width="100%" height={260}>
-          <AreaChart data={barData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-            <defs>
-              <linearGradient id="colorLucro" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.5} />
-                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
-            <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} />
-            <Tooltip
-              content={({ active, payload, label }) => {
-                if (active && payload && payload.length) {
-                  return (
-                    <div className="bg-background/95 backdrop-blur-md border border-primary/25 p-3 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)]">
-                      <p className="text-foreground font-bold mb-2">{label}</p>
-                      <p className="text-sm font-medium text-muted-foreground">Contas criadas: <span className="text-foreground font-bold tabular-nums">{payload[0].payload.contas}</span></p>
-                      <p className="text-sm font-medium text-primary mt-1">Lucro contabilizado: <span className="font-extrabold tabular-nums">{formatBRL(payload[0].payload.lucro)}</span></p>
-                    </div>
-                  );
-                }
-                return null;
-              }}
-            />
-            <Area type="monotone" dataKey="lucro" stroke="hsl(var(--primary))" strokeWidth={3} fillOpacity={1} fill="url(#colorLucro)" />
-          </AreaChart>
-        </ResponsiveContainer>
+    {/* Evolução do Faturamento (full width, financeira) */}
+    <div className="hairline-gold surface-3 rounded-2xl p-4 md:p-6 relative overflow-hidden group">
+      <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10 group-hover:bg-primary/10 transition-all duration-700" />
+      <div className="flex items-center justify-between mb-1">
+        <h3 className="text-base font-bold text-foreground tracking-tight">Evolução do Faturamento</h3>
+        <span className="text-[10px] uppercase tracking-widest text-primary/70 font-semibold">série temporal</span>
       </div>
-
-      <div className="hairline-gold surface-3 rounded-2xl p-4 md:p-6 flex flex-col items-center relative overflow-hidden">
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl -z-10" />
-        <div className="w-full">
-          <div className="flex items-center justify-between mb-1">
-            <h3 className="text-base font-bold text-foreground tracking-tight">Proporção Operacional</h3>
-            <span className="text-[10px] uppercase tracking-widest text-primary/70 font-semibold">status</span>
-          </div>
-          <p className="text-xs text-muted-foreground mb-2">Volume vs status real.</p>
-        </div>
-        <ResponsiveContainer width="100%" height={200}>
-          <PieChart>
-            <Pie data={pieData} cx="50%" cy="50%" innerRadius={70} outerRadius={90} paddingAngle={5} dataKey="value" strokeWidth={0}>
-              {pieData.map((_, i) => <Cell key={i} fill={pieColors[i]} />)}
-            </Pie>
-            <Tooltip contentStyle={{ background: "hsl(var(--card) / 0.95)", border: "1px solid hsl(var(--primary)/0.25)", borderRadius: 12 }} itemStyle={{ color: "hsl(var(--foreground))", fontSize: '14px', fontWeight: 'bold' }} />
-          </PieChart>
-        </ResponsiveContainer>
-        <div className="flex flex-wrap justify-center gap-4 mt-3">
-          {pieData.map((d, i) => (
-            <div key={d.name} className="flex items-center gap-2 text-xs text-foreground font-medium">
-              <div className="w-3 h-3 rounded-md" style={{ background: pieColors[i] }} />
-              {d.name}
-            </div>
-          ))}
-        </div>
-      </div>
+      <p className="text-xs text-muted-foreground mb-6">Métricas fiéis ligadas ao seu processamento.</p>
+      <ResponsiveContainer width="100%" height={260}>
+        <AreaChart data={barData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <defs>
+            <linearGradient id="colorLucro" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.5} />
+              <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
+          <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} />
+          <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} />
+          <Tooltip
+            content={({ active, payload, label }) => {
+              if (active && payload && payload.length) {
+                return (
+                  <div className="bg-background/95 backdrop-blur-md border border-primary/25 p-3 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)]">
+                    <p className="text-foreground font-bold mb-2">{label}</p>
+                    <p className="text-sm font-medium text-muted-foreground">Contas criadas: <span className="text-foreground font-bold tabular-nums">{payload[0].payload.contas}</span></p>
+                    <p className="text-sm font-medium text-primary mt-1">Lucro contabilizado: <span className="font-extrabold tabular-nums">{formatBRL(payload[0].payload.lucro)}</span></p>
+                  </div>
+                );
+              }
+              return null;
+            }}
+          />
+          <Area type="monotone" dataKey="lucro" stroke="hsl(var(--primary))" strokeWidth={3} fillOpacity={1} fill="url(#colorLucro)" />
+        </AreaChart>
+      </ResponsiveContainer>
     </div>
 
-    {/* LEVEL 5 — Operational detail */}
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-      {/* Fluxo */}
+    {/* Fluxo + Previsão (financeira) */}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
       <div className="hairline-gold surface-2 rounded-2xl p-4 md:p-5 relative overflow-hidden">
         <h3 className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-semibold mb-5">Fluxo (Entradas vs Saídas)</h3>
         <div className="space-y-5">
@@ -801,7 +771,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Previsão */}
       <div className="hairline-gold surface-2 rounded-2xl p-4 md:p-5 relative overflow-hidden">
         <h3 className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-semibold mb-5">Previsão Inteligente</h3>
         <div className="space-y-4">
@@ -823,30 +792,68 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+    </div>
+      </div>
+    )}
 
-      {/* Redes Mais Lucrativas */}
-      <div className="hairline-gold surface-2 rounded-2xl p-4 md:p-5 overflow-y-auto max-h-[400px] hide-scrollbar relative">
-        <h3 className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-semibold mb-5">Redes Mais Lucrativas</h3>
-        <div className="divide-y divide-border/60">
-          {stats.rankingRedes.length === 0 ? (
-            <p className="text-xs text-muted-foreground text-center py-10">Inicie operações para ver o ranking.</p>
-          ) : stats.rankingRedes.map((net, i) => (
-            <div key={i} className="flex items-center justify-between py-3 first:pt-0 last:pb-0 group">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className={`w-10 h-10 rounded-lg border flex items-center justify-center font-bold text-[11px] shrink-0 transition-colors ${i === 0 ? 'bg-primary/15 border-primary/40 text-primary' : 'bg-secondary border-border text-foreground/80'}`}>
-                  {i === 0 ? '★' : i + 1}
-                </div>
-                <div className="min-w-0">
-                  <p className="font-semibold text-foreground text-sm tracking-tight truncate">{net.title}</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{net.subtitle} · {net.desc}</p>
-                </div>
+    {activeTab === 'inteligencia' && (
+      <div className="space-y-6 md:space-y-8 animate-fade-in">
+        {/* Motor de Decisão */}
+        <div data-tour="decision-engine"><DecisionEngine insights={insights} /></div>
+
+        {/* Proporção + Redes lado a lado */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+          <div className="hairline-gold surface-3 rounded-2xl p-4 md:p-6 flex flex-col items-center relative overflow-hidden">
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl -z-10" />
+            <div className="w-full">
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-base font-bold text-foreground tracking-tight">Proporção Operacional</h3>
+                <span className="text-[10px] uppercase tracking-widest text-primary/70 font-semibold">status</span>
               </div>
-              <span className={`font-semibold text-sm tabular-nums shrink-0 ml-2 ${net.lucroRaw >= 0 ? 'text-primary' : 'text-destructive'}`}>{net.val}</span>
+              <p className="text-xs text-muted-foreground mb-2">Volume vs status real.</p>
             </div>
-          ))}
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie data={pieData} cx="50%" cy="50%" innerRadius={70} outerRadius={95} paddingAngle={5} dataKey="value" strokeWidth={0}>
+                  {pieData.map((_, i) => <Cell key={i} fill={pieColors[i]} />)}
+                </Pie>
+                <Tooltip contentStyle={{ background: "hsl(var(--card) / 0.95)", border: "1px solid hsl(var(--primary)/0.25)", borderRadius: 12 }} itemStyle={{ color: "hsl(var(--foreground))", fontSize: '14px', fontWeight: 'bold' }} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="flex flex-wrap justify-center gap-4 mt-3">
+              {pieData.map((d, i) => (
+                <div key={d.name} className="flex items-center gap-2 text-xs text-foreground font-medium">
+                  <div className="w-3 h-3 rounded-md" style={{ background: pieColors[i] }} />
+                  {d.name}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="hairline-gold surface-2 rounded-2xl p-4 md:p-5 overflow-y-auto max-h-[460px] hide-scrollbar relative">
+            <h3 className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-semibold mb-5">Redes Mais Lucrativas</h3>
+            <div className="divide-y divide-border/60">
+              {stats.rankingRedes.length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-10">Inicie operações para ver o ranking.</p>
+              ) : stats.rankingRedes.map((net, i) => (
+                <div key={i} className="flex items-center justify-between py-3 first:pt-0 last:pb-0 group">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className={`w-10 h-10 rounded-lg border flex items-center justify-center font-bold text-[11px] shrink-0 transition-colors ${i === 0 ? 'bg-primary/15 border-primary/40 text-primary' : 'bg-secondary border-border text-foreground/80'}`}>
+                      {i === 0 ? '★' : i + 1}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-foreground text-sm tracking-tight truncate">{net.title}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{net.subtitle} · {net.desc}</p>
+                    </div>
+                  </div>
+                  <span className={`font-semibold text-sm tabular-nums shrink-0 ml-2 ${net.lucroRaw >= 0 ? 'text-primary' : 'text-destructive'}`}>{net.val}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    )}
 
     {/* Quick links */}
     <div>
