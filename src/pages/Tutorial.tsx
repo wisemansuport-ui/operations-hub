@@ -105,53 +105,82 @@ export default function Tutorial() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {enriched.map(t => {
             const Icon = t.icon;
-            const completed = t.progress === 100;
+            const completed = !t.adminOnly && t.progress === 100;
             const stepsDone = Math.round((t.steps * t.progress) / 100);
+            const locked = !!t.adminOnly;
             return (
-              <div key={t.id} className="surface-2 hairline-gold rounded-2xl p-5 group hover:border-primary/30 transition-all relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-40 h-40 bg-primary/[0.04] rounded-full blur-3xl pointer-events-none group-hover:bg-primary/[0.10] transition-all" />
+              <div
+                key={t.id}
+                className={`surface-2 hairline-gold rounded-2xl p-5 group relative overflow-hidden transition-all ${
+                  locked ? 'opacity-60 grayscale-[40%] cursor-not-allowed' : 'hover:border-primary/30'
+                }`}
+              >
+                {!locked && (
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-primary/[0.04] rounded-full blur-3xl pointer-events-none group-hover:bg-primary/[0.10] transition-all" />
+                )}
 
                 <div className="relative flex items-start justify-between mb-3">
-                  <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-primary" />
+                  <div className={`w-11 h-11 rounded-xl border flex items-center justify-center ${locked ? 'bg-muted/40 border-border text-muted-foreground' : 'bg-primary/10 border-primary/20 text-primary'}`}>
+                    {locked ? <Lock className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
                   </div>
-                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${LEVEL_TONE[t.level]}`}>
-                    {t.level}
-                  </span>
+                  {locked ? (
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-border bg-muted/40 text-muted-foreground">
+                      Acesso admin
+                    </span>
+                  ) : (
+                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${LEVEL_TONE[t.level]}`}>
+                      {t.level}
+                    </span>
+                  )}
                 </div>
 
                 <h3 className="text-base font-black text-foreground tracking-tight mb-1 relative">{t.title}</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed mb-4 relative">{t.desc}</p>
 
                 <div className="relative flex items-center gap-3 text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-3">
-                  <span className="inline-flex items-center gap-1"><Footprints className="w-3 h-3" /> {t.steps} passos</span>
-                  <span>· {stepsDone}/{t.steps} concluídos</span>
+                  {locked ? (
+                    <span className="inline-flex items-center gap-1"><Lock className="w-3 h-3" /> Sem acesso</span>
+                  ) : (
+                    <>
+                      <span className="inline-flex items-center gap-1"><Footprints className="w-3 h-3" /> {t.steps} passos</span>
+                      <span>· {stepsDone}/{t.steps} concluídos</span>
+                    </>
+                  )}
                 </div>
 
-                <div className="relative mb-3">
-                  <div className="h-1.5 rounded-full bg-muted/60 overflow-hidden border border-border/50">
-                    <div
-                      className={`h-full transition-all duration-1000 ${completed ? 'bg-success' : 'bg-primary'}`}
-                      style={{ width: `${t.progress}%`, boxShadow: completed ? '0 0 8px hsl(var(--success)/0.5)' : '0 0 8px hsl(var(--primary)/0.4)' }}
-                    />
+                {!locked && (
+                  <div className="relative mb-3">
+                    <div className="h-1.5 rounded-full bg-muted/60 overflow-hidden border border-border/50">
+                      <div
+                        className={`h-full transition-all duration-1000 ${completed ? 'bg-success' : 'bg-primary'}`}
+                        style={{ width: `${t.progress}%`, boxShadow: completed ? '0 0 8px hsl(var(--success)/0.5)' : '0 0 8px hsl(var(--primary)/0.4)' }}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between mt-1.5">
+                      <span className="text-[10px] font-bold text-muted-foreground">Progresso</span>
+                      <span className={`text-[11px] font-black tabular-nums ${completed ? 'text-success' : 'text-primary'}`}>
+                        {t.progress}%
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between mt-1.5">
-                    <span className="text-[10px] font-bold text-muted-foreground">Progresso</span>
-                    <span className={`text-[11px] font-black tabular-nums ${completed ? 'text-success' : 'text-primary'}`}>
-                      {t.progress}%
-                    </span>
-                  </div>
-                </div>
+                )}
 
-                <button
-                  onClick={() => startTour(t.id)}
-                  className="relative w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold bg-foreground/5 hover:bg-primary/10 hover:text-primary border border-border hover:border-primary/30 transition-all"
-                >
-                  {completed ? (<><CheckCircle2 className="w-3.5 h-3.5 text-success" /> Revisar trilha</>) : t.progress > 0 ? (<>Continuar trilha <ArrowRight className="w-3.5 h-3.5" /></>) : (<>Iniciar trilha <ArrowRight className="w-3.5 h-3.5" /></>)}
-                </button>
+                {locked ? (
+                  <div className="relative w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold bg-muted/30 border border-border text-muted-foreground">
+                    <Lock className="w-3.5 h-3.5" /> Trilha restrita ao administrador
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => startTour(t.id)}
+                    className="relative w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold bg-foreground/5 hover:bg-primary/10 hover:text-primary border border-border hover:border-primary/30 transition-all"
+                  >
+                    {completed ? (<><CheckCircle2 className="w-3.5 h-3.5 text-success" /> Revisar trilha</>) : t.progress > 0 ? (<>Continuar trilha <ArrowRight className="w-3.5 h-3.5" /></>) : (<>Iniciar trilha <ArrowRight className="w-3.5 h-3.5" /></>)}
+                  </button>
+                )}
               </div>
             );
           })}
+
         </div>
       </div>
 
