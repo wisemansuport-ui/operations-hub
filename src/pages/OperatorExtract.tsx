@@ -429,52 +429,6 @@ export default function OperatorExtract() {
       </div>
 
 
-      {/* Filtros + exportar */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-2 items-center">
-          <div className="flex gap-1 p-1 bg-secondary rounded-xl w-fit border border-border">
-            {(['HOJE', 'SEMANA', 'MES'] as const).map(f => (
-              <button
-                key={f}
-                onClick={() => setTimeFilter(f)}
-                className={`px-4 py-1.5 text-[11px] font-semibold uppercase tracking-widest rounded-lg transition-all ${timeFilter === f ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
-          <div className="flex items-center gap-2 ml-1">
-            <div className="flex items-center gap-2 bg-secondary border border-border rounded-xl px-3 py-2">
-              <Filter className="w-3.5 h-3.5 text-muted-foreground" />
-              <select
-                value={platformFilter}
-                onChange={(e) => setPlatformFilter(e.target.value)}
-                className="bg-transparent text-xs text-foreground focus:outline-none max-w-[140px] cursor-pointer appearance-none"
-              >
-                <option value="TODAS">Todas Plataformas</option>
-                {availablePlatforms.map(p => <option key={p} value={p}>{p}</option>)}
-              </select>
-            </div>
-            <div className="flex items-center gap-2 bg-secondary border border-border rounded-xl px-3 py-2">
-              <select
-                value={networkFilter}
-                onChange={(e) => setNetworkFilter(e.target.value)}
-                className="bg-transparent text-xs text-foreground focus:outline-none max-w-[120px] cursor-pointer appearance-none"
-              >
-                <option value="TODAS">Todas Redes</option>
-                {availableNetworks.map(n => <option key={n} value={n}>{n}</option>)}
-              </select>
-            </div>
-          </div>
-        </div>
-        <button
-          onClick={exportToCSV}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-b from-secondary to-card border border-border hover:border-primary/40 text-sm font-medium text-foreground transition-all hover:shadow-[0_0_20px_hsl(var(--primary)/0.15)]"
-        >
-          <Download className="w-4 h-4" /> Exportar CSV
-        </button>
-      </div>
-
 
       {/* Gráfico de Produção */}
       <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5">
