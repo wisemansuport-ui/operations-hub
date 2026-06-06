@@ -461,38 +461,7 @@ const Operators = () => {
   return (
     <div className="space-y-6 animate-fade-in max-w-6xl mx-auto pb-16 relative z-10 w-full">
 
-      {/* Airy linear hero — equipe operacional */}
-      <TasksHero
-        eyebrow="Performance Arena · Tempo Real"
-        title="Equipe operacional"
-        description="Ranking, pódio e folha em tempo real. Onde o resultado define a posição."
-        pulseDotClass="bg-success"
-        progressLabel="Resultado líquido"
-        kpis={[
-          { label: 'Operadores', value: String(operatorData.length), accent: true },
-          { label: 'Metas executadas', value: String(totalMetas) },
-          { label: 'Contas geradas', value: totalContas.toLocaleString('pt-BR') },
-          {
-            label: 'Líquido da equipe',
-            value: formatBRL(totalLucroEquipe - folhaTotal - custoTotal),
-            tone: (totalLucroEquipe - folhaTotal - custoTotal) >= 0 ? 'success' : 'destructive',
-          },
-        ] as HeroKpi[]}
-      />
-      <div className="flex justify-end -mt-2">
-        <button
-          data-tour="operators-invite"
-          onClick={handleCopyLink}
-          className="group inline-flex items-center gap-2 bg-foreground/[0.04] hover:bg-foreground/[0.08] text-foreground border border-border/60 hover:border-primary/40 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all"
-        >
-          <LinkIcon className="w-4 h-4 text-primary" />
-          Gerar link de cadastro
-          <ArrowUpRight className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all" />
-        </button>
-      </div>
-
-
-      {/* Tabs — pill style (igual Planilhas) */}
+      {/* Tabs — pill style (igual Planilhas), acima do hero */}
       <div className="flex bg-muted/20 border border-border/50 rounded-lg p-1.5 overflow-x-auto hide-scrollbar w-fit">
         {TABS.map((tab) => {
           const active = activeTab === tab;
@@ -511,6 +480,102 @@ const Operators = () => {
           );
         })}
       </div>
+
+      {/* Hero — varia por aba (mesma estratégia de Planilhas) */}
+      {(() => {
+        const netEquipe = totalLucroEquipe - folhaTotal - custoTotal;
+        const folhaPaga = Math.max(0, folhaTotal - folhaPendente);
+        const pctPaga = folhaTotal > 0 ? (folhaPaga / folhaTotal) * 100 : 0;
+
+        if (activeTab === 'Ranking') {
+          return (
+            <TasksHero
+              eyebrow="Ranking · Performance Arena"
+              title="Pódio em tempo real"
+              description="Quem está liderando, quem precisa subir. Lucro líquido define a posição."
+              pulseDotClass="bg-success"
+              kpis={[
+                { label: 'Operadores', value: String(operatorData.length), accent: true },
+                { label: 'Metas executadas', value: String(totalMetas) },
+                { label: 'Contas geradas', value: totalContas.toLocaleString('pt-BR') },
+                {
+                  label: 'Líquido da equipe',
+                  value: formatBRL(netEquipe),
+                  tone: netEquipe >= 0 ? 'success' : 'destructive',
+                },
+              ] as HeroKpi[]}
+            />
+          );
+        }
+        if (activeTab === 'Equipe') {
+          return (
+            <TasksHero
+              eyebrow="Equipe · Gestão de operadores"
+              title="Sua tripulação"
+              description="Cadastros, vínculos e identidade de cada operador afiliado."
+              pulseDotClass="bg-primary"
+              kpis={[
+                { label: 'Operadores afiliados', value: String(affiliatedUsers.length), accent: true },
+                { label: 'Ativos no período', value: String(operatorData.length) },
+                { label: 'Metas no período', value: String(totalMetas), tone: 'muted' },
+                { label: 'Contas geradas', value: totalContas.toLocaleString('pt-BR'), tone: 'muted' },
+              ] as HeroKpi[]}
+            />
+          );
+        }
+        if (activeTab === 'Folha de pagamento') {
+          return (
+            <TasksHero
+              eyebrow="Folha · Pagamentos"
+              title="Folha da equipe"
+              description="Quanto foi pago, quanto ainda está pendente e o impacto no líquido."
+              pulseDotClass={folhaPendente > 0 ? 'bg-destructive' : 'bg-success'}
+              progressLabel="Folha quitada"
+              progressValue={pctPaga}
+              kpis={[
+                { label: 'Folha total', value: formatBRL(folhaTotal) },
+                {
+                  label: 'Pendente',
+                  value: formatBRL(folhaPendente),
+                  accent: true,
+                  tone: folhaPendente > 0 ? 'destructive' : 'success',
+                },
+                { label: 'Já pago', value: formatBRL(folhaPaga), tone: 'success' },
+                { label: 'Operadores', value: String(operatorData.length), tone: 'muted' },
+              ] as HeroKpi[]}
+            />
+          );
+        }
+        // Configurações
+        return (
+          <TasksHero
+            eyebrow="Configurações · Modelo de pagamento"
+            title="Regras da operação"
+            description="Defina o modelo global e personalize por operador. Tudo o que rege a folha vive aqui."
+            pulseDotClass="bg-primary"
+            kpis={[
+              { label: 'Modelo global', value: payConfig.model.toUpperCase(), accent: true },
+              { label: 'R$ por normal', value: formatBRL(payConfig.valorNormal) },
+              { label: 'R$ por baixa', value: formatBRL(payConfig.valorBaixa) },
+              { label: '% do lucro', value: `${payConfig.percent}%` },
+            ] as HeroKpi[]}
+          />
+        );
+      })()}
+
+      <div className="flex justify-end -mt-2">
+        <button
+          data-tour="operators-invite"
+          onClick={handleCopyLink}
+          className="group inline-flex items-center gap-2 bg-foreground/[0.04] hover:bg-foreground/[0.08] text-foreground border border-border/60 hover:border-primary/40 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all"
+        >
+          <LinkIcon className="w-4 h-4 text-primary" />
+          Gerar link de cadastro
+          <ArrowUpRight className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all" />
+        </button>
+      </div>
+
+
 
 
       {/* Period filter */}
