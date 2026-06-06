@@ -12,6 +12,7 @@ import { doc, updateDoc, deleteDoc, setDoc, addDoc, onSnapshot, collection, quer
 import { db } from '../lib/firebase';
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useFirestoreData } from "../hooks/useFirestoreData";
+import { useIsMobile } from "../hooks/use-mobile";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
@@ -73,6 +74,7 @@ const Operators = () => {
   const [activeTab, setActiveTab] = useState<typeof TABS[number]>('Ranking');
   const { metas, users, costs } = useFirestoreData();
   const [user] = useLocalStorage<any>('nytzer-user', null);
+  const isMobile = useIsMobile();
   const activeOperator = user?.username || 'admin';
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -120,6 +122,22 @@ const Operators = () => {
     });
     return () => unsub();
   }, []);
+
+  const userByUsername = useMemo(() => {
+    const map = new Map<string, any>();
+    users.forEach((u: any) => map.set(u.username, u));
+    return map;
+  }, [users]);
+
+  const historyByOperator = useMemo(() => {
+    const map = new Map<string, PaymentHistoryEntry[]>();
+    history.forEach((entry) => {
+      const list = map.get(entry.operatorId) || [];
+      list.push(entry);
+      map.set(entry.operatorId, list);
+    });
+    return map;
+  }, [history]);
 
   const periodBounds = useMemo(() => {
     const now = new Date();
