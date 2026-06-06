@@ -103,6 +103,7 @@ const App = () => {
             <Toaster />
             <Sonner />
             <BrowserRouter>
+                <RouteTransition>
                 <Routes>
                   <Route path="/login" element={<Login />} />
                   <Route path="/" element={<Landing />} />
@@ -123,6 +124,7 @@ const App = () => {
                   <Route path="/master" element={<PrivateRoute><MasterPanel /></PrivateRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                </RouteTransition>
             </BrowserRouter>
           </TooltipProvider>
         </NotificationProvider>
