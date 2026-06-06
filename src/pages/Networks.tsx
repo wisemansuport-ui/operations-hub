@@ -636,6 +636,19 @@ const Networks = () => {
         </div>
       )}
 
+      <NetworkInsightDialog
+        open={insightOpen}
+        onOpenChange={setInsightOpen}
+        network={networkData.find(n => n.id === insightNetworkId) || null}
+        peers={networkData.length > 0 ? {
+          length: networkData.length,
+          avgRoi: networkData.reduce((a, n) => a + n.roi, 0) / networkData.length,
+          avgWin: networkData.reduce((a, n) => a + n.winRate, 0) / networkData.length,
+          avgPpc: networkData.reduce((a, n) => a + n.profitPerConta, 0) / networkData.length,
+          avgProfit: networkData.reduce((a, n) => a + n.totalProfit, 0) / networkData.length,
+        } : null}
+      />
+
     </div>
   );
 };
