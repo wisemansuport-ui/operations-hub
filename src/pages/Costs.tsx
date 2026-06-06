@@ -224,30 +224,28 @@ const Costs = () => {
         <KpiCard
           label="Custo do período"
           value={formatBRL(custoPeriodo)}
-          hint={lucroBrutoPeriodo === 0 ? 'sem lucro registrado' : `de ${formatBRL(lucroBrutoPeriodo)} bruto`}
+          hint={filteredCosts.length > 0 ? `${filteredCosts.length} lançamento${filteredCosts.length === 1 ? '' : 's'}` : 'sem lançamentos'}
           icon={TrendingDown}
         />
         <div className="rounded-2xl border border-border bg-gradient-to-br from-card to-secondary/40 p-5 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
           <div className="relative">
-            <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">Lucro vs custo (Período)</div>
+            <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">Distribuição de custos</div>
             <div className="mt-3 space-y-1.5 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Lucro bruto</span>
-                <span className="text-foreground font-medium">{formatBRL(lucroBrutoPeriodo)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Custos</span>
-                <span className="text-destructive font-medium">- {formatBRL(custoPeriodo)}</span>
-              </div>
+              {porTipo.slice(0, 3).map((t) => (
+                <div key={t.label} className="flex justify-between">
+                  <span className="text-muted-foreground">{t.label}</span>
+                  <span className="text-destructive font-medium tabular-nums">- {formatBRL(t.value)}</span>
+                </div>
+              ))}
+              {porTipo.length === 0 && (
+                <div className="text-xs text-muted-foreground">Nenhum custo registrado ainda.</div>
+              )}
               <div className="border-t border-border my-2" />
               <div className="flex justify-between items-center">
-                <span className="font-semibold text-foreground">Lucro líquido</span>
-                <span className={cn(
-                  'text-lg font-bold tabular-nums',
-                  lucroLiquidoPeriodo >= 0 ? 'text-primary' : 'text-destructive'
-                )}>
-                  {formatBRL(lucroLiquidoPeriodo)}
+                <span className="font-semibold text-foreground">Total</span>
+                <span className="text-lg font-bold tabular-nums text-destructive">
+                  - {formatBRL(custoPeriodo)}
                 </span>
               </div>
             </div>
