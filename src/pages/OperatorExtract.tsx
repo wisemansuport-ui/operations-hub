@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Wallet, CheckCircle2, Filter, Download, Calendar as CalendarIcon, User as UserIcon, TrendingUp, Receipt, Clock } from "lucide-react";
+import { Wallet, CheckCircle2, Filter, Download, Calendar as CalendarIcon, User as UserIcon, TrendingUp, Receipt, Clock, HandCoins, Sparkles } from "lucide-react";
 
 import { DataTable, Column } from "@/components/spreadsheet/DataTable";
 import { TasksHero, type HeroKpi } from "@/components/heroes/TasksHero";
