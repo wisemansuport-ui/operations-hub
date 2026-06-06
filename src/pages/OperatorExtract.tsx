@@ -1,8 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Wallet, CheckCircle2, Filter, Download, Calendar as CalendarIcon, User as UserIcon, ChevronDown } from "lucide-react";
+import { Wallet, CheckCircle2, Filter, Download, Calendar as CalendarIcon, User as UserIcon, ChevronDown, Target, Activity, Zap, DollarSign } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import { DataTable, Column } from "@/components/spreadsheet/DataTable";
 import { TasksHero, type HeroKpi } from "@/components/heroes/TasksHero";
+import { HeroPanel } from "@/components/dashboard/HeroPanel";
+import { KPICard } from "@/components/dashboard/KPICard";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useFirestoreData } from "../hooks/useFirestoreData";
 import { OperationMeta } from "./Tasks";
