@@ -313,7 +313,7 @@ const Networks = () => {
 
       {/* ── Heatmap de Performance ───────────────────────────────────────────── */}
       {networkData.length > 0 && (
-        <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5 overflow-x-auto">
+        <div data-tour="networks-heatmap" className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5 overflow-x-auto">
           <div className="flex items-center gap-2.5 mb-5 pb-3 border-b border-border/60">
             <LayoutGrid className="w-4 h-4 text-primary" />
             <h2 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">Heatmap de Performance</h2>
@@ -382,7 +382,7 @@ const Networks = () => {
       )}
 
       {/* ── Ranking por Network Score (redesign profissional) ──────────────── */}
-      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur overflow-hidden">
+      <div data-tour="networks-ranking" className="rounded-2xl border border-border bg-card/60 backdrop-blur overflow-hidden">
         <div className="flex items-end justify-between px-6 pt-5 pb-4 border-b border-border/60">
           <div className="flex items-center gap-2.5">
             <Trophy className="w-4 h-4 text-primary" />
