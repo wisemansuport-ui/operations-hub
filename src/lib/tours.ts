@@ -82,7 +82,7 @@ export const TOURS: Record<string, TourDefinition> = {
       },
       {
         route: '/operators',
-        selector: '[data-tour="operators-team"]',
+        selector: '[data-tour="operators-invite"]',
         title: 'Hierarquia de operadores',
         description: 'Crie operadores com acesso individual, definindo salário, comissão e regras de pagamento.',
       },
