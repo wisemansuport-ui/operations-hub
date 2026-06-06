@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, Crown, Zap, Sparkles, TrendingUp, Brain, Star, Shield, ArrowRight, Minus, Plus } from 'lucide-react';
+import { Check, Crown, Zap, Sparkles, TrendingUp, Brain, Star, Shield, ArrowRight, Minus, Plus, FileSpreadsheet, AlertTriangle, Clock, Smartphone, Bell, X } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useFirestoreData } from '../hooks/useFirestoreData';
 import { format, isAfter } from 'date-fns';
