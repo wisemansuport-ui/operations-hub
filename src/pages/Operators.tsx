@@ -19,6 +19,8 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
+import { ChevronRight } from "lucide-react";
+import { OperatorPayrollSheet } from "@/components/operators/OperatorPayrollSheet";
 
 type PeriodKey = '7d' | '30d' | 'mes' | 'intervalo' | 'tudo';
 const PERIODS: { key: PeriodKey; label: string }[] = [
@@ -90,6 +92,7 @@ const Operators = () => {
   const [history, setHistory] = useState<PaymentHistoryEntry[]>([]);
   const [expandedHistory, setExpandedHistory] = useState<string | null>(null);
   const [confirmUndoId, setConfirmUndoId] = useState<string | null>(null);
+  const [sheetOpenId, setSheetOpenId] = useState<string | null>(null);
 
   // Payment model config (por admin)
   type PayModel = 'fixo' | 'percent' | 'split';
@@ -980,6 +983,40 @@ const Operators = () => {
                       ? 'border-success/30 bg-success/[0.03]'
                       : 'border-border/50 bg-card/30 hover:bg-card/50 hover:border-border'
                   }`}>
+                    {/* MOBILE — linha compacta clicável que abre dialog */}
+                    {isMobile ? (
+                      <button
+                        onClick={() => setSheetOpenId(op.id)}
+                        className="w-full flex items-center gap-3 p-3.5 text-left"
+                      >
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
+                          isPaidUp ? 'bg-success/15 border border-success/40 text-success' : 'bg-primary/10 border border-primary/30 text-primary'
+                        }`}>
+                          {op.initials}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="font-bold text-foreground text-sm truncate">{op.name}</p>
+                            {isPaidUp && (
+                              <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border border-success/40 bg-success/10 text-success">
+                                <BadgeCheck className="w-2.5 h-2.5" /> Pago
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                            {op.metas} metas · {op.deps} deps
+                            {lastPaidLabel && <span className="ml-1 text-success/80">· {lastPaidLabel}</span>}
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">A pagar</p>
+                          <p className={`text-base font-bold tracking-tight ${op.pendingSalary > 0 ? 'text-success' : 'text-muted-foreground/60'}`}>
+                            {formatBRL(op.pendingSalary)}
+                          </p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-muted-foreground/60 shrink-0" />
+                      </button>
+                    ) : (
                     <div className="flex items-center gap-4 flex-wrap p-4">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
                         isPaidUp ? 'bg-success/15 border border-success/40 text-success' : 'bg-primary/10 border border-primary/30 text-primary'
@@ -1105,8 +1142,9 @@ const Operators = () => {
                         </div>
                       </div>
                     </div>
+                    )}
 
-                    {isExpanded && opHistory.length > 0 && (
+                    {!isMobile && isExpanded && opHistory.length > 0 && (
                       <div className="border-t border-border/40 bg-muted/[0.02] px-4 py-3 animate-fade-in">
                         <div className="flex items-center justify-between mb-2">
                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
@@ -1176,6 +1214,20 @@ const Operators = () => {
               })}
             </div>
           )}
+
+          {/* Mobile payment sheet */}
+          <OperatorPayrollSheet
+            open={!!sheetOpenId}
+            onOpenChange={(o) => !o && setSheetOpenId(null)}
+            op={filteredOps.find(o => o.id === sheetOpenId) || null}
+            userRecord={sheetOpenId ? userByUsername.get(sheetOpenId) || null : null}
+            opHistory={sheetOpenId ? (historyByOperator.get(sheetOpenId) || []) : []}
+            loadingAction={loadingAction}
+            onMarkPaid={(op) => handleMarkPaid(op as any)}
+            onUndoLast={(op) => handleUndoLastPayment(op as any)}
+            onDeleteHistory={(h) => handleDeleteHistoryEntry(h as any)}
+            canEditPix={true}
+          />
         </div>
       )}
 
