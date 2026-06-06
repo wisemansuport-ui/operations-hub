@@ -35,7 +35,7 @@ export const OperatorsHero = ({
               <Trophy className="w-3 h-3" /> Performance Arena
             </span>
             <span className="inline-flex items-center gap-1 text-[9px] uppercase tracking-widest font-semibold text-muted-foreground">
-              <span className="w-1 h-1 rounded-full bg-success animate-pulse" /> Live
+              <span className="w-1 h-1 rounded-full bg-primary animate-pulse" /> Live
             </span>
           </div>
           <h1 className="text-3xl md:text-5xl font-black tracking-tight gradient-gold-text leading-[1.05]">
