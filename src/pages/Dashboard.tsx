@@ -632,7 +632,7 @@ const Dashboard = () => {
       <div>
         <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-primary/70 flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-          SO de Inteligência Financeira · Sincronizado
+          ECOSSISTEMA DE ANÁLISE FINANCEIRA · SINCRONIZADO
         </p>
         <h1 className="mt-1.5 text-2xl md:text-3xl font-extrabold tracking-tight text-foreground capitalize">
           Olá, {(user?.fullName || user?.name || user?.username || 'Operador').split(' ')[0]}
