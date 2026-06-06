@@ -223,6 +223,15 @@
     animation: none !important;
   }
   .animate-shimmer-gold { animation: none !important; }
+  .animate-fade-in,
+  .animate-pulse {
+    animation: none !important;
+  }
+
+  .transition-all {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity !important;
+    transition-duration: 120ms !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
