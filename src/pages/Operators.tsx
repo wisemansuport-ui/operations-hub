@@ -276,7 +276,7 @@ const Operators = () => {
 
     metas.forEach(meta => {
       if (meta.status !== 'fechada' || meta.isAdminMeta) return;
-      const isAffiliated = (users.find(u => u.username === meta.operador)?.affiliatedTo === activeOperator);
+      const isAffiliated = userByUsername.get(meta.operador)?.affiliatedTo === activeOperator;
       if (!isAffiliated) return;
 
       const opName = meta.operador || 'Operador Central';
@@ -284,7 +284,7 @@ const Operators = () => {
         opMap[opName] = { id: opName, name: opName, deps: 0, metas: 0, totalProfit: 0, normais: 0, baixas: 0, salary: 0, pendingSalary: 0, pendingNormais: 0, pendingBaixas: 0, totalCosts: 0, netProfit: 0 };
       }
 
-      const opHistory = history.filter(h => h.operatorId === opName);
+      const opHistory = historyByOperator.get(opName) || [];
       const paidUntil = opHistory.length > 0 && opHistory[0].newPaidUntil ? new Date(opHistory[0].newPaidUntil).getTime() : 0;
       
       const metaTime = new Date(meta.createdAt).getTime();
@@ -397,7 +397,7 @@ const Operators = () => {
     });
 
     costs.forEach(cost => {
-      const isAffiliated = (users.find(u => u.username === cost.operador)?.affiliatedTo === activeOperator);
+      const isAffiliated = userByUsername.get(cost.operador)?.affiliatedTo === activeOperator;
       if (!isAffiliated) return;
 
       let costTime = 0;
@@ -422,7 +422,7 @@ const Operators = () => {
     });
 
     const ranked = Object.values(opMap).map((op: any) => {
-      const userRecord = users.find((u: any) => u.username === op.id);
+      const userRecord = userByUsername.get(op.id);
       const displayName = userRecord?.displayName || op.name;
       const initials = displayName.substring(0, 2).toUpperCase();
       const netProfit = op.totalProfit - op.salary - op.totalCosts;
@@ -451,7 +451,7 @@ const Operators = () => {
       totalLucroEquipe: tmpTotalLucroEquipe,
       custoTotal: tmpCustoTotal
     };
-  }, [metas, users, costs, activeOperator, periodBounds, history]);
+  }, [metas, users, costs, activeOperator, periodBounds, userByUsername, historyByOperator]);
 
   const handleCopyLink = () => {
     const activeAdmin = user?.username || 'admin';
