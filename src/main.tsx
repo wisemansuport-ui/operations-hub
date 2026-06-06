@@ -1,4 +1,4 @@
-// Triggering build after design revert
+// Triggering Vercel deploy — 2026-06-06
 import React from 'react'
 import { createRoot } from "react-dom/client";
 import { GoogleOAuthProvider } from '@react-oauth/google';
