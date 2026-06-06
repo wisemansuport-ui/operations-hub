@@ -2,6 +2,8 @@ let audioCtx: AudioContext | null = null;
 
 export const playClickSound = () => {
   try {
+    if (window.matchMedia?.('(pointer: coarse)').matches) return;
+
     if (!audioCtx) {
       audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     }

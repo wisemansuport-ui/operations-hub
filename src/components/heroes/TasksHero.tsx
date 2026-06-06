@@ -45,14 +45,14 @@ export const TasksHero = ({
 
   return (
     <section className="relative">
-      <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary/[0.05] blur-[120px] rounded-full pointer-events-none" />
+      <div className="hidden md:block absolute -top-24 -left-24 w-96 h-96 bg-primary/[0.05] blur-[120px] rounded-full pointer-events-none" />
 
       <div className="relative flex flex-col gap-6 md:gap-10 px-1 sm:px-2 min-w-0">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 md:gap-6 pb-5 md:pb-7 border-b border-primary/10">
           <div className="space-y-2 min-w-0">
             <div className="flex items-center gap-2 mb-2 md:mb-3">
-              <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${pulseDotClass}`} />
+              <span className={`w-1.5 h-1.5 rounded-full md:animate-pulse ${pulseDotClass}`} />
               <span className="text-[10px] uppercase tracking-[0.22em] text-primary/60 font-semibold truncate">
                 {eyebrow}
               </span>
@@ -76,7 +76,7 @@ export const TasksHero = ({
               </div>
               <div className="w-full md:w-48 h-1 bg-secondary rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-primary/80 to-primary transition-all duration-700"
+                  className="h-full bg-gradient-to-r from-primary/80 to-primary md:transition-all md:duration-700"
                   style={{ width: `${progress}%` }}
                 />
               </div>

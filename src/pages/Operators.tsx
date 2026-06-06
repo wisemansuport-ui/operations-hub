@@ -12,6 +12,7 @@ import { doc, updateDoc, deleteDoc, setDoc, addDoc, onSnapshot, collection, quer
 import { db } from '../lib/firebase';
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useFirestoreData } from "../hooks/useFirestoreData";
+import { useIsMobile } from "../hooks/use-mobile";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
@@ -73,6 +74,7 @@ const Operators = () => {
   const [activeTab, setActiveTab] = useState<typeof TABS[number]>('Ranking');
   const { metas, users, costs } = useFirestoreData();
   const [user] = useLocalStorage<any>('nytzer-user', null);
+  const isMobile = useIsMobile();
   const activeOperator = user?.username || 'admin';
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -120,6 +122,22 @@ const Operators = () => {
     });
     return () => unsub();
   }, []);
+
+  const userByUsername = useMemo(() => {
+    const map = new Map<string, any>();
+    users.forEach((u: any) => map.set(u.username, u));
+    return map;
+  }, [users]);
+
+  const historyByOperator = useMemo(() => {
+    const map = new Map<string, PaymentHistoryEntry[]>();
+    history.forEach((entry) => {
+      const list = map.get(entry.operatorId) || [];
+      list.push(entry);
+      map.set(entry.operatorId, list);
+    });
+    return map;
+  }, [history]);
 
   const periodBounds = useMemo(() => {
     const now = new Date();
@@ -198,7 +216,7 @@ const Operators = () => {
       });
       const safePaidUntil = new Date(maxMetaTime + 1000).toISOString(); // Add 1 second
 
-      const opHistory = history.filter(h => h.operatorId === op.id);
+      const opHistory = historyByOperator.get(op.id) || [];
       const previousPaidUntil = opHistory.length > 0 ? opHistory[0].newPaidUntil : null;
       
       await addDoc(collection(db, 'operatorPaymentHistory'), {
@@ -219,7 +237,7 @@ const Operators = () => {
   const handleUndoLastPayment = async (op: OperatorData) => {
     setLoadingAction(true);
     try {
-      const opHistory = history.filter(h => h.operatorId === op.id);
+      const opHistory = historyByOperator.get(op.id) || [];
       if (opHistory.length === 0) {
         toast.error('Nenhum pagamento para desfazer.');
         return;
@@ -258,7 +276,7 @@ const Operators = () => {
 
     metas.forEach(meta => {
       if (meta.status !== 'fechada' || meta.isAdminMeta) return;
-      const isAffiliated = (users.find(u => u.username === meta.operador)?.affiliatedTo === activeOperator);
+      const isAffiliated = userByUsername.get(meta.operador)?.affiliatedTo === activeOperator;
       if (!isAffiliated) return;
 
       const opName = meta.operador || 'Operador Central';
@@ -266,7 +284,7 @@ const Operators = () => {
         opMap[opName] = { id: opName, name: opName, deps: 0, metas: 0, totalProfit: 0, normais: 0, baixas: 0, salary: 0, pendingSalary: 0, pendingNormais: 0, pendingBaixas: 0, totalCosts: 0, netProfit: 0 };
       }
 
-      const opHistory = history.filter(h => h.operatorId === opName);
+      const opHistory = historyByOperator.get(opName) || [];
       const paidUntil = opHistory.length > 0 && opHistory[0].newPaidUntil ? new Date(opHistory[0].newPaidUntil).getTime() : 0;
       
       const metaTime = new Date(meta.createdAt).getTime();
@@ -379,7 +397,7 @@ const Operators = () => {
     });
 
     costs.forEach(cost => {
-      const isAffiliated = (users.find(u => u.username === cost.operador)?.affiliatedTo === activeOperator);
+      const isAffiliated = userByUsername.get(cost.operador)?.affiliatedTo === activeOperator;
       if (!isAffiliated) return;
 
       let costTime = 0;
@@ -404,7 +422,7 @@ const Operators = () => {
     });
 
     const ranked = Object.values(opMap).map((op: any) => {
-      const userRecord = users.find((u: any) => u.username === op.id);
+      const userRecord = userByUsername.get(op.id);
       const displayName = userRecord?.displayName || op.name;
       const initials = displayName.substring(0, 2).toUpperCase();
       const netProfit = op.totalProfit - op.salary - op.totalCosts;
@@ -433,7 +451,7 @@ const Operators = () => {
       totalLucroEquipe: tmpTotalLucroEquipe,
       custoTotal: tmpCustoTotal
     };
-  }, [metas, users, costs, activeOperator, periodBounds, history]);
+  }, [metas, users, costs, activeOperator, periodBounds, userByUsername, historyByOperator]);
 
   const handleCopyLink = () => {
     const activeAdmin = user?.username || 'admin';
@@ -617,7 +635,7 @@ const Operators = () => {
                   mode="range"
                   selected={dateRange}
                   onSelect={(r) => { setDateRange(r); if (r?.from) setPeriod('intervalo'); }}
-                  numberOfMonths={2}
+                  numberOfMonths={isMobile ? 1 : 2}
                   locale={ptBR}
                   initialFocus
                   className={cn("p-3 pointer-events-auto")}
@@ -650,7 +668,7 @@ const Operators = () => {
           ) : (
             <>
               {/* Podium — top 3 */}
-              {operatorData.length > 0 && (
+              {!isMobile && operatorData.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <div>
@@ -789,7 +807,7 @@ const Operators = () => {
                                 </div>
                                 <div className="mt-1.5 h-[2px] w-full max-w-[260px] rounded-full bg-border/40 overflow-hidden">
                                   <div
-                                    className={`h-full rounded-full transition-all duration-700 ${
+                                    className={`h-full rounded-full md:transition-all md:duration-700 ${
                                       op.netProfit >= 0 ? 'bg-gradient-to-r from-success/60 to-success' : 'bg-destructive'
                                     }`}
                                     style={{ width: `${widthPct}%` }}
@@ -947,7 +965,7 @@ const Operators = () => {
           ) : (
             <div className="space-y-2">
               {filteredOps.map(op => {
-                const opHistory = history.filter(h => h.operatorId === op.id);
+                const opHistory = historyByOperator.get(op.id) || [];
                 const paidUntil = opHistory.length > 0 && opHistory[0].newPaidUntil ? opHistory[0].newPaidUntil : null;
                 const isPaidUp = op.pendingSalary === 0 && (paidUntil || op.salary === 0);
                 const isConfirm = confirmPayId === op.id;
@@ -1075,7 +1093,7 @@ const Operators = () => {
                                 className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold border transition-all ${
                                   op.pendingSalary === 0
                                     ? 'bg-muted/10 text-muted-foreground/50 border-border/30 cursor-not-allowed'
-                                    : 'bg-success/10 hover:bg-success/20 text-success border-success/30 hover:-translate-y-0.5'
+                                    : 'bg-success/10 hover:bg-success/20 text-success border-success/30 md:hover:-translate-y-0.5'
                                 }`}
                                 title="Marcar como pago"
                               >

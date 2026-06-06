@@ -51,6 +51,12 @@ const Costs = () => {
   const [user] = useLocalStorage<any>('nytzer-user', null);
   const operatorName = user?.username || 'Operador Central';
 
+  const userByUsername = useMemo(() => {
+    const map = new Map<string, any>();
+    users.forEach((u: any) => map.set(u.username, u));
+    return map;
+  }, [users]);
+
   const [dateFilter, setDateFilter] = useState<DateFilter>(buildDateFilter('MES'));
 
   // modal
@@ -83,14 +89,14 @@ const Costs = () => {
     () => costs.filter(c => {
       if (role === 'ADMIN') {
         if (c.operador === operatorName) return true;
-        const opUser = users.find(u => u.username === c.operador);
+        const opUser = userByUsername.get(c.operador);
         if (opUser && opUser.affiliatedTo === operatorName) return true;
         if (!c.operador && operatorName === 'wiseman') return true;
         return false;
       }
       return c.operador === operatorName;
     }),
-    [costs, operatorName, role, users]
+    [costs, operatorName, role, userByUsername]
   );
 
   const filteredCosts = useMemo(() => {
@@ -217,7 +223,7 @@ const Costs = () => {
         <PeriodFilter value={dateFilter} onChange={setDateFilter} />
         <button
           onClick={() => setOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-b from-secondary to-card border border-border hover:border-primary/40 text-sm font-medium text-foreground transition-all hover:shadow-[0_0_20px_hsl(var(--primary)/0.15)]"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary border border-border hover:border-primary/40 text-sm font-medium text-foreground transition-colors"
         >
           <Plus className="w-4 h-4" />
           Adicionar custo
@@ -242,9 +248,8 @@ const Costs = () => {
           hint={filteredCosts.length > 0 ? `${filteredCosts.length} lançamento${filteredCosts.length === 1 ? '' : 's'}` : 'sem lançamentos'}
           icon={TrendingDown}
         />
-        <div className="rounded-2xl border border-border bg-gradient-to-br from-card to-secondary/40 p-5 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
-          <div className="relative">
+        <div className="rounded-2xl border border-border bg-card/60 p-5">
+          <div>
             <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">Distribuição de custos</div>
             <div className="mt-3 space-y-1.5 text-sm">
               {porTipo.slice(0, 3).map((t) => (
@@ -275,7 +280,7 @@ const Costs = () => {
       </div>
 
       {/* Custos por tipo */}
-      <div data-tour="costs-leaks" className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5">
+      <div data-tour="costs-leaks" className="rounded-2xl border border-border bg-card/60 p-4 sm:p-5">
         <h2 className="text-base font-semibold text-foreground mb-4">Custos por tipo</h2>
         <div className="space-y-3">
           {porTipo.map(({ key, label, icon: Icon, value }) => {
@@ -291,7 +296,7 @@ const Costs = () => {
                 <div className="flex-1 h-2 rounded-full bg-secondary overflow-hidden">
                   <div
                     className={cn(
-                      'h-full rounded-full transition-all duration-500',
+                      'h-full rounded-full md:transition-all md:duration-500',
                       value > 0
                         ? 'bg-gradient-to-r from-primary/80 to-primary'
                         : 'bg-border'
@@ -309,7 +314,7 @@ const Costs = () => {
       </div>
 
       {/* Histórico */}
-      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5">
+      <div className="rounded-2xl border border-border bg-card/60 p-4 sm:p-5">
         <h2 className="text-base font-semibold text-foreground mb-4">Histórico de custos</h2>
         {loading ? (
           <div className="text-sm text-muted-foreground py-8 text-center">Carregando…</div>
@@ -413,12 +418,12 @@ const Costs = () => {
       {/* Modal */}
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/90 md:bg-background/80 md:backdrop-blur-sm md:animate-fade-in"
           onClick={() => !saving && setOpen(false)}
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md rounded-2xl border border-border bg-card shadow-2xl relative overflow-hidden"
+             className="w-full max-w-md max-h-[calc(100vh-2rem)] overflow-y-auto rounded-2xl border border-border bg-card shadow-lg md:shadow-2xl relative"
           >
             <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
             <div className="p-5">
@@ -506,7 +511,7 @@ const Costs = () => {
                 <button
                   onClick={handleAdd}
                   disabled={saving}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-primary/90 to-primary text-primary-foreground font-semibold text-sm hover:shadow-[0_0_30px_hsl(var(--primary)/0.3)] transition-all disabled:opacity-60 inline-flex items-center justify-center gap-2"
+                  className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm transition-colors disabled:opacity-60 inline-flex items-center justify-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
                   {saving ? 'Salvando…' : 'Adicionar custo'}
@@ -521,8 +526,8 @@ const Costs = () => {
 };
 
 const KpiCard = ({ label, value, hint, icon: Icon }: { label: string; value: string; hint?: string; icon: any }) => (
-  <div className="rounded-2xl border border-border bg-gradient-to-br from-card to-secondary/40 p-5 relative overflow-hidden">
-    <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-primary/5 blur-2xl pointer-events-none" />
+  <div className="rounded-2xl border border-border bg-card/60 p-5 relative overflow-hidden">
+    <div className="hidden md:block absolute -top-8 -right-8 w-32 h-32 rounded-full bg-primary/5 blur-2xl pointer-events-none" />
     <div className="relative flex items-start justify-between">
       <div>
         <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">{label}</div>

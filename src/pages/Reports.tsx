@@ -1,19 +1,27 @@
 import { KPICard } from "@/components/dashboard/KPICard";
 import { TasksHero, type HeroKpi } from "@/components/heroes/TasksHero";
-import { TrendingUp, CheckCircle, AlertTriangle, Clock, Users, Trophy } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
+import { Clock, Users, Trophy } from "lucide-react";
 
 import { useFirestoreData } from "../hooks/useFirestoreData";
 import { useLocalStorage } from "../hooks/useLocalStorage";
-import { OperationMeta } from "./Tasks";
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { PeriodFilter, DateFilter, buildDateFilter, isInRange } from "@/components/ui/period-filter";
+import { useIsMobile } from "../hooks/use-mobile";
+
+const ReportsCharts = lazy(() => import("@/components/reports/ReportsCharts"));
 
 const Reports = () => {
   const { metas, users } = useFirestoreData();
   const [user] = useLocalStorage<any>('nytzer-user', null);
   const activeOperator = user?.username || 'admin';
   const role = user?.role || 'ADMIN';
+  const isMobile = useIsMobile();
+
+  const userByUsername = useMemo(() => {
+    const map = new Map<string, any>();
+    users.forEach((u: any) => map.set(u.username, u));
+    return map;
+  }, [users]);
 
   const [dateFilter, setDateFilter] = useState<DateFilter>(
     buildDateFilter('MES')
@@ -62,7 +70,7 @@ const Reports = () => {
       let isVisible = false;
       if (role === 'ADMIN') {
         isVisible = meta.operador === activeOperator ||
-                    (users.find(u => u.username === meta.operador)?.affiliatedTo === activeOperator) ||
+                    (userByUsername.get(meta.operador)?.affiliatedTo === activeOperator) ||
                     (!meta.operador && activeOperator === 'wiseman');
       } else {
         isVisible = meta.operador === activeOperator;
@@ -161,7 +169,7 @@ const Reports = () => {
     });
 
     const opPerf = Object.values(opMap).map(op => {
-      const userRecord = users.find(u => u.username === op.name);
+      const userRecord = userByUsername.get(op.name);
       const displayName = userRecord?.displayName || op.name;
       const avatar = displayName.substring(0, 2).toUpperCase();
       let status = 'Treinamento';
@@ -205,7 +213,7 @@ const Reports = () => {
       },
       weeklyData: wData,
     };
-  }, [metas, users, role, activeOperator, dateFilter]);
+  }, [metas, users, role, activeOperator, dateFilter, userByUsername]);
 
   return (
   <div className="space-y-6 relative z-10">
@@ -230,53 +238,35 @@ const Reports = () => {
       <KPICard title="Tempo Parado" value="0.0h" change="N/D" changeType="neutral" icon={Clock} color="warning" />
     </div>
 
-    <div data-tour="reports-charts" className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-4">
-      <div className="glass-card rounded-2xl p-6 border-primary/10 relative overflow-hidden group">
-        <h3 className="text-base font-bold text-foreground mb-1">Volume de Contas Semanal</h3>
-        <p className="text-xs text-muted-foreground mb-6">Acompanhamento histórico da capacidade de produção operacional.</p>
-        <ResponsiveContainer width="100%" height={260}>
-          <BarChart data={weeklyData} margin={{ left: -20, right: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
-            <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
-            <Tooltip 
-              cursor={{ fill: 'hsl(var(--primary)/0.05)' }}
-              contentStyle={{ background: "rgba(10, 10, 10, 0.9)", backdropFilter: "blur(12px)", border: "1px solid hsl(var(--primary)/0.2)", borderRadius: 12 }} 
-              itemStyle={{ color: "hsl(var(--foreground))", fontSize: '13px', fontWeight: 'bold' }}
-            />
-            <Bar dataKey="contas" name="Contas Totais" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} maxBarSize={40} />
-          </BarChart>
-        </ResponsiveContainer>
+    {isMobile ? (
+      <div data-tour="reports-charts" className="rounded-2xl border border-border bg-card/60 p-4 mt-4">
+        <h3 className="text-base font-bold text-foreground mb-3">Resumo semanal</h3>
+        <div className="space-y-2">
+          {weeklyData.map((week) => (
+            <div key={week.name} className="flex items-center justify-between gap-3 rounded-xl border border-border/50 bg-background/30 px-3 py-2.5">
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-foreground truncate">{week.name}</p>
+                <p className="text-[10px] text-muted-foreground">{week.diasOperados} dia{week.diasOperados !== 1 ? 's' : ''} operado{week.diasOperados !== 1 ? 's' : ''}</p>
+              </div>
+              <div className="text-right shrink-0">
+                <p className="text-sm font-black tabular-nums text-primary">{week.contas}</p>
+                <p className={`text-[10px] font-bold tabular-nums ${week.lucro >= 0 ? 'text-success' : 'text-destructive'}`}>
+                  {week.lucro >= 0 ? '+' : ''}R$ {week.lucro.toFixed(2).replace('.', ',')}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
-
-      <div className="glass-card rounded-2xl p-6 border-primary/10 relative overflow-hidden">
-        <h3 className="text-base font-bold text-foreground mb-1">Lucratividade e Presença</h3>
-        <p className="text-xs text-muted-foreground mb-6">Relação entre o lucro gerado e o número de dias operados semanalmente.</p>
-        <ResponsiveContainer width="100%" height={260}>
-          <LineChart data={weeklyData} margin={{ left: -20, right: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
-            <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis yAxisId="left" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis yAxisId="right" orientation="right" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
-            <Tooltip 
-              contentStyle={{ background: "rgba(10, 10, 10, 0.9)", backdropFilter: "blur(12px)", border: "1px solid hsl(var(--primary)/0.2)", borderRadius: 12 }} 
-              itemStyle={{ color: "hsl(var(--foreground))", fontSize: '13px', fontWeight: 'bold' }}
-              formatter={(value: any, name: string) => {
-                 if (name === "Lucro Gerado") return `R$ ${Number(value).toFixed(2)}`;
-                 if (name === "Dias Operados") return `${value} dias`;
-                 return value;
-              }}
-            />
-            <Line yAxisId="left" type="monotone" name="Lucro Gerado" dataKey="lucro" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 4, fill: "hsl(var(--primary))" }} />
-            <Line yAxisId="right" type="monotone" name="Dias Operados" dataKey="diasOperados" stroke="hsl(var(--warning))" strokeWidth={2} dot={true} />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
+    ) : (
+      <Suspense fallback={<div className="rounded-2xl border border-border bg-card/60 p-6 mt-4 text-sm text-muted-foreground">Carregando gráficos…</div>}>
+        <ReportsCharts weeklyData={weeklyData} />
+      </Suspense>
+    )}
 
     {/* Operator Performance Ranking */}
-    <div data-tour="reports-ranking" className="glass-card rounded-2xl p-6 border-primary/20 mt-6 bg-card/60 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10 pointer-events-none" />
+    <div data-tour="reports-ranking" className="glass-card rounded-2xl p-4 sm:p-6 border-primary/20 mt-6 bg-card/60 relative overflow-hidden">
+      <div className="hidden md:block absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10 pointer-events-none" />
       
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
         <div className="flex items-center gap-3">
@@ -294,65 +284,59 @@ const Reports = () => {
         </div>
       </div>
 
-      <div className="overflow-x-auto w-full">
-        <table className="w-full text-sm text-left whitespace-nowrap">
-          <thead className="text-[10px] text-muted-foreground uppercase tracking-widest bg-black/20 border-b border-border">
-            <tr>
-              <th className="px-5 py-4 font-semibold text-center w-16">Rank</th>
-              <th className="px-5 py-4 font-semibold">Colaborador</th>
-              <th className="px-5 py-4 font-semibold text-center border-l border-border/30">Contas Totais</th>
-              <th className="px-5 py-4 font-semibold text-center">Lucro Gerado</th>
-              <th className="px-5 py-4 font-semibold text-center">Dias Operados</th>
-              <th className="px-5 py-4 font-semibold text-right">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {operatorPerformance.map((op, i) => (
-              <tr key={i} className="border-b border-border/10 hover:bg-white/[0.02] transition-colors last:border-0 group">
-                <td className="px-5 py-4 text-center">
-                  <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${
-                    i === 0 ? 'bg-yellow-500/20 text-yellow-500 ring-1 ring-yellow-500/30' : 
-                    i === 1 ? 'bg-slate-300/20 text-slate-300 ring-1 ring-slate-300/30' : 
-                    i === 2 ? 'bg-warning/20 text-warning ring-1 ring-warning/30' : 
-                    'bg-muted/50 text-muted-foreground'
-                  }`}>
-                    {op.rank}
-                  </span>
-                </td>
-                <td className="px-5 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold border border-primary/20 shadow-inner group-hover:scale-105 transition-transform">
-                      {op.avatar}
-                    </div>
-                    <span className="font-semibold text-foreground">{op.name}</span>
-                  </div>
-                </td>
-                <td className="px-5 py-4 text-center border-l border-border/20">
-                  <span className="text-primary font-bold tabular-nums">{op.contas}</span>
-                </td>
-                <td className="px-5 py-4 text-center">
-                  <span className={`font-semibold tabular-nums ${op.lucro >= 0 ? 'text-success' : 'text-destructive'}`}>
+      {isMobile ? (
+        <div className="space-y-2">
+          {operatorPerformance.map((op) => (
+            <div key={op.name} className="rounded-xl border border-border/50 bg-background/30 p-3">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold bg-muted/50 text-muted-foreground shrink-0">
+                  {op.rank}
+                </span>
+                <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold border border-primary/20 shrink-0">
+                  {op.avatar}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-foreground truncate">{op.name}</p>
+                  <p className="text-[10px] text-muted-foreground">{op.status}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-sm font-bold tabular-nums text-primary">{op.contas}</p>
+                  <p className={`text-[10px] font-semibold tabular-nums ${op.lucro >= 0 ? 'text-success' : 'text-destructive'}`}>
                     {op.lucro >= 0 ? '+' : ''}R$ {op.lucro.toFixed(2).replace('.', ',')}
-                  </span>
-                </td>
-                <td className="px-5 py-4 text-center">
-                  <span className="text-muted-foreground font-medium tabular-nums">{op.diasOperados} d</span>
-                </td>
-                <td className="px-5 py-4 text-right">
-                  <span className={`inline-flex text-[10px] px-2.5 py-1 rounded bg-card/80 border font-bold uppercase tracking-wider ${
-                    op.status === 'Em Alta' ? 'text-primary border-primary/30' : 
-                    op.status === 'Consistente' ? 'text-blue-400 border-blue-500/30' : 
-                    op.status === 'Estável' ? 'text-primary/80 border-primary/30' :
-                    'text-warning border-warning/30'
-                  }`}>
-                    {op.status}
-                  </span>
-                </td>
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-sm text-left whitespace-nowrap">
+            <thead className="text-[10px] text-muted-foreground uppercase tracking-widest bg-muted/20 border-b border-border">
+              <tr>
+                <th className="px-5 py-4 font-semibold text-center w-16">Rank</th>
+                <th className="px-5 py-4 font-semibold">Colaborador</th>
+                <th className="px-5 py-4 font-semibold text-center border-l border-border/30">Contas Totais</th>
+                <th className="px-5 py-4 font-semibold text-center">Lucro Gerado</th>
+                <th className="px-5 py-4 font-semibold text-center">Dias Operados</th>
+                <th className="px-5 py-4 font-semibold text-right">Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {operatorPerformance.map((op, i) => (
+                <tr key={i} className="border-b border-border/10 hover:bg-muted/20 transition-colors last:border-0 group">
+                  <td className="px-5 py-4 text-center"><span className="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold bg-muted/50 text-muted-foreground">{op.rank}</span></td>
+                  <td className="px-5 py-4"><div className="flex items-center gap-3"><div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold border border-primary/20">{op.avatar}</div><span className="font-semibold text-foreground">{op.name}</span></div></td>
+                  <td className="px-5 py-4 text-center border-l border-border/20"><span className="text-primary font-bold tabular-nums">{op.contas}</span></td>
+                  <td className="px-5 py-4 text-center"><span className={`font-semibold tabular-nums ${op.lucro >= 0 ? 'text-success' : 'text-destructive'}`}>{op.lucro >= 0 ? '+' : ''}R$ {op.lucro.toFixed(2).replace('.', ',')}</span></td>
+                  <td className="px-5 py-4 text-center"><span className="text-muted-foreground font-medium tabular-nums">{op.diasOperados} d</span></td>
+                  <td className="px-5 py-4 text-right"><span className="inline-flex text-[10px] px-2.5 py-1 rounded bg-card/80 border border-border font-bold uppercase tracking-wider text-muted-foreground">{op.status}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   </div>
   );
