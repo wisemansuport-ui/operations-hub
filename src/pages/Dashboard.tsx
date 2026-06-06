@@ -159,6 +159,8 @@ const Dashboard = () => {
     let totalSalarios = 0;
     let totalAutoSalarios = 0;
     let metasFechadas = 0;
+    let metasFechadasInPeriod = 0;
+    let metasAtivasInPeriod = 0;
     let contasProcessadas = 0;
     let contasNormais = 0;
     let contasBaixas = 0;
@@ -167,6 +169,7 @@ const Dashboard = () => {
 
     let metasAtivas = 0;
     let totalMetas = 0;
+
 
     // ----- SINGLE SOURCE OF TRUTH -----
     // For every fechada meta: calculate totals from ALL remessas (for chart),
