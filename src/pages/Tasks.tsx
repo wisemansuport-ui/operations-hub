@@ -1289,7 +1289,7 @@ const Tasks = () => {
   return (
     <div className="space-y-6 animate-fade-in relative z-10 w-full pb-12">
       {/* Header Tabs */}
-      <div className="flex bg-muted/20 border border-border/50 rounded-lg p-1.5 overflow-x-auto hide-scrollbar w-fit">
+      <div data-tour="tasks-tabs" className="flex bg-muted/20 border border-border/50 rounded-lg p-1.5 overflow-x-auto hide-scrollbar w-fit">
         {['Visao geral', 'Minha operacao', 'Metas & Fechamento', 'Lixeira'].map(tab => (
            <button
              key={tab}
@@ -1364,7 +1364,7 @@ const Tasks = () => {
       )}
 
       {displayList.length === 0 ? (
-        <div className="mt-6 relative overflow-hidden rounded-3xl border border-border/40 bg-gradient-to-br from-card/60 via-card/30 to-transparent backdrop-blur-2xl">
+        <div data-tour="tasks-meta-entry" className="mt-6 relative overflow-hidden rounded-3xl border border-border/40 bg-gradient-to-br from-card/60 via-card/30 to-transparent backdrop-blur-2xl">
           <div className="absolute -top-32 -right-32 w-80 h-80 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
           <div className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
           <div
@@ -1433,7 +1433,7 @@ const Tasks = () => {
           </div>
         </div>
       ) : (
-        <div className="mt-4 space-y-3">
+        <div data-tour="tasks-meta-entry" className="mt-4 space-y-3">
           {paginatedList.map(meta => {
             const rem = meta.remessas || [];
             const lucroBruto = rem.reduce((acc, r) => acc + (r.saque - r.deposito), 0);

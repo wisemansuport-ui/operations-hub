@@ -518,7 +518,7 @@ export default function Goals() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Mission launcher */}
-        <div className="lg:col-span-4">
+        <div data-tour="goals-launcher" className="lg:col-span-4">
           <div className="surface-2 hairline-gold rounded-2xl p-6 sticky top-6">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
@@ -584,7 +584,7 @@ export default function Goals() {
         </div>
 
         {/* Mission list */}
-        <div className="lg:col-span-8 space-y-4">
+        <div data-tour="goals-forecast" className="lg:col-span-8 space-y-4">
           {goalsWithProgress.length === 0 && (
             <div className="rounded-3xl border border-dashed border-border bg-card/30 p-16 text-center flex flex-col items-center">
               <div className="w-16 h-16 rounded-full bg-muted/20 flex items-center justify-center mb-4">

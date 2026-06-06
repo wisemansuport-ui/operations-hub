@@ -221,7 +221,7 @@ const Reports = () => {
       <KPICard title="Tempo Parado" value="0.0h" change="N/D" changeType="neutral" icon={Clock} color="warning" />
     </div>
 
-    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-4">
+    <div data-tour="reports-charts" className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-4">
       <div className="glass-card rounded-2xl p-6 border-primary/10 relative overflow-hidden group">
         <h3 className="text-base font-bold text-foreground mb-1">Volume de Contas Semanal</h3>
         <p className="text-xs text-muted-foreground mb-6">Acompanhamento histórico da capacidade de produção operacional.</p>
@@ -266,7 +266,7 @@ const Reports = () => {
     </div>
 
     {/* Operator Performance Ranking */}
-    <div className="glass-card rounded-2xl p-6 border-primary/20 mt-6 bg-card/60 relative overflow-hidden">
+    <div data-tour="reports-ranking" className="glass-card rounded-2xl p-6 border-primary/20 mt-6 bg-card/60 relative overflow-hidden">
       <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10 pointer-events-none" />
       
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
