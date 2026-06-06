@@ -42,13 +42,11 @@ export const AppSidebar = () => {
         }`}
       >
         <div className="flex items-center gap-2.5 px-4 h-14 border-b border-sidebar-border shrink-0">
-          <div className="w-9 h-9 rounded-[10px] bg-black overflow-hidden shrink-0 flex items-center justify-center">
-            <img
-              src="/web-app-manifest-512x512.png"
-              alt="NytzerVision"
-              className="w-[112%] h-[112%] object-cover block"
-            />
-          </div>
+          <img
+            src="/sidebar-logo.png"
+            alt="NytzerVision"
+            className="w-9 h-9 rounded-[10px] object-cover shrink-0 block"
+          />
           {!collapsed && (
             <span className="text-base font-semibold tracking-[-0.02em] text-foreground leading-none">
               <span className="font-light">Nytzer</span><span className="font-extrabold gradient-gold-text">Vision</span>
