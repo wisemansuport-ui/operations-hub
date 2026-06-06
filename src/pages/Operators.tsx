@@ -548,7 +548,7 @@ const Operators = () => {
               eyebrow="Folha · Pagamentos"
               title="Folha da equipe"
               description="Quanto foi pago, quanto ainda está pendente e o impacto no líquido."
-              pulseDotClass={folhaPendente > 0 ? 'bg-destructive' : 'bg-success'}
+              pulseDotClass={folhaPendente > 0 ? 'bg-destructive' : 'bg-primary'}
               progressLabel="Folha quitada"
               progressValue={pctPaga}
               kpis={[
