@@ -1330,15 +1330,73 @@ const Tasks = () => {
           return acc + bruto + sal - auto;
         }, 0);
 
+        const fmtBRL = (v: number) => `R$ ${v.toFixed(2).replace('.', ',')}`;
+        const pad2 = (n: number) => (n < 10 ? `0${n}` : String(n));
+
+        if (activeTab === 'Visao geral') {
+          return (
+            <TasksHero
+              eyebrow="Visão geral · Operacional"
+              title="Planilhas"
+              description="Panorama tático das suas metas. Acompanhe progresso, fechamentos e lucro consolidado em um só lugar."
+              progressLabel="Progresso médio"
+              progressValue={progressoMedio}
+              kpis={[
+                { label: 'Total de metas', value: String(visibleMetas.length) },
+                { label: 'Abertas', value: pad2(listActive.length) },
+                { label: 'Fechadas', value: String(listFechadas.length) },
+                { label: 'Lucro consolidado', value: fmtBRL(lucroConsolidado), accent: true, tone: lucroConsolidado >= 0 ? 'success' : 'destructive' },
+              ]}
+            />
+          );
+        }
+
+        if (activeTab === 'Minha operacao') {
+          return (
+            <TasksHero
+              eyebrow="Minha operação · Tempo real"
+              title="Operação ativa"
+              pulseDotClass="bg-success"
+              description="Crie metas, registre remessas e analise cada movimento em tempo real. Tudo o que está rodando agora aparece aqui."
+              progressLabel="Progresso médio"
+              progressValue={progressoMedio}
+              kpis={[
+                { label: 'Metas ativas', value: pad2(listActive.length), accent: true },
+                { label: 'Total criadas', value: String(visibleMetas.length) },
+                { label: 'Fechadas', value: String(listFechadas.length), tone: 'muted' },
+              ]}
+            />
+          );
+        }
+
+        if (activeTab === 'Metas & Fechamento') {
+          return (
+            <TasksHero
+              eyebrow="Metas & Fechamento · Arquivo"
+              title="Fechamentos"
+              pulseDotClass="bg-primary"
+              description="Arquivo de todas as metas finalizadas. Consulte o histórico e o lucro consolidado de cada ciclo encerrado."
+              kpis={[
+                { label: 'Metas fechadas', value: String(listFechadas.length), accent: true },
+                { label: 'Lucro consolidado', value: fmtBRL(lucroConsolidado), tone: lucroConsolidado >= 0 ? 'success' : 'destructive' },
+                { label: 'Total criadas', value: String(visibleMetas.length), tone: 'muted' },
+              ]}
+            />
+          );
+        }
+
+        // Lixeira
         return (
           <TasksHero
-            totalMetas={visibleMetas.length}
-            abertas={listActive.length}
-            fechadas={listFechadas.length}
-            progressoMedio={progressoMedio}
-            resultadoLabel="Lucro consolidado (fechadas)"
-            resultadoValue={`R$ ${lucroConsolidado.toFixed(2).replace('.', ',')}`}
-            resultadoPositive={lucroConsolidado >= 0}
+            eyebrow="Lixeira · Itens removidos"
+            title="Lixeira"
+            pulseDotClass="bg-destructive"
+            description="Metas descartadas ficam guardadas aqui antes de serem apagadas em definitivo. Restaure ou limpe quando quiser."
+            kpis={[
+              { label: 'Na lixeira', value: String(listLixeira.length), accent: true, tone: 'destructive' },
+              { label: 'Ativas', value: pad2(listActive.length), tone: 'muted' },
+              { label: 'Fechadas', value: String(listFechadas.length), tone: 'muted' },
+            ]}
           />
         );
       })()}
