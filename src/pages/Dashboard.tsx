@@ -575,7 +575,7 @@ const Dashboard = () => {
 
         {/* Gráfico + IA Motivacional */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 rounded-2xl border border-border bg-card/60 backdrop-blur p-5">
+          <div data-tour="operator-chart" className="lg:col-span-2 rounded-2xl border border-border bg-card/60 backdrop-blur p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-base font-semibold text-foreground">Evolução do Faturamento</h3>
