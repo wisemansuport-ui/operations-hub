@@ -215,7 +215,7 @@ export default function Subscription() {
         <p className="text-sm text-muted-foreground mt-2">Comece solo ou com a sua equipe e economize até 25% com descontos progressivos.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div data-tour="subscription-plans" className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Solo */}
         <button
           type="button"
@@ -389,7 +389,7 @@ export default function Subscription() {
       )}
 
       {/* Summary */}
-      <div className="surface-2 hairline-gold rounded-2xl p-6">
+      <div data-tour="subscription-summary" className="surface-2 hairline-gold rounded-2xl p-6">
         <div className="space-y-2.5 text-sm">
           <div className="flex items-center justify-between">
             <span className="text-foreground/85">Plano {selectedPlan === 'team' ? 'Admin + Operadores' : 'Admin Solo'}</span>

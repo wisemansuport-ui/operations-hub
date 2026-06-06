@@ -201,7 +201,7 @@ const Costs = () => {
         registros={filteredCosts.length}
         topCategory={porTipo[0] && porTipo[0].value > 0 ? { label: porTipo[0].label, value: formatBRL(porTipo[0].value) } : undefined}
       />
-      <div className="flex items-center justify-end gap-3 flex-wrap">
+      <div data-tour="costs-center" className="flex items-center justify-end gap-3 flex-wrap">
         <PeriodFilter value={dateFilter} onChange={setDateFilter} />
         <button
           onClick={() => setOpen(true)}
@@ -265,7 +265,7 @@ const Costs = () => {
       </div>
 
       {/* Custos por tipo */}
-      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5">
+      <div data-tour="costs-leaks" className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5">
         <h2 className="text-base font-semibold text-foreground mb-4">Custos por tipo</h2>
         <div className="space-y-3">
           {porTipo.map(({ key, label, icon: Icon, value }) => {

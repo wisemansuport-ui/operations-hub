@@ -34,11 +34,13 @@ export const TOURS: Record<string, TourDefinition> = {
       },
       {
         route: '/networks',
+        selector: '[data-tour="networks-ranking"]',
         title: 'Cadastre suas redes',
         description: 'Comece adicionando as redes onde você opera. Tudo no Nytzer Vision se organiza ao redor delas.',
       },
       {
         route: '/operators',
+        selector: '[data-tour="operators-invite"]',
         title: 'Adicione operadores',
         description: 'Vincule operadores às redes e acompanhe individualmente desempenho, salário e logs em tempo real.',
       },
@@ -50,16 +52,19 @@ export const TOURS: Record<string, TourDefinition> = {
     steps: [
       {
         route: '/tasks',
+        selector: '[data-tour="tasks-tabs"]',
         title: 'Central de Metas',
         description: 'Aqui você cria, acompanha e fecha cada operação. Cada meta concentra remessas, depósitos, saques e contas.',
       },
       {
         route: '/tasks',
+        selector: '[data-tour="tasks-meta-entry"]',
         title: 'Registre remessas',
         description: 'Dentro de cada meta, lance remessas com depósitos, saques e quantidade de contas — o lucro é calculado automaticamente.',
       },
       {
         route: '/reports',
+        selector: '[data-tour="reports-ranking"]',
         title: 'Veja o resultado',
         description: 'Tudo que você registra aparece consolidado em Relatórios — sem precisar somar planilha nenhuma.',
       },
@@ -71,16 +76,19 @@ export const TOURS: Record<string, TourDefinition> = {
     steps: [
       {
         route: '/networks',
+        selector: '[data-tour="networks-heatmap"]',
         title: 'Estrutura de redes',
         description: 'Cadastre, edite e organize as redes que sua operação utiliza. Use modelos próprios ou padrão.',
       },
       {
         route: '/operators',
+        selector: '[data-tour="operators-invite"]',
         title: 'Hierarquia de operadores',
         description: 'Crie operadores com acesso individual, definindo salário, comissão e regras de pagamento.',
       },
       {
         route: '/operators',
+        selector: '[data-tour="operators-leaderboard"]',
         title: 'Log de atividade',
         description: 'Acompanhe sessão, ações e desempenho de cada operador — controle total sem precisar perguntar.',
       },
@@ -92,11 +100,13 @@ export const TOURS: Record<string, TourDefinition> = {
     steps: [
       {
         route: '/goals',
+        selector: '[data-tour="goals-launcher"]',
         title: 'Central de Metas',
         description: 'Crie missões mensais ou contínuas com alvo financeiro. O sistema acompanha a trajetória em tempo real.',
       },
       {
         route: '/goals',
+        selector: '[data-tour="goals-forecast"]',
         title: 'Previsão IA',
         description: 'Cada missão recebe uma projeção em dias para ser batida, calculada com base no seu ritmo histórico.',
       },
@@ -108,11 +118,13 @@ export const TOURS: Record<string, TourDefinition> = {
     steps: [
       {
         route: '/costs',
+        selector: '[data-tour="costs-center"]',
         title: 'Cost Intelligence Center',
         description: 'Registre custos fixos e variáveis. Tudo entra no cálculo de lucro líquido automaticamente.',
       },
       {
         route: '/costs',
+        selector: '[data-tour="costs-leaks"]',
         title: 'Identifique vazamentos',
         description: 'Distribuição visual e tendências revelam onde o dinheiro está escorrendo para você cortar com precisão.',
       },
@@ -130,6 +142,7 @@ export const TOURS: Record<string, TourDefinition> = {
       },
       {
         route: '/reports',
+        selector: '[data-tour="reports-charts"]',
         title: 'Sinais cruzados',
         description: 'Em Relatórios, o motor cruza receita, custos e produtividade por operador para apontar prioridades.',
       },
@@ -141,11 +154,13 @@ export const TOURS: Record<string, TourDefinition> = {
     steps: [
       {
         route: '/subscription',
+        selector: '[data-tour="subscription-plans"]',
         title: 'Planos disponíveis',
         description: 'Conheça os planos Admin Solo e Admin + Operadores, com descontos progressivos por volume.',
       },
       {
         route: '/subscription',
+        selector: '[data-tour="subscription-summary"]',
         title: 'Ativação automática',
         description: 'O acesso é liberado automaticamente após a confirmação do pagamento — sem comprovante manual.',
       },

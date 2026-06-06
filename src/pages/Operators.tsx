@@ -473,6 +473,7 @@ const Operators = () => {
       />
       <div className="flex justify-end -mt-2">
         <button
+          data-tour="operators-invite"
           onClick={handleCopyLink}
           className="group inline-flex items-center gap-2 bg-foreground/[0.04] hover:bg-foreground/[0.08] text-foreground border border-border/60 hover:border-primary/40 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all"
         >
@@ -677,7 +678,7 @@ const Operators = () => {
                   </span>
                 </div>
 
-                <div className="rounded-2xl border border-border/50 bg-card/20 overflow-hidden">
+                <div data-tour="operators-leaderboard" className="rounded-2xl border border-border/50 bg-card/20 overflow-hidden">
                   {/* Header columns — desktop only */}
                   <div className="hidden lg:grid grid-cols-[60px_1fr_100px_100px_120px_180px] gap-4 px-5 py-3 border-b border-border/40 bg-background/30">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">#</span>
@@ -787,7 +788,7 @@ const Operators = () => {
 
       {/* EQUIPE */}
       {activeTab === 'Equipe' && (
-        <div className="animate-fade-in space-y-5">
+        <div data-tour="operators-team" className="animate-fade-in space-y-5">
           <div>
             <h2 className="text-base font-bold text-foreground tracking-tight">Membros da equipe</h2>
             <p className="text-xs text-muted-foreground mt-0.5">{affiliatedUsers.length} operador(es) vinculado(s).</p>
