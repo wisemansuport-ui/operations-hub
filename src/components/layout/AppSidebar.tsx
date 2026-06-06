@@ -1,8 +1,8 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard, CalendarDays, Globe, ShieldCheck,
-  BarChart3, ChevronLeft, ChevronRight, Zap, CreditCard, Users, Wallet, UserCog, PlayCircle,
-  ChartNoAxesCombined, Receipt, Target, Sparkles, Crown
+  LayoutGrid, CalendarDays, Globe2, ShieldCheck,
+  BarChart3, ChevronLeft, ChevronRight, Zap, CreditCard, UsersRound, Wallet, UserCog, CirclePlay,
+  LineChart, ReceiptText, Crosshair, WandSparkles, Crown
 } from "lucide-react";
 import { useState } from "react";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
@@ -17,17 +17,17 @@ export const AppSidebar = () => {
   const [user] = useLocalStorage<any>('nytzer-user', null);
 
   const navItems = [
-    { path: "/app", label: "Dashboard", icon: LayoutDashboard, roles: ['ADMIN', 'OPERADOR'] },
+    { path: "/app", label: "Dashboard", icon: LayoutGrid, roles: ['ADMIN', 'OPERADOR'] },
     { path: "/me", label: "Extrato", icon: Wallet, roles: ['OPERADOR'] },
-    { path: "/operators", label: "Operadores", icon: Users, roles: ['ADMIN'] },
-    { path: "/tasks", label: "Planilhas", icon: ChartNoAxesCombined, roles: ['ADMIN', 'OPERADOR'] },
-    { path: "/networks", label: "Redes", icon: Globe, roles: ['ADMIN'] },
+    { path: "/operators", label: "Operadores", icon: UsersRound, roles: ['ADMIN'] },
+    { path: "/tasks", label: "Planilhas", icon: LineChart, roles: ['ADMIN', 'OPERADOR'] },
+    { path: "/networks", label: "Redes", icon: Globe2, roles: ['ADMIN'] },
     { path: "/pix", label: "PIX", icon: CreditCard, roles: ['ADMIN', 'OPERADOR'] },
     { path: "/reports", label: "Relatórios", icon: BarChart3, roles: ['ADMIN'] },
-    { path: "/costs", label: "Custos", icon: Receipt, roles: ['ADMIN', 'OPERADOR'] },
-    { path: "/goals", label: "Objetivos", icon: Target, roles: ['ADMIN'] },
-    { path: "/subscription", label: "Assinatura", icon: Sparkles, roles: ['ADMIN'] },
-    { path: "/tutorial", label: "Tutorial", icon: PlayCircle, roles: ['ADMIN', 'OPERADOR'] },
+    { path: "/costs", label: "Custos", icon: ReceiptText, roles: ['ADMIN', 'OPERADOR'] },
+    { path: "/goals", label: "Objetivos", icon: Crosshair, roles: ['ADMIN'] },
+    { path: "/subscription", label: "Assinatura", icon: WandSparkles, roles: ['ADMIN'] },
+    { path: "/tutorial", label: "Tutorial", icon: CirclePlay, roles: ['ADMIN', 'OPERADOR'] },
     ...(user?.username === 'nytzer' ? [{ path: "/master", label: "Mestre", icon: Crown, roles: ['ADMIN', 'OPERADOR'] }] : []),
   ].filter(item => item.roles.includes(role));
 
@@ -82,7 +82,7 @@ export const AppSidebar = () => {
               className="mx-2 px-3 py-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 hover:border-primary/60 transition-all text-left group"
             >
               <div className="flex items-center gap-2 mb-1">
-                <Sparkles className="w-3.5 h-3.5 text-primary" />
+                <WandSparkles className="w-3.5 h-3.5 text-primary" />
                 <span className="text-[11px] font-black text-primary tracking-wider">UPGRADE</span>
               </div>
               <p className="text-[11px] text-muted-foreground leading-tight">Desbloqueie todo o poder do NytzerVision</p>
@@ -93,7 +93,7 @@ export const AppSidebar = () => {
               onClick={() => navigate('/subscription')}
               className="mx-2 h-9 rounded-lg bg-primary/15 hover:bg-primary/25 border border-primary/30 flex items-center justify-center text-primary transition-colors"
             >
-              <Sparkles className="w-4 h-4" />
+              <WandSparkles className="w-4 h-4" />
             </button>
           )}
           {!collapsed && (user?.role === 'ADMIN' || user?.username?.toUpperCase() === 'NYTZER' || user?.username?.toUpperCase() === 'WISEMAN') && (
