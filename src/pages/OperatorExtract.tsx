@@ -375,10 +375,29 @@ export default function OperatorExtract() {
         )}
       </div>
 
-      <div>
-        <h3 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
-          <History className="w-4 h-4 text-primary" /> Histórico de Processamento
-        </h3>
+      {/* HERO — Extrato detalhado */}
+      {(() => {
+        const totalOps = extratoData.length;
+        const totalContas = extratoData.reduce((s, e) => s + (Number(e.contas) || 0), 0);
+        const totalValor = extratoData.reduce((s, e) => s + (Number(e.valor) || 0), 0);
+        const finalizadas = extratoData.filter(e => e.status === 'Finalizada').length;
+        return (
+          <TasksHero
+            eyebrow="Extrato · Histórico de processamento"
+            title="Movimentações detalhadas"
+            description="Cada remessa validada pelo controle de qualidade aparece aqui. Filtre por período, plataforma ou rede para auditar caso a caso."
+            pulseDotClass="bg-primary"
+            kpis={[
+              { label: 'Operações', value: String(totalOps) },
+              { label: 'Contas totais', value: totalContas.toLocaleString('pt-BR') },
+              { label: 'Finalizadas', value: `${finalizadas}/${totalOps || 0}`, tone: 'muted' },
+              { label: 'Valor acumulado', value: formatBRL(totalValor), accent: true },
+            ] as HeroKpi[]}
+          />
+        );
+      })()}
+
+      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-1 md:p-2">
         <DataTable
           title="Extrato de Operações"
           subtitle="Registros validados pelo controle de qualidade"
@@ -387,6 +406,7 @@ export default function OperatorExtract() {
           dynamicData={true}
         />
       </div>
+
 
       {/* Histórico de Pagamentos Recebidos */}
       <div className="rounded-2xl border border-border bg-card/60 backdrop-blur overflow-hidden">
