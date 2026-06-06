@@ -42,12 +42,14 @@ export const AppSidebar = () => {
         }`}
       >
         <div className="flex items-center gap-2.5 px-4 h-14 border-b border-sidebar-border shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
-            <Zap className="w-4 h-4 text-primary-foreground" />
-          </div>
+          <img
+            src="/web-app-manifest-512x512.png"
+            alt="NytzerVision"
+            className="w-8 h-8 rounded-lg object-cover shrink-0 shadow-[0_0_12px_hsl(var(--primary)/0.35)]"
+          />
           {!collapsed && (
-            <span className="font-bold text-foreground text-base tracking-tight">
-              Nytzer<span className="text-primary">Vision</span>
+            <span className="text-base font-semibold tracking-[-0.02em] text-foreground leading-none">
+              <span className="font-light">Nytzer</span><span className="font-extrabold gradient-gold-text">Vision</span>
             </span>
           )}
         </div>
