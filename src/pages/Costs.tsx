@@ -51,6 +51,12 @@ const Costs = () => {
   const [user] = useLocalStorage<any>('nytzer-user', null);
   const operatorName = user?.username || 'Operador Central';
 
+  const userByUsername = useMemo(() => {
+    const map = new Map<string, any>();
+    users.forEach((u: any) => map.set(u.username, u));
+    return map;
+  }, [users]);
+
   const [dateFilter, setDateFilter] = useState<DateFilter>(buildDateFilter('MES'));
 
   // modal
@@ -83,14 +89,14 @@ const Costs = () => {
     () => costs.filter(c => {
       if (role === 'ADMIN') {
         if (c.operador === operatorName) return true;
-        const opUser = users.find(u => u.username === c.operador);
+        const opUser = userByUsername.get(c.operador);
         if (opUser && opUser.affiliatedTo === operatorName) return true;
         if (!c.operador && operatorName === 'wiseman') return true;
         return false;
       }
       return c.operador === operatorName;
     }),
-    [costs, operatorName, role, users]
+    [costs, operatorName, role, userByUsername]
   );
 
   const filteredCosts = useMemo(() => {

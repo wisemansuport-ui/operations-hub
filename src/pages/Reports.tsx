@@ -1,10 +1,9 @@
 import { KPICard } from "@/components/dashboard/KPICard";
 import { TasksHero, type HeroKpi } from "@/components/heroes/TasksHero";
-import { TrendingUp, CheckCircle, AlertTriangle, Clock, Users, Trophy } from "lucide-react";
+import { Clock, Users, Trophy } from "lucide-react";
 
 import { useFirestoreData } from "../hooks/useFirestoreData";
 import { useLocalStorage } from "../hooks/useLocalStorage";
-import { OperationMeta } from "./Tasks";
 import { lazy, Suspense, useMemo, useState } from "react";
 import { PeriodFilter, DateFilter, buildDateFilter, isInRange } from "@/components/ui/period-filter";
 import { useIsMobile } from "../hooks/use-mobile";
@@ -17,6 +16,12 @@ const Reports = () => {
   const activeOperator = user?.username || 'admin';
   const role = user?.role || 'ADMIN';
   const isMobile = useIsMobile();
+
+  const userByUsername = useMemo(() => {
+    const map = new Map<string, any>();
+    users.forEach((u: any) => map.set(u.username, u));
+    return map;
+  }, [users]);
 
   const [dateFilter, setDateFilter] = useState<DateFilter>(
     buildDateFilter('MES')
@@ -65,7 +70,7 @@ const Reports = () => {
       let isVisible = false;
       if (role === 'ADMIN') {
         isVisible = meta.operador === activeOperator ||
-                    (users.find(u => u.username === meta.operador)?.affiliatedTo === activeOperator) ||
+                    (userByUsername.get(meta.operador)?.affiliatedTo === activeOperator) ||
                     (!meta.operador && activeOperator === 'wiseman');
       } else {
         isVisible = meta.operador === activeOperator;
@@ -164,7 +169,7 @@ const Reports = () => {
     });
 
     const opPerf = Object.values(opMap).map(op => {
-      const userRecord = users.find(u => u.username === op.name);
+      const userRecord = userByUsername.get(op.name);
       const displayName = userRecord?.displayName || op.name;
       const avatar = displayName.substring(0, 2).toUpperCase();
       let status = 'Treinamento';
@@ -208,7 +213,7 @@ const Reports = () => {
       },
       weeklyData: wData,
     };
-  }, [metas, users, role, activeOperator, dateFilter]);
+  }, [metas, users, role, activeOperator, dateFilter, userByUsername]);
 
   return (
   <div className="space-y-6 relative z-10">
