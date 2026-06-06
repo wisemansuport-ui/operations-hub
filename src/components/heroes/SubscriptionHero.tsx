@@ -6,7 +6,7 @@ interface Props {
 }
 
 export const SubscriptionHero = ({ status, expDateLabel }: Props) => {
-  const dotClass = status === "active" ? "bg-success animate-pulse" : status === "trial" ? "bg-primary animate-pulse" : "bg-destructive";
+  const dotClass = status === "active" ? "bg-primary animate-pulse" : status === "trial" ? "bg-primary animate-pulse" : "bg-destructive";
   const statusLabel = status === "active" ? "Acesso liberado" : status === "trial" ? "Trial ativo" : "Acesso bloqueado";
   return (
     <section className="hairline-gold glass-premium rounded-3xl relative overflow-hidden">
