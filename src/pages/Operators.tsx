@@ -19,6 +19,8 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
+import { ChevronRight } from "lucide-react";
+import { OperatorPayrollSheet } from "@/components/operators/OperatorPayrollSheet";
 
 type PeriodKey = '7d' | '30d' | 'mes' | 'intervalo' | 'tudo';
 const PERIODS: { key: PeriodKey; label: string }[] = [
