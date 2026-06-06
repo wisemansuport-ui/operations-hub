@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useSyncedState } from '../hooks/useSyncedState';
-import { CreditCard, RefreshCw, Plus, Upload, Copy, Download, Search, Trash2, CheckCircle, XCircle } from "lucide-react";
+import { RefreshCw, Plus, Upload, Copy, Download, Search, Trash2, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
+import { PixHero } from '../components/heroes/PixHero';
 
 type PixType = 'CPF' | 'PHONE' | 'EMAIL' | 'INVALIDO';
 type PixStatus = 'DISPONIVEL' | 'USADA';
@@ -120,39 +121,35 @@ export default function PixKeys() {
   const getCountType = (type: PixType) => keys.filter(k => k.type === type).length;
   const getCountStatus = (status: PixStatus) => keys.filter(k => k.status === status).length;
 
+  const disponiveis = getCountStatus('DISPONIVEL');
+  const usadas = getCountStatus('USADA');
+  const validas = keys.filter(k => k.type !== 'INVALIDO').length;
+  const taxaSucesso = keys.length > 0 ? (validas / keys.length) * 100 : 0;
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-fade-in relative z-10 w-full text-foreground">
+      <PixHero
+        totalChaves={keys.length}
+        disponiveis={disponiveis}
+        usadas={usadas}
+        taxaSucesso={taxaSucesso}
+        ultimaImportacao={lastImportCount > 0 ? `${lastImportCount} chave(s) processada(s)` : undefined}
+      />
 
-      {/* Header */}
-      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-5 flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-            <CreditCard className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Chaves PIX</h1>
-            <p className="text-sm text-muted-foreground mt-1">Gerenciamento inteligente com classificação sistêmica.</p>
-          </div>
-        </div>
-        <button className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-secondary hover:bg-accent/10 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
-          <RefreshCw className="w-3.5 h-3.5" />
-          Sync
-        </button>
-      </div>
-
-      {/* Stats row */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+      {/* Type distribution */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: 'Total', value: keys.length, tone: 'text-foreground' },
-          { label: 'Disponíveis', value: getCountStatus('DISPONIVEL'), tone: 'text-success' },
-          { label: 'Usadas', value: getCountStatus('USADA'), tone: 'text-warning' },
-          { label: 'Phone', value: getCountType('PHONE'), tone: 'text-success' },
-          { label: 'CPF', value: getCountType('CPF'), tone: 'text-warning' },
-          { label: 'Email', value: getCountType('EMAIL'), tone: 'text-primary' },
+          { label: 'Phone', value: getCountType('PHONE'), tone: 'text-success', icon: '📱' },
+          { label: 'CPF', value: getCountType('CPF'), tone: 'text-warning', icon: '🪪' },
+          { label: 'Email', value: getCountType('EMAIL'), tone: 'text-primary', icon: '✉️' },
+          { label: 'Inválidas', value: getCountType('INVALIDO'), tone: 'text-destructive', icon: '⚠️' },
         ].map((s) => (
-          <div key={s.label} className="rounded-2xl border border-border bg-card/60 backdrop-blur p-4 hover:border-primary/40 transition-colors">
-            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">{s.label}</p>
-            <p className={`text-2xl font-bold tabular-nums tracking-tight ${s.tone}`}>{s.value}</p>
+          <div key={s.label} className="surface-2 hairline-gold rounded-2xl p-4 flex items-center gap-3">
+            <div className="text-2xl">{s.icon}</div>
+            <div>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{s.label}</p>
+              <p className={`text-2xl font-black tabular-nums tracking-tight ${s.tone}`}>{s.value}</p>
+            </div>
           </div>
         ))}
       </div>
