@@ -64,7 +64,7 @@ export const HeroPanel = ({
               </span>
             </div>
 
-            <h1 className="mt-3 text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tight gradient-gold-text tabular-nums leading-none">
+            <h1 className="mt-3 text-4xl md:text-6xl lg:text-7xl font-black tracking-tight gradient-gold-text-hero tabular-nums leading-none">
               {primaryValue}
             </h1>
 
