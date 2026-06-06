@@ -1,9 +1,16 @@
 import React, { useEffect, useRef } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const NetworkParticles: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
+    // Skip the canvas animation entirely on mobile and when the user prefers reduced motion.
+    // The static radial wash still provides the premium feel without burning the CPU/GPU.
+    if (isMobile) return;
+    if (typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -11,6 +18,7 @@ export const NetworkParticles: React.FC = () => {
 
     let particles: Particle[] = [];
     let animationFrameId: number;
+    let running = true;
 
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
@@ -23,7 +31,6 @@ export const NetworkParticles: React.FC = () => {
       constructor() {
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
-        // Slower, more atmospheric drift
         this.vx = (Math.random() - 0.5) * 0.18;
         this.vy = (Math.random() - 0.5) * 0.18;
         this.radius = Math.random() * 1.2 + 0.3;
@@ -45,20 +52,22 @@ export const NetworkParticles: React.FC = () => {
 
     const initParticles = () => {
       particles = [];
-      // Fewer particles for a more refined, premium feel
-      const numberOfParticles = Math.floor((canvas.width * canvas.height) / 22000);
+      const numberOfParticles = Math.floor((canvas.width * canvas.height) / 28000);
       for (let i = 0; i < numberOfParticles; i++) particles.push(new Particle());
     };
 
     const animate = () => {
+      if (!running) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach((p) => { p.update(); p.draw(); });
-      particles.forEach((p1, i) => {
+      for (const p of particles) { p.update(); p.draw(); }
+      for (let i = 0; i < particles.length; i++) {
+        const p1 = particles[i];
         for (let j = i + 1; j < particles.length; j++) {
           const p2 = particles[j];
           const dx = p1.x - p2.x; const dy = p1.y - p2.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          if (distance < 140) {
+          const distSq = dx * dx + dy * dy;
+          if (distSq < 140 * 140) {
+            const distance = Math.sqrt(distSq);
             ctx.beginPath();
             ctx.strokeStyle = `rgba(201, 168, 76, ${0.1 * (1 - distance / 140)})`;
             ctx.lineWidth = 0.5;
@@ -68,18 +77,31 @@ export const NetworkParticles: React.FC = () => {
             ctx.closePath();
           }
         }
-      });
+      }
       animationFrameId = requestAnimationFrame(animate);
     };
 
+    const onVisibility = () => {
+      if (document.hidden) {
+        running = false;
+        cancelAnimationFrame(animationFrameId);
+      } else if (!running) {
+        running = true;
+        animate();
+      }
+    };
+
     window.addEventListener("resize", resizeCanvas);
+    document.addEventListener("visibilitychange", onVisibility);
     resizeCanvas();
     animate();
     return () => {
+      running = false;
       window.removeEventListener("resize", resizeCanvas);
+      document.removeEventListener("visibilitychange", onVisibility);
       cancelAnimationFrame(animationFrameId);
     };
-  }, []);
+  }, [isMobile]);
 
   return (
     <>
@@ -92,11 +114,13 @@ export const NetworkParticles: React.FC = () => {
             "radial-gradient(ellipse 80% 60% at 50% -10%, hsl(44 70% 50% / 0.08), transparent 60%), radial-gradient(ellipse 60% 50% at 100% 100%, hsl(44 70% 50% / 0.05), transparent 60%)",
         }}
       />
-      <canvas
-        ref={canvasRef}
-        className="fixed top-0 left-0 w-full h-full pointer-events-none z-0"
-        style={{ background: "transparent" }}
-      />
+      {!isMobile && (
+        <canvas
+          ref={canvasRef}
+          className="fixed top-0 left-0 w-full h-full pointer-events-none z-0"
+          style={{ background: "transparent" }}
+        />
+      )}
     </>
   );
 };
