@@ -85,6 +85,10 @@ export const GuidedTour = () => {
     if (!step) { setRect(null); return; }
     if (location.pathname !== step.route) { setRect(null); return; }
 
+    window.dispatchEvent(new CustomEvent('nytzer-tour-step', {
+      detail: { tourId: state?.tourId, stepIndex: state?.step, selector: step.selector, route: step.route },
+    }));
+
     let retryTimer = 0;
     let followRaf = 0;
     let stableTimer = 0;
@@ -134,7 +138,7 @@ export const GuidedTour = () => {
         // Use 'instant' when supported to avoid waiting on smooth-scroll
         // animations between steps on the same route.
         try {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+          el.scrollIntoView({ behavior: 'instant' as ScrollBehavior, block: 'center', inline: 'nearest' });
         } catch {
           el.scrollIntoView();
         }
@@ -168,7 +172,7 @@ export const GuidedTour = () => {
       window.removeEventListener('resize', onResize);
       window.removeEventListener('scroll', onResize, true);
     };
-  }, [step, location.pathname]);
+  }, [step, location.pathname, state?.tourId, state?.step]);
 
   const close = useCallback(() => {
     localStorage.removeItem(TOUR_STORAGE_KEY);

@@ -8,7 +8,7 @@ import { Link } from "react-router-dom";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useFirestoreData } from "../hooks/useFirestoreData";
 import { OperationMeta } from "./Tasks";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PeriodFilter, DateFilter, buildDateFilter, isInRange } from "@/components/ui/period-filter";
 import { startOfMonth, endOfMonth } from 'date-fns';
 import { LoadingScreen } from "@/components/LoadingScreen";
@@ -153,6 +153,17 @@ const Dashboard = () => {
     buildDateFilter('MES')
   );
   const [activeTab, setActiveTab] = useState<'financeira' | 'inteligencia'>('financeira');
+
+  useEffect(() => {
+    const syncTourTab = (event: Event) => {
+      const selector = (event as CustomEvent<{ selector?: string }>).detail?.selector;
+      if (selector === '[data-tour="decision-engine"]') setActiveTab('inteligencia');
+      if (selector === '[data-tour="hero-lucro"]') setActiveTab('financeira');
+    };
+
+    window.addEventListener('nytzer-tour-step', syncTourTab);
+    return () => window.removeEventListener('nytzer-tour-step', syncTourTab);
+  }, []);
 
   const stats = useMemo(() => {
     let totalDepositado = 0;
