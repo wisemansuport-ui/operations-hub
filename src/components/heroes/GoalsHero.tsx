@@ -48,7 +48,7 @@ export const GoalsHero = ({ ativas, concluidas, taxaConclusao, lucroGerado, prog
             </span>
           </div>
           <h1 className="text-3xl md:text-5xl font-black tracking-tight gradient-gold-text leading-[1.05]">
-            Central de Comando de Metas
+            Central de Metas
           </h1>
           <p className="text-sm text-muted-foreground/90 mt-3 max-w-md leading-relaxed">
             Lance missões operacionais, monitore trajetória em tempo real e converta dados em conquistas mensuráveis.
