@@ -461,15 +461,23 @@ const Operators = () => {
   return (
     <div className="space-y-6 animate-fade-in max-w-6xl mx-auto pb-16 relative z-10 w-full">
 
-      {/* Performance Arena hero */}
-      <OperatorsHero
-        totalOperators={operatorData.length}
-        totalMetas={totalMetas}
-        totalContas={totalContas}
-        receitaBruta={formatBRL(totalLucroEquipe)}
-        netResult={formatBRL(totalLucroEquipe - folhaTotal - custoTotal)}
-        netPositive={(totalLucroEquipe - folhaTotal - custoTotal) >= 0}
-        topPerformer={operatorData[0] ? { name: operatorData[0].name, initials: operatorData[0].initials, net: formatBRL(operatorData[0].netProfit) } : undefined}
+      {/* Airy linear hero — equipe operacional */}
+      <TasksHero
+        eyebrow="Performance Arena · Tempo Real"
+        title="Equipe operacional"
+        description="Ranking, pódio e folha em tempo real. Onde o resultado define a posição."
+        pulseDotClass="bg-success"
+        progressLabel="Resultado líquido"
+        kpis={[
+          { label: 'Operadores', value: String(operatorData.length), accent: true },
+          { label: 'Metas executadas', value: String(totalMetas) },
+          { label: 'Contas geradas', value: totalContas.toLocaleString('pt-BR') },
+          {
+            label: 'Líquido da equipe',
+            value: formatBRL(totalLucroEquipe - folhaTotal - custoTotal),
+            tone: (totalLucroEquipe - folhaTotal - custoTotal) >= 0 ? 'success' : 'destructive',
+          },
+        ] as HeroKpi[]}
       />
       <div className="flex justify-end -mt-2">
         <button
@@ -482,6 +490,7 @@ const Operators = () => {
           <ArrowUpRight className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all" />
         </button>
       </div>
+
 
       {/* Tabs — minimal underline */}
       <div className="flex items-center gap-1 border-b border-border/40 overflow-x-auto hide-scrollbar">
