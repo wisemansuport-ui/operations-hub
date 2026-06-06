@@ -1,8 +1,8 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard, CalendarDays, Globe, ShieldCheck,
-  BarChart3, ChevronLeft, ChevronRight, Zap, CreditCard, Users, Wallet, UserCog, PlayCircle,
-  ChartNoAxesCombined, Receipt, Target, Sparkles, Crown
+  LayoutGrid, CalendarDays, Globe2, ShieldCheck,
+  BarChart3, ChevronLeft, ChevronRight, Zap, CreditCard, UsersRound, Wallet, UserCog, CirclePlay,
+  LineChart, ReceiptText, Crosshair, WandSparkles, Crown
 } from "lucide-react";
 import { useState } from "react";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
