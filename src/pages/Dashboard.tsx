@@ -607,35 +607,39 @@ const Dashboard = () => {
           Olá, {(user?.fullName || user?.name || user?.username || 'Operador').split(' ')[0]}
         </h1>
       </div>
-      <PeriodFilter value={dateFilter} onChange={setDateFilter} />
+      <div data-tour="period-filter">
+        <PeriodFilter value={dateFilter} onChange={setDateFilter} />
+      </div>
     </div>
 
     {/* LEVEL 1 — Hero Central de Comando */}
-    <HeroPanel
-      status={{ label: "Operação ao vivo", tone: "live" }}
-      primaryLabel="Receita líquida — período"
-      primaryValue={formatBRL(stats.receitaMensal)}
-      primaryDelta={
-        stats.receitaMensal >= 0
-          ? { value: `${heroDeltaPct}% de margem sobre o bruto`, positive: true }
-          : { value: "Margem negativa no período", positive: false }
-      }
-      title="Central de Comando"
-      subtitle="Visão consolidada de toda a operação — entradas, custos e projeção."
-      forecastLabel="Projeção fim do período"
-      forecastValue={formatBRL(heroForecastValue)}
-      aiInsight={
-        insights[0]
-          ? `${insights[0].title}. ${insights[0].description}`
-          : "Sem sinais críticos no momento. Operação dentro dos parâmetros."
-      }
-      trendData={barData.map(d => ({ name: d.name, value: d.lucro }))}
-      sideStats={[
-        { label: "Bruto", value: formatBRL(stats.lucroBruto), tone: stats.lucroBruto >= 0 ? "primary" : "destructive" },
-        { label: "FAT", value: formatBRL(stats.totalSalarios), tone: "success" },
-        { label: "Custos", value: formatBRL(stats.totalCustos), tone: "destructive" },
-      ]}
-    />
+    <div data-tour="hero-lucro">
+      <HeroPanel
+        status={{ label: "Operação ao vivo", tone: "live" }}
+        primaryLabel="Receita líquida — período"
+        primaryValue={formatBRL(stats.receitaMensal)}
+        primaryDelta={
+          stats.receitaMensal >= 0
+            ? { value: `${heroDeltaPct}% de margem sobre o bruto`, positive: true }
+            : { value: "Margem negativa no período", positive: false }
+        }
+        title="Central de Comando"
+        subtitle="Visão consolidada de toda a operação — entradas, custos e projeção."
+        forecastLabel="Projeção fim do período"
+        forecastValue={formatBRL(heroForecastValue)}
+        aiInsight={
+          insights[0]
+            ? `${insights[0].title}. ${insights[0].description}`
+            : "Sem sinais críticos no momento. Operação dentro dos parâmetros."
+        }
+        trendData={barData.map(d => ({ name: d.name, value: d.lucro }))}
+        sideStats={[
+          { label: "Bruto", value: formatBRL(stats.lucroBruto), tone: stats.lucroBruto >= 0 ? "primary" : "destructive" },
+          { label: "FAT", value: formatBRL(stats.totalSalarios), tone: "success" },
+          { label: "Custos", value: formatBRL(stats.totalCustos), tone: "destructive" },
+        ]}
+      />
+    </div>
 
     {/* LEVEL 2 — Strategic KPIs */}
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
@@ -646,7 +650,7 @@ const Dashboard = () => {
     </div>
 
     {/* LEVEL 3 — Motor de Decisão */}
-    <DecisionEngine insights={insights} />
+    <div data-tour="decision-engine"><DecisionEngine insights={insights} /></div>
 
     {/* LEVEL 4 — Intelligence visuals */}
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
