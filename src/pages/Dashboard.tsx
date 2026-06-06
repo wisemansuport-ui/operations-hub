@@ -681,7 +681,7 @@ const Dashboard = () => {
       <HeroPanel
         status={{ label: "Operação ao vivo", tone: "live" }}
         primaryLabel="Receita líquida — período"
-        primaryValue={formatBRL(stats.receitaMensal)}
+        primaryValue={formatBRLSigned(stats.receitaMensal)}
         primaryDelta={
           stats.receitaMensal >= 0
             ? { value: `${heroDeltaPct}% de margem sobre o bruto`, positive: true }
@@ -690,7 +690,7 @@ const Dashboard = () => {
         title="Central de Comando"
         subtitle="Visão consolidada de toda a operação — entradas, custos e projeção."
         forecastLabel="Projeção fim do período"
-        forecastValue={formatBRL(heroForecastValue)}
+        forecastValue={formatBRLSigned(heroForecastValue)}
         aiInsight={
           insights[0]
             ? `${insights[0].title}. ${insights[0].description}`
