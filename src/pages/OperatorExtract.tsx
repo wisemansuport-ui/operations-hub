@@ -222,7 +222,7 @@ export default function OperatorExtract() {
       </div>
 
       {/* Tabela */}
-      <div className="rounded-2xl border border-border bg-card/60 backdrop-blur p-1 md:p-2">
+      <div data-tour="operator-extract-table" className="rounded-2xl border border-border bg-card/60 backdrop-blur p-1 md:p-2">
         <DataTable
           title="Extrato de Operações"
           subtitle="Registros validados pelo controle de qualidade"
