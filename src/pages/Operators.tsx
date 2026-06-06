@@ -570,6 +570,9 @@ const Operators = () => {
         <div className="space-y-8 animate-fade-in">
 
           {/* KPIs já vivem no hero — área limpa para pódio + leaderboard */}
+          {operatorData.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-border/60 p-16 text-center">
+
 
               <div className="w-12 h-12 mx-auto rounded-xl bg-muted/20 border border-border/40 flex items-center justify-center mb-3">
                 <Users className="w-5 h-5 text-muted-foreground/60" />
