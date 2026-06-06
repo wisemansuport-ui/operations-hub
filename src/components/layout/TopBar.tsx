@@ -313,30 +313,30 @@ export const TopBar = () => {
       className="border-b border-border bg-card/80 backdrop-blur-xl flex flex-col sticky top-0 z-30"
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
-      <div className="h-14 flex items-center justify-between px-4 md:px-6">
-        <div className="flex items-center gap-2" />
+      <div className="h-12 flex items-center justify-end px-3 md:px-5 gap-0.5">
+        <button
+          onClick={toggleTheme}
+          aria-label="Alternar tema"
+          className="w-8 h-8 flex items-center justify-center rounded-md text-muted-foreground/70 hover:text-foreground hover:bg-muted/60 transition-colors"
+        >
+          {theme === "dark" ? <Sun className="w-[15px] h-[15px]" /> : <Moon className="w-[15px] h-[15px]" />}
+        </button>
 
-
-        <div className="flex items-center gap-1">
-          <button
-            onClick={toggleTheme}
-            className="w-9 h-9 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-muted transition-colors"
-          >
-            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
 
           {/* ── Notification Bell ── */}
           <div className="relative" ref={ref}>
             <button
               id="notif-bell-btn"
               onClick={() => setShowNotifs((v) => !v)}
-              className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-200 relative
+              aria-label="Notificações"
+              className={`w-8 h-8 flex items-center justify-center rounded-md transition-colors relative
                 ${showNotifs
-                  ? "bg-primary/10 text-primary ring-1 ring-primary/30"
-                  : "text-muted-foreground hover:bg-muted"
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground/70 hover:text-foreground hover:bg-muted/60"
                 }`}
             >
-              <Bell className={`w-4 h-4 transition-transform duration-300 ${showNotifs ? "scale-90" : ""}`} />
+              <Bell className="w-[15px] h-[15px]" />
+
 
               {unreadCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 text-[9px] font-extrabold bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg shadow-primary/40 animate-in zoom-in-75 duration-200">
@@ -477,19 +477,19 @@ export const TopBar = () => {
           </div>
 
           {/* ── User Menu ── */}
-          <div className="ml-2 flex items-center gap-2 pl-3 border-l border-border relative group">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <User className="w-4 h-4 text-primary" />
+          <div className="ml-1.5 flex items-center gap-2 pl-2 relative group">
+            <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center">
+              <User className="w-3.5 h-3.5 text-primary" />
             </div>
-            <div className="hidden sm:block">
-              <p className="text-sm font-medium text-foreground leading-tight truncate max-w-[120px]">
+            <div className="hidden sm:block leading-tight">
+              <p className="text-[13px] font-medium text-foreground truncate max-w-[120px]">
                 {user?.username || "Usuário"}
               </p>
-              <p className="text-[11px] text-muted-foreground leading-tight">{user?.role || "Operador"}</p>
+              <p className="text-[10px] text-muted-foreground/70">{user?.role || "Operador"}</p>
             </div>
 
-            <div className="absolute right-0 top-full pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 min-w-[160px]">
-              <div className="bg-[#0A0A0B]/95 backdrop-blur-xl border border-border/60 rounded-xl shadow-2xl p-1.5 flex flex-col transform origin-top-right transition-transform group-hover:scale-100 scale-95">
+            <div className="absolute right-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 min-w-[160px]">
+              <div className="bg-[#0A0A0B]/95 backdrop-blur-xl border border-border/60 rounded-xl shadow-2xl p-1.5 flex flex-col">
                 <div className="px-3 py-2 mb-1 border-b border-border/50 sm:hidden">
                   <p className="text-sm font-bold text-foreground truncate">{user?.username || "Usuário"}</p>
                   <p className="text-[11px] text-muted-foreground">{user?.role || "Operador"}</p>
@@ -498,7 +498,7 @@ export const TopBar = () => {
                 {user?.role === "ADMIN" && (
                   <button
                     onClick={() => setRole(role === "ADMIN" ? "OPERADOR" : "ADMIN")}
-                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-semibold text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors w-full mb-1"
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors w-full mb-1"
                   >
                     <UserCog className="w-4 h-4" />
                     Visão: {role}
@@ -507,7 +507,7 @@ export const TopBar = () => {
 
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-semibold text-destructive hover:bg-destructive/10 hover:text-red-400 transition-colors w-full"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 hover:text-red-400 transition-colors w-full"
                 >
                   <LogOut className="w-4 h-4" />
                   Sair da Conta
@@ -516,7 +516,7 @@ export const TopBar = () => {
             </div>
           </div>
         </div>
-      </div>
+
     </header>
   );
 };
