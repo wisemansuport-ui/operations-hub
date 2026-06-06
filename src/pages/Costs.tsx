@@ -352,20 +352,35 @@ const Costs = () => {
                   Anterior
                 </button>
                 
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={cn(
-                      "min-w-[32px] h-8 px-2 flex items-center justify-center rounded-lg text-xs font-bold border transition-all",
-                      currentPage === page
-                        ? "bg-primary border-primary/50 text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.2)]"
-                        : "bg-card/30 border-border text-muted-foreground hover:bg-card/50 hover:text-foreground"
-                    )}
-                  >
-                    {page}
-                  </button>
-                ))}
+                {(() => {
+                  // Compact pagination: show up to 5 page numbers around current with ellipsis
+                  const pages: (number | 'ellipsis')[] = [];
+                  const windowSize = 1; // neighbors around current
+                  const add = (n: number) => { if (!pages.includes(n)) pages.push(n); };
+                  add(1);
+                  if (currentPage - windowSize > 2) pages.push('ellipsis');
+                  for (let p = Math.max(2, currentPage - windowSize); p <= Math.min(totalPages - 1, currentPage + windowSize); p++) add(p);
+                  if (currentPage + windowSize < totalPages - 1) pages.push('ellipsis');
+                  if (totalPages > 1) add(totalPages);
+                  return pages.map((page, i) =>
+                    page === 'ellipsis' ? (
+                      <span key={`e${i}`} className="px-1 text-xs text-muted-foreground select-none">…</span>
+                    ) : (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={cn(
+                          "min-w-[32px] h-8 px-2 flex items-center justify-center rounded-lg text-xs font-bold border transition-all",
+                          currentPage === page
+                            ? "bg-primary border-primary/50 text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.2)]"
+                            : "bg-card/30 border-border text-muted-foreground hover:bg-card/50 hover:text-foreground"
+                        )}
+                      >
+                        {page}
+                      </button>
+                    )
+                  );
+                })()}
 
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
