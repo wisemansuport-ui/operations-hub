@@ -578,6 +578,7 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+      </DataGate>
     );
   }
 
