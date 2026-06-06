@@ -92,6 +92,7 @@ const Operators = () => {
   const [history, setHistory] = useState<PaymentHistoryEntry[]>([]);
   const [expandedHistory, setExpandedHistory] = useState<string | null>(null);
   const [confirmUndoId, setConfirmUndoId] = useState<string | null>(null);
+  const [sheetOpenId, setSheetOpenId] = useState<string | null>(null);
 
   // Payment model config (por admin)
   type PayModel = 'fixo' | 'percent' | 'split';
