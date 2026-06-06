@@ -154,10 +154,58 @@ export const TOURS: Record<string, TourDefinition> = {
 };
 
 export const TOUR_STORAGE_KEY = 'nytzer-active-tour';
+export const TOUR_PROGRESS_KEY = 'nytzer-tour-progress';
+export const TOUR_PROGRESS_EVENT = 'nytzer-tour-progress-changed';
 
 export type ActiveTourState = {
   tourId: string;
   step: number;
+};
+
+// Persisted progress: tourId -> highest step index reached + completed flag
+export type TourProgressEntry = { reached: number; completed: boolean };
+export type TourProgressMap = Record<string, TourProgressEntry>;
+
+export const getTourProgressMap = (): TourProgressMap => {
+  try {
+    const raw = localStorage.getItem(TOUR_PROGRESS_KEY);
+    if (!raw) return {};
+    return JSON.parse(raw) as TourProgressMap;
+  } catch {
+    return {};
+  }
+};
+
+export const getTourProgressPercent = (tourId: string): number => {
+  const tour = TOURS[tourId];
+  if (!tour) return 0;
+  const entry = getTourProgressMap()[tourId];
+  if (!entry) return 0;
+  if (entry.completed) return 100;
+  // reached is the index of the last viewed step (0-based)
+  const stepsDone = Math.min(entry.reached + 1, tour.steps.length);
+  return Math.round((stepsDone / tour.steps.length) * 100);
+};
+
+export const markTourStepReached = (tourId: string, step: number) => {
+  const tour = TOURS[tourId];
+  if (!tour) return;
+  const map = getTourProgressMap();
+  const prev = map[tourId] || { reached: -1, completed: false };
+  const reached = Math.max(prev.reached, step);
+  const completed = prev.completed || reached >= tour.steps.length - 1;
+  map[tourId] = { reached, completed };
+  localStorage.setItem(TOUR_PROGRESS_KEY, JSON.stringify(map));
+  window.dispatchEvent(new CustomEvent(TOUR_PROGRESS_EVENT));
+};
+
+export const markTourCompleted = (tourId: string) => {
+  const tour = TOURS[tourId];
+  if (!tour) return;
+  const map = getTourProgressMap();
+  map[tourId] = { reached: tour.steps.length - 1, completed: true };
+  localStorage.setItem(TOUR_PROGRESS_KEY, JSON.stringify(map));
+  window.dispatchEvent(new CustomEvent(TOUR_PROGRESS_EVENT));
 };
 
 export const startTour = (tourId: string) => {
@@ -165,5 +213,6 @@ export const startTour = (tourId: string) => {
   if (!tour) return;
   const state: ActiveTourState = { tourId, step: 0 };
   localStorage.setItem(TOUR_STORAGE_KEY, JSON.stringify(state));
+  markTourStepReached(tourId, 0);
   window.dispatchEvent(new CustomEvent('nytzer-tour-start', { detail: state }));
 };
