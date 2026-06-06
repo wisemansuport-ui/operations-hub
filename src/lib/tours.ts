@@ -289,11 +289,13 @@ export const getTourProgressPercent = (tourId: string): number => {
   if (!tour) return 0;
   const entry = getTourProgressMap()[tourId];
   if (!entry) return 0;
-  if (entry.completed) return 100;
   // reached is the index of the last viewed step (0-based)
   const stepsDone = Math.min(entry.reached + 1, tour.steps.length);
+  // Stale completion: tour grew after the user finished it — recompute from reached.
+  if (entry.completed && entry.reached >= tour.steps.length - 1) return 100;
   return Math.round((stepsDone / tour.steps.length) * 100);
 };
+
 
 export const markTourStepReached = (tourId: string, step: number) => {
   const tour = TOURS[tourId];
