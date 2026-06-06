@@ -478,133 +478,178 @@ const Dashboard = () => {
   // before hooks — see src/components/layout/DataGate.tsx for the convention).
 
   if (role === 'OPERADOR') {
+    const esforcoTotal = stats.contasNormais * 2 + stats.contasBaixas * 1;
+    const projecaoMes = stats.totalAutoSalarios > 0
+      ? stats.totalAutoSalarios * (stats.metasAtivas > 0 ? 1 + (stats.metasAtivas / Math.max(stats.metasFechadas, 1)) * 0.6 : 1.1)
+      : stats.totalAutoSalarios;
+
+    // IA motivacional dinâmica
+    const motivational: { icon: any; title: string; body: string; tone: 'primary' | 'success' | 'warning' }[] = [];
+    if (stats.contasProcessadas > 0) {
+      motivational.push({
+        icon: Activity,
+        title: 'Você está produzindo',
+        body: `${stats.contasProcessadas} contas operadas no período. Cada conta soma — mantenha o ritmo.`,
+        tone: 'success',
+      });
+    } else {
+      motivational.push({
+        icon: Target,
+        title: 'Comece o ciclo',
+        body: 'Nenhuma conta validada neste período. Abrir a primeira remessa destrava o fluxo do dia.',
+        tone: 'warning',
+      });
+    }
+    if (stats.metasAtivas > 0) {
+      motivational.push({
+        icon: ListTodo,
+        title: `${stats.metasAtivas} metas ativas`,
+        body: 'Fechar as metas em andamento aumenta seu saldo e libera novas alocações.',
+        tone: 'primary',
+      });
+    }
+    if (esforcoTotal > 0) {
+      motivational.push({
+        icon: DollarSign,
+        title: 'Esforço vira renda',
+        body: `Seu esforço acumulado é de ${esforcoTotal} pts — disciplina diária é o que constrói grandes saldos.`,
+        tone: 'success',
+      });
+    }
+
     return (
       <DataGate loading={loading} message="Sincronizando seus dados">
-      <div className="space-y-5 md:space-y-6 relative z-10 pb-20 md:pb-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-6 md:space-y-8 relative z-10 pb-20 md:pb-6">
+        {/* Greeting strip */}
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
           <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-foreground">Meu Painel</h1>
-            <p className="text-[11px] md:text-sm text-primary/70 mt-1 uppercase tracking-widest font-semibold flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--primary))]" />
-              Sincronizado via Metas
+            <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-primary/70 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              MEU PAINEL · SINCRONIZADO VIA METAS
             </p>
+            <h1 className="mt-1.5 text-2xl md:text-3xl font-extrabold tracking-tight text-foreground capitalize">
+              Olá, {(user?.fullName || user?.name || user?.username || 'Operador').split(' ')[0]}
+              <span className="text-primary">.</span>
+            </h1>
           </div>
+          <PeriodFilter value={dateFilter} onChange={setDateFilter} />
         </div>
 
-        {/* Period filter - above KPIs */}
-        <PeriodFilter value={dateFilter} onChange={setDateFilter} />
+        {/* HERO — Painel do operador */}
+        <HeroPanel
+          status={{ label: "Operação ao vivo", tone: "live" }}
+          primaryLabel="Saldo do período"
+          primaryValue={`+${formatBRL(stats.totalAutoSalarios)}`}
+          primaryDelta={
+            stats.contasProcessadas > 0
+              ? { value: `${stats.contasProcessadas} contas operadas · esforço ${esforcoTotal} pts`, positive: true }
+              : { value: "Nenhuma conta validada no período", positive: false }
+          }
+          title="Painel do Operador"
+          subtitle="Visão consolidada da sua operação — produção, saldo e projeção."
+          forecastLabel="Projeção fim do período"
+          forecastValue={`+${formatBRL(projecaoMes)}`}
+          aiInsight={
+            stats.contasProcessadas > 0
+              ? `Você fechou ${stats.metasFechadas}/${stats.totalMetas} metas e gerou ${formatBRL(stats.totalAutoSalarios)} no período. ${stats.metasAtivas > 0 ? `Há ${stats.metasAtivas} metas ativas para destravar.` : 'Tudo finalizado — bom trabalho.'}`
+              : "Nenhuma produção registrada ainda no período. Comece a fechar metas para ver seu saldo aqui."
+          }
+          trendData={barData.map(d => ({ name: d.name, value: d.lucroOperador }))}
+          sideStats={[
+            { label: "Normais", value: String(stats.contasNormais), tone: "primary" },
+            { label: "Baixas", value: String(stats.contasBaixas), tone: "success" },
+            { label: "Metas", value: `${stats.metasFechadas}/${stats.totalMetas}`, tone: "primary" },
+          ]}
+        />
 
+        {/* KPIs estratégicos do operador */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-          <KPICard title="Saldo Total" value={formatBRL(stats.totalAutoSalarios)} change={`${stats.contasProcessadas} contas operadas`} changeType="positive" icon={DollarSign} color="success" tooltip="O valor total a receber (salário + comissões) baseado na sua produção validada." />
-          <KPICard title="Metas Fechadas" value={`${stats.metasFechadas}/${stats.totalMetas}`} change="Registradas" changeType="positive" icon={Target} color="primary" tooltip="Quantidade de metas concluídas em relação ao total atribuído a você." />
-          <KPICard title="Contas (NORMAL)" value={String(stats.contasNormais)} change="R$ 2,00 por conta" changeType="neutral" icon={Activity} color="primary" tooltip="Volume de contas normais validadas (R$ 2,00 por unidade)." />
-          <KPICard title="Contas (BAIXO)" value={String(stats.contasBaixas)} change="R$ 1,00 por conta" changeType="neutral" icon={Users} color="warning" tooltip="Volume de contas com depósito baixo validadas (R$ 1,00 por unidade)." />
+          <KPICard highlight title="Saldo do Período" value={formatBRL(stats.totalAutoSalarios)} change={`${stats.contasProcessadas} contas operadas`} changeType="positive" icon={DollarSign} color="success" tooltip="Salário + comissões estimadas da sua produção validada." />
+          <KPICard title="Metas Fechadas" value={`${stats.metasFechadas}/${stats.totalMetas}`} change={`${stats.metasAtivas} em andamento`} changeType="positive" icon={Target} color="primary" tooltip="Metas concluídas vs total atribuído." />
+          <KPICard title="Contas Normais" value={String(stats.contasNormais)} change={`${stats.contasNormais * 2} pts · R$ 2,00/un`} changeType="neutral" icon={Activity} color="primary" tooltip="Volume de contas normais validadas (R$ 2,00 por unidade)." />
+          <KPICard title="Contas Baixo" value={String(stats.contasBaixas)} change={`${stats.contasBaixas} pts · R$ 1,00/un`} changeType="neutral" icon={Users} color="warning" tooltip="Volume de contas com depósito baixo (R$ 1,00 por unidade)." />
         </div>
 
-        {/* Proporção Operacional - Simple Chart for Operator */}
-        <div className="glass-card rounded-2xl p-4 md:p-6 border-primary/10 flex flex-col md:flex-row items-center justify-between relative overflow-hidden gap-6">
-          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10" />
-          <div className="w-full md:w-1/2">
-            <h3 className="text-xl font-bold text-foreground mb-2">Desempenho Geral</h3>
-            <p className="text-sm text-muted-foreground mb-6">Acompanhamento das suas metas finalizadas e pendentes.</p>
-            <div className="space-y-4">
-              <div className="flex justify-between items-end border-b border-border/30 pb-3">
-                <span className="text-sm font-medium text-muted-foreground">Ganhos Acumulados</span>
-                <span className="font-bold text-emerald-400 tracking-tight text-2xl">{formatBRL(stats.totalAutoSalarios)}</span>
+        {/* Gráfico + IA Motivacional */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2 rounded-2xl border border-border bg-card/60 backdrop-blur p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-base font-semibold text-foreground">Evolução do Faturamento</h3>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Saldo gerado pela sua produção por dia de atividade.</p>
               </div>
-              <div className="flex justify-between items-end border-b border-border/30 pb-3">
-                <span className="text-sm font-medium text-muted-foreground">Total de Contas</span>
-                <span className="font-bold text-foreground tracking-tight text-xl">{stats.contasProcessadas}</span>
-              </div>
+              <span className="text-[10px] uppercase tracking-widest font-semibold text-primary/70">Período</span>
             </div>
-          </div>
-          
-          <div className="w-full md:w-1/3 flex flex-col items-center">
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie 
-                  data={pieData} 
-                  cx="50%" cy="50%" 
-                  innerRadius={60} 
-                  outerRadius={80} 
-                  paddingAngle={5}
-                  dataKey="value" 
-                  strokeWidth={0}
-                >
-                  {pieData.map((_, i) => <Cell key={i} fill={pieColors[i]} />)}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ background: "rgba(10, 10, 10, 0.9)", border: "1px solid hsl(var(--primary)/0.2)", borderRadius: 12 }} 
-                  itemStyle={{ color: "hsl(var(--foreground))", fontSize: '14px', fontWeight: 'bold' }}
+            <ResponsiveContainer width="100%" height={240}>
+              <AreaChart data={barData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorLucroOp" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.45} />
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
+                <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} dy={6} />
+                <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} dx={-6} />
+                <Tooltip
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-background/95 backdrop-blur-md border border-primary/20 p-3 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)]">
+                          <p className="text-foreground font-bold mb-2">{label}</p>
+                          <p className="text-sm font-medium text-muted-foreground">Contas: <span className="text-foreground font-bold">{payload[0].payload.contas}</span></p>
+                          <p className="text-sm font-medium text-primary mt-1">Saldo: <span className="font-extrabold">{formatBRL(payload[0].payload.lucroOperador)}</span></p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
                 />
-              </PieChart>
+                <Area type="monotone" dataKey="lucroOperador" stroke="hsl(var(--primary))" strokeWidth={3} fillOpacity={1} fill="url(#colorLucroOp)" />
+              </AreaChart>
             </ResponsiveContainer>
-            <div className="flex flex-wrap justify-center gap-4 mt-2">
-              {pieData.map((d, i) => (
-                <div key={d.name} className="flex items-center gap-2 text-xs text-foreground font-medium">
-                  <div className="w-3 h-3 rounded-md" style={{ background: pieColors[i] }} />
-                  {d.name}
-                </div>
-              ))}
+          </div>
+
+          {/* IA Motivacional */}
+          <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-card/80 to-primary/[0.03] backdrop-blur p-5 space-y-3">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <Brain className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-widest font-semibold text-primary/80">IA Motivacional</p>
+                <h3 className="text-sm font-bold text-foreground">Sua leitura do período</h3>
+              </div>
             </div>
+            {motivational.map((ins, i) => {
+              const Icon = ins.icon;
+              const toneRing = ins.tone === 'success' ? 'border-success/30 bg-success/5' : ins.tone === 'warning' ? 'border-warning/30 bg-warning/5' : 'border-primary/20 bg-primary/5';
+              const toneText = ins.tone === 'success' ? 'text-success' : ins.tone === 'warning' ? 'text-warning' : 'text-primary';
+              return (
+                <div key={i} className={`flex items-start gap-2.5 p-2.5 rounded-xl border ${toneRing}`}>
+                  <Icon className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${toneText}`} />
+                  <div className="min-w-0">
+                    <p className={`text-[11px] font-bold ${toneText} mb-0.5`}>{ins.title}</p>
+                    <p className="text-[11px] text-foreground/80 leading-snug">{ins.body}</p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* Evolução do Faturamento - Operator */}
-        <div className="glass-card rounded-2xl p-4 md:p-6 border-primary/10 relative overflow-hidden group mt-6">
-          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10 group-hover:bg-primary/10 transition-all duration-700" />
-          <h3 className="text-base font-bold text-foreground mb-1 tracking-tight">Evolução do Faturamento</h3>
-          <p className="text-xs text-muted-foreground mb-6">Métricas fiéis ligadas ao seu processamento.</p>
-          <ResponsiveContainer width="100%" height={240}>
-            <AreaChart data={barData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <defs>
-                <linearGradient id="colorLucroOp" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
-              <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} />
-              <Tooltip 
-                content={({ active, payload, label }) => {
-                  if (active && payload && payload.length) {
-                    return (
-                      <div className="bg-background/95 backdrop-blur-md border border-primary/20 p-3 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)]">
-                        <p className="text-foreground font-bold mb-2">{label}</p>
-                        <p className="text-sm font-medium text-muted-foreground">Contas criadas: <span className="text-foreground font-bold">{payload[0].payload.contas}</span></p>
-                        <p className="text-sm font-medium text-primary mt-1">Lucro contabilizado: <span className="font-extrabold">{formatBRL(payload[0].payload.lucroOperador)}</span></p>
-                      </div>
-                    );
-                  }
-                  return null;
-                }}
-              />
-              <Area 
-                type="monotone" 
-                dataKey="lucroOperador" 
-                stroke="hsl(var(--primary))" 
-                strokeWidth={3}
-                fillOpacity={1} 
-                fill="url(#colorLucroOp)" 
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="mt-6">
-          <h3 className="text-sm font-bold text-foreground mb-4 tracking-wide uppercase">Comandos Rápidos</h3>
+        {/* Comandos rápidos */}
+        <div>
+          <h3 className="text-[10px] uppercase tracking-[0.2em] font-semibold text-primary/70 mb-3">Comandos Rápidos</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {allowedLinks.map(({ path, label, icon: Icon, desc }) => (
-              <Link key={path} to={path} className="flex items-center gap-4 p-4 rounded-[12px] border border-border/30 bg-background/40 hover:bg-muted/20 transition-all group shadow-sm">
-                <div className="w-10 h-10 rounded-md shrink-0 bg-primary/5 border border-primary/20 flex items-center justify-center group-hover:bg-primary/20 group-hover:border-primary/50 transition-colors">
+              <Link key={path} to={path} className="flex items-center gap-4 p-4 rounded-xl border border-border/40 bg-card/60 backdrop-blur hover:border-primary/40 hover:bg-card/80 transition-all group">
+                <div className="w-10 h-10 rounded-lg shrink-0 bg-primary/5 border border-primary/20 flex items-center justify-center group-hover:bg-primary/15 group-hover:border-primary/50 transition-colors">
                   <Icon className="w-5 h-5 text-primary" />
                 </div>
-                <div className="text-left">
-                  <p className="text-[14px] font-bold text-foreground/90">{label}</p>
-                  <p className="text-[11px] font-medium text-muted-foreground mt-0.5">{desc}</p>
+                <div className="text-left min-w-0">
+                  <p className="text-sm font-bold text-foreground/90 truncate">{label}</p>
+                  <p className="text-[11px] font-medium text-muted-foreground mt-0.5 truncate">{desc}</p>
                 </div>
               </Link>
             ))}
@@ -614,6 +659,7 @@ const Dashboard = () => {
       </DataGate>
     );
   }
+
 
 
   // Hero forecast = previsão fim de período (extrapola média diária)
