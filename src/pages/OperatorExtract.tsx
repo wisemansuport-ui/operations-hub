@@ -177,22 +177,22 @@ export default function OperatorExtract() {
   const paidUntilTs = lastPayment?.newPaidUntil ? new Date(lastPayment.newPaidUntil).getTime() : 0;
   const now = new Date();
   const todayStart = startOfDay(now).getTime();
-  const weekStart = startOfWeek(now, { weekStartsOn: 1 }).getTime();
-  const monthStart = startOfMonth(now).getTime();
+  const days7Start = startOfDay(subDays(now, 6)).getTime();
+  const days30Start = startOfDay(subDays(now, 29)).getTime();
 
   const aReceber = useMemo(() => {
-    let total = 0, dia = 0, semana = 0, mes = 0;
+    let total = 0, dia = 0, dias7 = 0, dias30 = 0;
     extratoData.forEach(e => {
       const ts = e.timestamp || 0;
       const v = Number(e.valor) || 0;
       if (ts <= paidUntilTs) return; // já pago
       total += v;
       if (ts >= todayStart) dia += v;
-      if (ts >= weekStart) semana += v;
-      if (ts >= monthStart) mes += v;
+      if (ts >= days7Start) dias7 += v;
+      if (ts >= days30Start) dias30 += v;
     });
-    return { total, dia, semana, mes };
-  }, [extratoData, paidUntilTs, todayStart, weekStart, monthStart]);
+    return { total, dia, dias7, dias30 };
+  }, [extratoData, paidUntilTs, todayStart, days7Start, days30Start]);
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-fade-in relative z-10">
