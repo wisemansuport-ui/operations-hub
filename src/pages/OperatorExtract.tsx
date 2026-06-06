@@ -124,6 +124,8 @@ export default function OperatorExtract() {
                newStats.MES.salarioManual += manualSalario;
                if (isPending) newStats.MES.pendingSalarioManual += manualSalario;
             }
+            newStats.TOTAL.salarioManual += manualSalario;
+            if (isPending) newStats.TOTAL.pendingSalarioManual += manualSalario;
           }
           
           let pagamentoTotal = 0;
