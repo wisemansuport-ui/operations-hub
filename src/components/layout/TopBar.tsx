@@ -328,13 +328,15 @@ export const TopBar = () => {
             <button
               id="notif-bell-btn"
               onClick={() => setShowNotifs((v) => !v)}
-              className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-200 relative
+              aria-label="Notificações"
+              className={`w-8 h-8 flex items-center justify-center rounded-md transition-colors relative
                 ${showNotifs
-                  ? "bg-primary/10 text-primary ring-1 ring-primary/30"
-                  : "text-muted-foreground hover:bg-muted"
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground/70 hover:text-foreground hover:bg-muted/60"
                 }`}
             >
-              <Bell className={`w-4 h-4 transition-transform duration-300 ${showNotifs ? "scale-90" : ""}`} />
+              <Bell className="w-[15px] h-[15px]" />
+
 
               {unreadCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 text-[9px] font-extrabold bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg shadow-primary/40 animate-in zoom-in-75 duration-200">
