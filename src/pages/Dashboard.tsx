@@ -199,6 +199,9 @@ const Dashboard = () => {
       const totalContasMeta = remessas.reduce((acc, r) => acc + Number(r.contas || 0), 0);
 
       let metaTotalDep = 0, metaTotalSaq = 0, metaTotalAutoSal = 0;
+      // Per-meta accumulators restricted to dateFilter — used for ranking de redes
+      let metaInPeriodDep = 0, metaInPeriodSaq = 0, metaInPeriodAutoSal = 0, metaInPeriodSal = 0, metaInPeriodContas = 0;
+      let metaHasRemessaInPeriod = false;
 
       remessas.forEach(r => {
         const dep = Number(r.deposito || 0);
@@ -252,6 +255,13 @@ const Dashboard = () => {
             contasNormais += normais;
             contasBaixas += baixas;
           }
+          // Rede ranking — acumular apenas o que está no período
+          metaHasRemessaInPeriod = true;
+          metaInPeriodDep += dep;
+          metaInPeriodSaq += saq;
+          metaInPeriodSal += remSal;
+          metaInPeriodAutoSal += remAutoSal;
+          metaInPeriodContas += originalRc;
         }
 
         // Chart: always add to the chart regardless of dateFilter
@@ -265,20 +275,29 @@ const Dashboard = () => {
 
       // Handle metas with 0 contas (no remessas counted) — put full amount on createdAt date
       if (isFechada && totalContasMeta === 0 && remessas.length === 0) {
-        const dateStr = new Date(meta.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        const metaDate = new Date(meta.createdAt);
+        const dateStr = metaDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
         if (!chartDataByDate[dateStr]) chartDataByDate[dateStr] = { name: dateStr, contas: 0, lucro: 0, lucroOperador: 0 };
         const metaAutoSal = !meta.isAdminMeta ? (meta.modelo === 'Recarga' ? pagOp : 0) : 0;
         chartDataByDate[dateStr].lucro += (metaTotalSaq - metaTotalDep) + sal - metaAutoSal;
         chartDataByDate[dateStr].lucroOperador += !meta.isAdminMeta ? metaAutoSal : 0;
+
+        // Para ranking de redes, se a meta (sem remessas) cair dentro do filtro de data, contabilizar
+        if (isInRange(metaDate, dateFilter)) {
+          metaHasRemessaInPeriod = true;
+          metaInPeriodDep += metaTotalDep;
+          metaInPeriodSaq += metaTotalSaq;
+          metaInPeriodSal += sal;
+          metaInPeriodAutoSal += metaAutoSal;
+        }
       }
 
-      // Track by Network (Rede) — uses full meta totals
-      if (isFechada && meta.rede && meta.rede !== 'Selecione') {
-        const metaAutoSal = !meta.isAdminMeta ? (meta.modelo === 'Recarga' ? pagOp : metaTotalAutoSal) : 0;
+      // Track by Network (Rede) — apenas se houve atividade dentro do período selecionado
+      if (isFechada && meta.rede && meta.rede !== 'Selecione' && metaHasRemessaInPeriod) {
+        const metaLiquido = (metaInPeriodSaq - metaInPeriodDep) + metaInPeriodSal - metaInPeriodAutoSal;
         if (!redesMap[meta.rede]) redesMap[meta.rede] = { lucro: 0, contas: 0, metas: 0, acertos: 0 };
-        const metaLiquido = (metaTotalSaq - metaTotalDep) + sal - metaAutoSal;
         redesMap[meta.rede].lucro += metaLiquido;
-        redesMap[meta.rede].contas += totalContasMeta;
+        redesMap[meta.rede].contas += metaInPeriodContas;
         redesMap[meta.rede].metas += 1;
         if (metaLiquido > 0) redesMap[meta.rede].acertos += 1;
       }
