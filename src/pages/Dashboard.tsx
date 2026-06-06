@@ -151,6 +151,7 @@ const Dashboard = () => {
   const [dateFilter, setDateFilter] = useState<DateFilter>(
     buildDateFilter('MES')
   );
+  const [activeTab, setActiveTab] = useState<'financeira' | 'inteligencia'>('financeira');
 
   const stats = useMemo(() => {
     let totalDepositado = 0;
