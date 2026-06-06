@@ -1,8 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Wallet, CheckCircle2, Filter, Download, Calendar as CalendarIcon, User as UserIcon, ChevronDown } from "lucide-react";
+import { Wallet, CheckCircle2, Filter, Download, Calendar as CalendarIcon, User as UserIcon, ChevronDown, Target, Activity, Zap, DollarSign } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import { DataTable, Column } from "@/components/spreadsheet/DataTable";
 import { TasksHero, type HeroKpi } from "@/components/heroes/TasksHero";
+import { HeroPanel } from "@/components/dashboard/HeroPanel";
+import { KPICard } from "@/components/dashboard/KPICard";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useFirestoreData } from "../hooks/useFirestoreData";
 import { OperationMeta } from "./Tasks";
@@ -71,6 +73,7 @@ export default function OperatorExtract() {
       HOJE: { normal: 0, depBaixo: 0, salarioManual: 0, pendingNormal: 0, pendingDepBaixo: 0, pendingSalarioManual: 0 },
       SEMANA: { normal: 0, depBaixo: 0, salarioManual: 0, pendingNormal: 0, pendingDepBaixo: 0, pendingSalarioManual: 0 },
       MES: { normal: 0, depBaixo: 0, salarioManual: 0, pendingNormal: 0, pendingDepBaixo: 0, pendingSalarioManual: 0 },
+      TOTAL: { normal: 0, depBaixo: 0, salarioManual: 0, pendingNormal: 0, pendingDepBaixo: 0, pendingSalarioManual: 0 },
     };
 
     const extrato: any[] = [];
@@ -123,6 +126,8 @@ export default function OperatorExtract() {
                newStats.MES.salarioManual += manualSalario;
                if (isPending) newStats.MES.pendingSalarioManual += manualSalario;
             }
+            newStats.TOTAL.salarioManual += manualSalario;
+            if (isPending) newStats.TOTAL.pendingSalarioManual += manualSalario;
           }
           
           let pagamentoTotal = 0;
@@ -182,6 +187,9 @@ export default function OperatorExtract() {
                 newStats.MES.depBaixo += rb; 
                 if (isPending) { newStats.MES.pendingNormal += rn; newStats.MES.pendingDepBaixo += rb; }
               }
+              newStats.TOTAL.normal += rn;
+              newStats.TOTAL.depBaixo += rb;
+              if (isPending) { newStats.TOTAL.pendingNormal += rn; newStats.TOTAL.pendingDepBaixo += rb; }
             }
 
             const prop = totalContasMeta > 0 ? originalRc / totalContasMeta : 1 / remessas.length;
@@ -206,6 +214,8 @@ export default function OperatorExtract() {
                 newStats.MES.salarioManual += remManualSalario;
                 if (isPending) newStats.MES.pendingSalarioManual += remManualSalario;
               }
+              newStats.TOTAL.salarioManual += remManualSalario;
+              if (isPending) newStats.TOTAL.pendingSalarioManual += remManualSalario;
             }
 
             // Group for chart (by remessa day)
@@ -279,56 +289,135 @@ export default function OperatorExtract() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-fade-in relative z-10">
-      {/* HERO — Operação ativa */}
-      <TasksHero
-        eyebrow={`Minha operação · ${operatorName}`}
-        title="Operação ativa"
-        description="Acompanhe contas validadas, dep baixos e o total a receber em tempo real. Tudo o que está rodando agora aparece aqui."
-        pulseDotClass="bg-primary"
-        kpis={[
-          { label: `Normais (${timeFilter})`, value: String(currentStats.normal) },
-          { label: `Dep Baixo (${timeFilter})`, value: String(currentStats.depBaixo) },
-          { label: 'Salário manual', value: formatBRL(currentStats.salarioManual || 0), tone: 'muted' },
-          { label: `A receber (${timeFilter})`, value: formatBRL(lucroTotal), accent: true, tone: 'success' },
-        ] as HeroKpi[]}
-      />
+      {/* Greeting strip */}
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-primary/70 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            MINHA OPERAÇÃO · TEMPO REAL
+          </p>
+          <h1 className="mt-1.5 text-2xl md:text-3xl font-extrabold tracking-tight text-foreground capitalize">
+            Olá, {operatorName.split(' ')[0]}
+            <span className="text-primary">.</span>
+          </h1>
+        </div>
+        <div className="flex gap-1 p-1 bg-secondary rounded-xl w-fit border border-border">
+          {(['HOJE', 'SEMANA', 'MES'] as const).map(f => (
+            <button
+              key={f}
+              onClick={() => setTimeFilter(f)}
+              className={`px-4 py-1.5 text-[11px] font-semibold uppercase tracking-widest rounded-lg transition-all ${timeFilter === f ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* HERO — Saldo do operador (espelha o admin) */}
+      {(() => {
+        const total = stats.TOTAL;
+        const totalContasPeriodo = currentStats.normal + currentStats.depBaixo;
+        const totalContasAll = total.normal + total.depBaixo;
+        const esforcoPeriodo = currentStats.normal * 2 + currentStats.depBaixo * 1;
+        const esforcoTotal = total.normal * 2 + total.depBaixo * 1;
+        const aReceberTotal = (total.pendingNormal * 2) + (total.pendingDepBaixo * 1) + (total.pendingSalarioManual || 0);
+        // Projeção: extrapola ritmo diário para 30 dias
+        const dailyAvg = stats.HOJE.normal * 2 + stats.HOJE.depBaixo * 1 + (stats.HOJE.salarioManual || 0);
+        const projecao = dailyAvg > 0 ? dailyAvg * 30 : lucroTotal * (timeFilter === 'HOJE' ? 30 : timeFilter === 'SEMANA' ? 4.3 : 1);
+        return (
+          <HeroPanel
+            status={{ label: "Operação ao vivo", tone: "live" }}
+            primaryLabel={`Saldo a receber — ${timeFilter}`}
+            primaryValue={`+${formatBRL(lucroTotal)}`}
+            primaryDelta={
+              totalContasPeriodo > 0
+                ? { value: `${totalContasPeriodo} contas no período · esforço ${esforcoPeriodo} pts`, positive: true }
+                : { value: "Nenhuma conta validada ainda no período", positive: false }
+            }
+            title="Painel do Operador"
+            subtitle="Sua operação em tempo real — contas validadas, esforço acumulado e ganhos previstos."
+            forecastLabel="Projeção fim do mês"
+            forecastValue={`+${formatBRL(projecao)}`}
+            aiInsight={
+              totalContasAll > 0
+                ? `Você acumulou ${totalContasAll} contas (${total.normal} normais · ${total.depBaixo} baixas) — esforço total ${esforcoTotal} pts. ${aReceberTotal > 0 ? `Saldo pendente histórico: ${formatBRL(aReceberTotal)}.` : 'Tudo em dia.'}`
+                : "Nenhuma produção registrada ainda. Comece a fechar metas para ver seu saldo aqui."
+            }
+            trendData={chartData.map(d => ({ name: d.date, value: (d.normal * 2) + (d.baixas * 1) }))}
+            sideStats={[
+              { label: "Hoje", value: formatBRL((stats.HOJE.pendingNormal * 2) + (stats.HOJE.pendingDepBaixo * 1) + (stats.HOJE.pendingSalarioManual || 0)), tone: "primary" },
+              { label: "Semana", value: formatBRL((stats.SEMANA.pendingNormal * 2) + (stats.SEMANA.pendingDepBaixo * 1) + (stats.SEMANA.pendingSalarioManual || 0)), tone: "success" },
+              { label: "Mês", value: formatBRL((stats.MES.pendingNormal * 2) + (stats.MES.pendingDepBaixo * 1) + (stats.MES.pendingSalarioManual || 0)), tone: "primary" },
+            ]}
+          />
+        );
+      })()}
+
+      {/* KPIs — período selecionado, com esforço constante visível */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+        <KPICard
+          highlight
+          title={`Saldo a Receber (${timeFilter})`}
+          value={formatBRL(lucroTotal)}
+          change={`Esforço ${(currentStats.normal * 2) + (currentStats.depBaixo * 1)} pts no período`}
+          changeType="positive"
+          icon={DollarSign}
+          color="success"
+          tooltip="Total estimado de salário + comissões do período."
+        />
+        <KPICard
+          title={`Contas Normais (${timeFilter})`}
+          value={String(currentStats.normal)}
+          change={`Esforço: ${currentStats.normal * 2} pts · R$ 2,00/un`}
+          changeType="neutral"
+          icon={Target}
+          color="primary"
+          tooltip="Contas normais validadas no período selecionado."
+        />
+        <KPICard
+          title={`Contas Baixo (${timeFilter})`}
+          value={String(currentStats.depBaixo)}
+          change={`Esforço: ${currentStats.depBaixo} pts · R$ 1,00/un`}
+          changeType="neutral"
+          icon={Activity}
+          color="warning"
+          tooltip="Contas com depósito baixo validadas no período."
+        />
+        <KPICard
+          title="Esforço Acumulado"
+          value={`${(stats.TOTAL.normal * 2) + (stats.TOTAL.depBaixo * 1)} pts`}
+          change={`${stats.TOTAL.normal + stats.TOTAL.depBaixo} contas no histórico`}
+          changeType="positive"
+          icon={Zap}
+          color="primary"
+          tooltip="Pontuação de esforço constante — normais (×2) + baixas (×1) em toda a sua trajetória."
+        />
+      </div>
 
       {/* Filtros + exportar */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-2 items-center">
-          <div className="flex gap-1 p-1 bg-secondary rounded-xl w-fit border border-border">
-            {(['HOJE', 'SEMANA', 'MES'] as const).map(f => (
-              <button
-                key={f}
-                onClick={() => setTimeFilter(f)}
-                className={`px-4 py-1.5 text-[11px] font-semibold uppercase tracking-widest rounded-lg transition-all ${timeFilter === f ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-              >
-                {f}
-              </button>
-            ))}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 bg-secondary border border-border rounded-xl px-3 py-2">
+            <Filter className="w-3.5 h-3.5 text-muted-foreground" />
+            <select
+              value={platformFilter}
+              onChange={(e) => setPlatformFilter(e.target.value)}
+              className="bg-transparent text-xs text-foreground focus:outline-none max-w-[140px] cursor-pointer appearance-none"
+            >
+              <option value="TODAS">Todas Plataformas</option>
+              {availablePlatforms.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
           </div>
-          <div className="flex items-center gap-2 ml-1">
-            <div className="flex items-center gap-2 bg-secondary border border-border rounded-xl px-3 py-2">
-              <Filter className="w-3.5 h-3.5 text-muted-foreground" />
-              <select
-                value={platformFilter}
-                onChange={(e) => setPlatformFilter(e.target.value)}
-                className="bg-transparent text-xs text-foreground focus:outline-none max-w-[140px] cursor-pointer appearance-none"
-              >
-                <option value="TODAS">Todas Plataformas</option>
-                {availablePlatforms.map(p => <option key={p} value={p}>{p}</option>)}
-              </select>
-            </div>
-            <div className="flex items-center gap-2 bg-secondary border border-border rounded-xl px-3 py-2">
-              <select
-                value={networkFilter}
-                onChange={(e) => setNetworkFilter(e.target.value)}
-                className="bg-transparent text-xs text-foreground focus:outline-none max-w-[120px] cursor-pointer appearance-none"
-              >
-                <option value="TODAS">Todas Redes</option>
-                {availableNetworks.map(n => <option key={n} value={n}>{n}</option>)}
-              </select>
-            </div>
+          <div className="flex items-center gap-2 bg-secondary border border-border rounded-xl px-3 py-2">
+            <select
+              value={networkFilter}
+              onChange={(e) => setNetworkFilter(e.target.value)}
+              className="bg-transparent text-xs text-foreground focus:outline-none max-w-[120px] cursor-pointer appearance-none"
+            >
+              <option value="TODAS">Todas Redes</option>
+              {availableNetworks.map(n => <option key={n} value={n}>{n}</option>)}
+            </select>
           </div>
         </div>
         <button
@@ -338,6 +427,7 @@ export default function OperatorExtract() {
           <Download className="w-4 h-4" /> Exportar CSV
         </button>
       </div>
+
 
 
       {/* Gráfico de Produção */}
