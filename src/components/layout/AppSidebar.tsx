@@ -41,18 +41,21 @@ export const AppSidebar = () => {
           collapsed ? "w-16" : "w-60"
         }`}
       >
-        <div className="flex items-center gap-2.5 px-4 h-14 border-b border-sidebar-border shrink-0">
+        <Link
+          to="/app"
+          className="flex items-center gap-2.5 px-4 h-14 border-b border-sidebar-border shrink-0 group transition-all duration-300 hover:-translate-y-0.5 hover:bg-sidebar-accent/40 hover:shadow-[0_8px_24px_-12px_hsl(var(--primary)/0.45)]"
+        >
           <img
             src="/sidebar-logo.png"
             alt="NytzerVision"
-            className="w-9 h-9 rounded-[10px] object-cover shrink-0 block"
+            className="w-9 h-9 rounded-[10px] object-cover shrink-0 block transition-transform duration-300 group-hover:scale-105"
           />
           {!collapsed && (
             <span className="text-base font-semibold tracking-[-0.02em] text-foreground leading-none">
               <span className="font-light">Nytzer</span><span className="font-extrabold gradient-gold-text">Vision</span>
             </span>
           )}
-        </div>
+        </Link>
 
         <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
           {navItems.map(({ path, label, icon: Icon }) => {
