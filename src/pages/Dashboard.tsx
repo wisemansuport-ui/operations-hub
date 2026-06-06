@@ -11,6 +11,7 @@ import { useMemo, useState } from "react";
 import { PeriodFilter, DateFilter, buildDateFilter, isInRange } from "@/components/ui/period-filter";
 import { startOfMonth, endOfMonth } from 'date-fns';
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { DataGate } from "@/components/layout/DataGate";
 
 const areaData = [
   { name: "Seg", tarefas: 12 },
@@ -593,6 +594,7 @@ const Dashboard = () => {
     : "100";
 
   return (
+  <DataGate loading={loading} message="Sincronizando seus dados">
   <div className="space-y-6 md:space-y-8 relative z-10 pb-20 md:pb-6">
     {/* Greeting strip */}
     <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
@@ -828,6 +830,7 @@ const Dashboard = () => {
       </div>
     </div>
   </div>
+  </DataGate>
   );
 };
 
