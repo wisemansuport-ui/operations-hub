@@ -409,8 +409,8 @@ const Dashboard = () => {
   const barData = stats.chartData;
 
   const pieData = [
-    { name: "Fechado", value: stats.metasFechadas },
-    { name: "Em Andamento", value: stats.metasAtivas },
+    { name: "Fechado", value: stats.metasFechadasInPeriod },
+    { name: "Em Andamento", value: stats.metasAtivasInPeriod },
   ].filter(d => d.value > 0);
   
   if (pieData.length === 0) pieData.push({ name: "Sem Dados", value: 1 });
