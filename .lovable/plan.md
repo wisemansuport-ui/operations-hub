@@ -1,36 +1,51 @@
-# Polimento dourado + Mobile 100%
+# Atualizar o site hospedado no Vercel
 
-Objetivo: aplicar refinamento estético sutil (hairlines dourados, sombras suaves, tipografia mais respirada) e garantir responsividade mobile completa em todas as telas do dashboard, sem mexer em regras de negócio.
+## Situação atual
 
-## Princípios (valem pra todas as fases)
+O projeto já tem tudo o que é necessário para deploy automático no Vercel:
 
-- **Estética**: hairline gradient dourado no topo de cards-chave, sombras suaves `shadow-[0_8px_24px_-12px_hsl(var(--primary)/0.25)]`, bordas `border-border/50`, mais respiro vertical, tipografia com `tracking-tight` em títulos.
-- **Mobile**: nada de overflow horizontal, tabelas viram cards empilhados < 640px, modais viram bottom-sheet no mobile, grids `grid-cols-1 sm:grid-cols-2 lg:grid-cols-X`, padding `p-4 md:p-6`, fontes responsivas `text-xl md:text-2xl`, botões com altura mínima `h-11` no mobile (touch target).
-- **Tokens semânticos**: só `primary`, `muted`, `border`, `card`, `foreground` etc. Zero cor hardcoded.
+- `.github/workflows/deploy.yml` — workflow que roda a cada `push` para a branch `main`, faz `npm ci`, `npm run build` e publica no Vercel com `--prod`.
+- `vercel.json` — rewrites de SPA configurados.
+- Integração bidirecional Lovable ↔ GitHub: toda mudança feita no Lovable é enviada para o GitHub automaticamente.
 
-## Fase 1 — Chrome global + Dashboard
-- `AppLayout`, `TopBar`, `AppSidebar` (mobile bottom nav), `NotificationPrompt`
-- `pages/Dashboard.tsx` — KPIs em grid responsivo, gráficos com altura adaptativa
+Ou seja, o caminho para atualizar o site real do Vercel é:
 
-## Fase 2 — Operação diária
-- `pages/Tasks.tsx` (Planilhas) — modal Nova Operação como bottom-sheet no mobile, tabela vira cards
-- `pages/Operators.tsx`
-- `pages/PixKeys.tsx`
+```text
+Lovable (edição) ──► GitHub (push em main) ──► GitHub Actions ──► Vercel (--prod)
+```
 
-## Fase 3 — Análise
-- `pages/Networks.tsx`
-- `pages/Reports.tsx`
-- `pages/Goals.tsx`
-- `pages/Costs.tsx`
+## O que precisa acontecer
 
-## Fase 4 — Resto
-- `pages/Subscription.tsx`, `pages/OperatorExtract.tsx`, `pages/Tutorial.tsx`, `pages/MasterPanel.tsx`, `pages/Quality.tsx`, `pages/Inventory.tsx`, `pages/Production.tsx`
-- Componentes shared: `SubscriptionModal`, `SubscriptionCard`, `KPICard`, `DataTable`
+### 1. Confirmar que o GitHub está conectado
+No menu `+` do chat do Lovable → **GitHub** → o projeto deve aparecer como conectado a um repositório. Se ainda não estiver, conectar e criar o repositório — isso envia todo o código atual para a branch `main` de uma vez.
 
-## O que NÃO entra
-- Mudanças funcionais, novas features, troca de libs
-- Alteração de copy (só ajuste de hierarquia tipográfica)
-- Refatoração de lógica de negócio
+### 2. Confirmar os secrets no GitHub
+O workflow exige estes 3 secrets no repositório (Settings → Secrets and variables → Actions):
 
-## Como vou trabalhar
-Cada fase é um prompt seu. Eu entrego a fase, você confere no preview, e seguimos pra próxima. Assim você valida visualmente antes de eu avançar e nada quebra silenciosamente.
+- `VERCEL_TOKEN` — token pessoal gerado em https://vercel.com/account/tokens
+- `VERCEL_ORG_ID` — ID da org/conta Vercel
+- `VERCEL_PROJECT_ID` — ID do projeto Vercel já existente
+
+Se algum estiver faltando, o Actions vai falhar na etapa “Deploy to Vercel”. Os IDs podem ser obtidos rodando `vercel link` localmente uma vez (gera `.vercel/project.json`) ou no painel do Vercel em Project Settings → General.
+
+### 3. Disparar o deploy
+Assim que houver qualquer commit novo na `main` (qualquer edição feita aqui no Lovable serve), o workflow roda e atualiza o site Vercel automaticamente. Não é necessário rodar nada manual.
+
+Se você quiser forçar um deploy sem mudar código, dá pra ir em **GitHub → Actions → Deploy to Vercel → Run workflow** (precisa adicionar `workflow_dispatch:` no `on:` do yml — posso fazer isso se quiser um botão de “republicar” manual).
+
+## O que eu posso fazer agora (em build mode)
+
+Confirme qual destes você quer e eu executo:
+
+1. **Adicionar `workflow_dispatch`** ao `deploy.yml` para você poder disparar deploys manualmente pelo GitHub sem precisar commitar nada.
+2. **Fazer um commit trivial** (ex.: bump em um comentário no `main.tsx`) só para acionar o workflow agora e atualizar o Vercel imediatamente.
+3. **Ambos.**
+
+Se o problema for que o deploy está falhando (secrets faltando, projeto Vercel não criado, etc.), me diga o erro que aparece na aba **Actions** do GitHub que eu corrijo o workflow de acordo.
+
+## Detalhes técnicos
+
+- Action usada: `amondnet/vercel-action@v25` com `--prod`, ou seja, vai direto para produção (não preview).
+- Build roda com Node 20 e `npm ci` — `package-lock.json` precisa estar versionado, senão `npm ci` falha.
+- `vercel.json` só tem rewrites de SPA; nenhuma config de build é necessária porque o artefato (`dist/`) é gerado pelo workflow antes do upload.
+- O Lovable não tem acesso ao painel do Vercel nem ao GitHub Actions — então não consigo ver logs de falha de deploy daqui. Se precisar debugar, cole o log da run do Actions.
