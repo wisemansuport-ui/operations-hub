@@ -441,13 +441,12 @@ const Dashboard = () => {
     return arr.slice(0, 6);
   }, [stats]);
 
-  // Loading check AFTER all hooks (required by React Rules of Hooks)
-  if (loading) {
-    return <LoadingScreen message="Sincronizando seus dados" />;
-  }
+  // Standard pattern: gate via <DataGate> in JSX (NEVER early-return on loading
+  // before hooks — see src/components/layout/DataGate.tsx for the convention).
 
   if (role === 'OPERADOR') {
     return (
+      <DataGate loading={loading} message="Sincronizando seus dados">
       <div className="space-y-5 md:space-y-6 relative z-10 pb-20 md:pb-6">
         <div className="flex items-center justify-between">
           <div>
