@@ -85,16 +85,9 @@ export const TasksHero = ({
         </div>
 
         {/* KPI strip */}
-        <div
-          className="grid gap-4 sm:gap-6 md:gap-12 grid-cols-2"
-          style={{ ['--md-cols' as string]: Math.min(kpis.length, 4) }}
-        >
+        <div className={`grid gap-4 sm:gap-6 md:gap-12 grid-cols-2 ${kpis.length >= 4 ? 'md:grid-cols-4' : kpis.length === 3 ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
           {kpis.map((kpi, i) => (
-            <div
-              key={`${kpi.label}-${i}`}
-              className="group min-w-0"
-              style={{ gridColumn: 'span 1 / span 1' }}
-            >
+            <div key={`${kpi.label}-${i}`} className="group min-w-0">
               <p
                 className={`text-[10px] uppercase tracking-widest mb-1 transition-colors truncate ${
                   kpi.accent ? "text-primary" : "text-muted-foreground group-hover:text-primary"
