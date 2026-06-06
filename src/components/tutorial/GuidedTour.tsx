@@ -20,7 +20,9 @@ export const GuidedTour = () => {
   const [state, setState] = useState<ActiveTourState | null>(null);
   const [rect, setRect] = useState<DOMRect | null>(null);
   const [tooltipVisible, setTooltipVisible] = useState(false);
+  const [transitioning, setTransitioning] = useState(false);
   const prevStepRef = useRef<number>(-1);
+  const prevRouteRef = useRef<string | null>(null);
 
   // Bootstrap from localStorage + listen to start event
   useEffect(() => {
@@ -55,19 +57,29 @@ export const GuidedTour = () => {
     if (!state) { setTooltipVisible(false); return; }
     if (prevStepRef.current !== state.step) {
       setTooltipVisible(false);
-      const t = setTimeout(() => setTooltipVisible(true), 180);
+      const t = setTimeout(() => setTooltipVisible(true), 280);
       prevStepRef.current = state.step;
       return () => clearTimeout(t);
     }
     setTooltipVisible(true);
   }, [state]);
 
-  // Navigate to step route when out of sync
+  // Smooth route transition: fade out, navigate, fade back in
   useEffect(() => {
     if (!step) return;
     if (location.pathname !== step.route) {
-      navigate(step.route);
+      setTransitioning(true);
+      setRect(null);
+      setTooltipVisible(false);
+      const t = setTimeout(() => navigate(step.route), 320);
+      return () => clearTimeout(t);
     }
+    if (prevRouteRef.current !== step.route) {
+      prevRouteRef.current = step.route;
+      const t = setTimeout(() => setTransitioning(false), 240);
+      return () => clearTimeout(t);
+    }
+    setTransitioning(false);
   }, [step, location.pathname, navigate]);
 
   // Track target rect with scroll-aware measurements so the spotlight does not
@@ -135,8 +147,14 @@ export const GuidedTour = () => {
 
   const finish = useCallback(() => {
     if (state) markTourCompleted(state.tourId);
-    close();
-  }, [state, close]);
+    setTransitioning(true);
+    setTooltipVisible(false);
+    setRect(null);
+    setTimeout(() => {
+      close();
+      navigate('/tutorial');
+    }, 360);
+  }, [state, close, navigate]);
 
   const goto = useCallback((idx: number) => {
     if (!tour || !state) return;
@@ -215,7 +233,14 @@ export const GuidedTour = () => {
   const easing = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
   return createPortal(
-    <div className="fixed inset-0" style={{ zIndex: 9990 }}>
+    <div
+      className="fixed inset-0"
+      style={{
+        zIndex: 9990,
+        opacity: transitioning ? 0 : 1,
+        transition: `opacity 320ms ${easing}`,
+      }}
+    >
       {/* Backdrop click-catcher */}
       <div className="fixed inset-0 pointer-events-auto" style={{ zIndex: 9990 }} aria-hidden />
 
