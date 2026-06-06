@@ -44,19 +44,12 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const notifsData = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as AppNotification));
       
-      // Filter notifications based on user role/username
+      // Escopo por workspace: usuário só enxerga notificações endereçadas a ele.
+      // Notificações legadas sem targetUser (broadcast antigo) NÃO são exibidas para evitar vazamento entre admins.
       const visibleNotifs = notifsData.filter(n => {
-        // If there is an explicit targetUser, ONLY that user sees it.
-        if (n.targetUser) {
-          return n.targetUser === user?.username;
-        }
-
-        // Legacy notifications (no targetUser) handling:
-        if (n.targetRole === 'ALL' || !n.targetRole) return true;
-        
-        // Legacy 'ADMIN' notifications only go to the master admin now to avoid leaking to new admins
-        if (n.targetRole === 'ADMIN' && user?.username === 'wiseman') return true;
-        
+        if (n.targetUser) return n.targetUser === user?.username;
+        // Mantém compatibilidade só para o admin master (wiseman) inspecionar legado
+        if (user?.username === 'wiseman' && (n.targetRole === 'ADMIN' || n.targetRole === 'ALL')) return true;
         return false;
       });
       

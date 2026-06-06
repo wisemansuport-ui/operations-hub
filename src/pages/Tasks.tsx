@@ -95,16 +95,13 @@ const motivationalPhrases = [
 const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, activeOperator, role }: { meta: OperationMeta, onBack: () => void, onUpdateMeta: (m: OperationMeta) => void, addNotification: (n: any) => void, users: any[], activeOperator: string, role: 'ADMIN' | 'OPERADOR' }) => {
   const targetAdmins = useMemo(() => {
     const me = users.find(u => u.username === activeOperator);
-    // If operator has affiliatedTo, notify that specific admin
-    if (me?.affiliatedTo) return [me.affiliatedTo];
-    // If this is an ADMIN acting (role='ADMIN'), notify all other ADMINs (or send to all subscriptions)
-    // If it's an OPERADOR without affiliatedTo (shouldn't happen but fallback), notify all ADMINs
-    if (me?.role === 'ADMIN') return []; // admin acting on own metas → broadcast to all
-    // OPERADOR without affiliatedTo: notify all ADMIN accounts
-    const allAdmins = users
-      .filter(u => u.role === 'ADMIN' && !u.affiliatedTo)
-      .map(u => u.username);
-    return allAdmins;
+    if (!me) return [];
+    // Operador vinculado → notifica apenas o admin dono do workspace
+    if (me.affiliatedTo) return [me.affiliatedTo];
+    // Admin agindo na própria conta → notifica apenas a si mesmo (seus próprios dispositivos)
+    if (me.role === 'ADMIN') return [me.username];
+    // Operador órfão (sem vínculo) → não dispara push para ninguém (evita vazar entre workspaces)
+    return [];
   }, [users, activeOperator]);
   const [isFinishing, setIsFinishing] = useState(false);
   const [isEditingLink, setIsEditingLink] = useState(false);
@@ -1127,20 +1124,18 @@ const Tasks = () => {
     setIsAdminMeta(false);
     setIsModalOpen(false);
 
-    // Notification Hook - Meta Initiated
+    // Notification Hook - Meta Initiated (escopo por workspace)
     const activeUserObj = users.find(u => u.username === activeOperator);
     let targetAdminsForCreate: string[];
     if (activeUserObj?.affiliatedTo) {
-      // Operator linked to a specific admin
+      // Operador vinculado → apenas o admin dono do workspace
       targetAdminsForCreate = [activeUserObj.affiliatedTo];
     } else if (activeUserObj?.role === 'ADMIN') {
-      // Admin creating a meta → broadcast to all subscribers
-      targetAdminsForCreate = [];
+      // Admin criando meta no próprio workspace → apenas a si mesmo
+      targetAdminsForCreate = [activeUserObj.username];
     } else {
-      // Operator without affiliatedTo: notify all ADMIN accounts dynamically
-      targetAdminsForCreate = users
-        .filter(u => u.role === 'ADMIN' && !u.affiliatedTo)
-        .map(u => u.username);
+      // Operador órfão → sem push (não vaza para outros admins)
+      targetAdminsForCreate = [];
     }
 
     const creatorName = getOperatorName(activeOperator, users);

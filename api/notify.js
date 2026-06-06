@@ -45,7 +45,9 @@ export default async function handler(req, res) {
     payload.include_aliases = { external_id: targets };
     payload.target_channel = "push";
   } else {
-    payload.included_segments = ["Total Subscriptions"];
+    // Bloqueia broadcast acidental — push exige alvo explícito (escopo por workspace)
+    console.warn("[notify] Bloqueado: tentativa de envio sem targets");
+    return res.status(400).json({ error: "Missing targets: push must be scoped to specific users" });
   }
 
   try {
