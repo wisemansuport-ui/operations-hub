@@ -536,6 +536,7 @@ const Dashboard = () => {
         </div>
 
         {/* HERO — Painel do operador */}
+        <div data-tour="operator-hero">
         <HeroPanel
           status={{ label: "Operação ao vivo", tone: "live" }}
           primaryLabel="Saldo do período"
@@ -561,18 +562,20 @@ const Dashboard = () => {
             { label: "Metas", value: `${stats.metasFechadas}/${stats.totalMetas}`, tone: "primary" },
           ]}
         />
+        </div>
 
         {/* KPIs estratégicos do operador */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+        <div data-tour="operator-kpis" className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           <KPICard highlight title="Saldo do Período" value={formatBRL(stats.totalAutoSalarios)} change={`${stats.contasProcessadas} contas operadas`} changeType="positive" icon={DollarSign} color="success" tooltip="Salário + comissões estimadas da sua produção validada." />
           <KPICard title="Metas Fechadas" value={`${stats.metasFechadas}/${stats.totalMetas}`} change={`${stats.metasAtivas} em andamento`} changeType="positive" icon={Target} color="primary" tooltip="Metas concluídas vs total atribuído." />
           <KPICard title="Contas Normais" value={String(stats.contasNormais)} change={`${stats.contasNormais * 2} pts · R$ 2,00/un`} changeType="neutral" icon={Activity} color="primary" tooltip="Volume de contas normais validadas (R$ 2,00 por unidade)." />
           <KPICard title="Contas Baixo" value={String(stats.contasBaixas)} change={`${stats.contasBaixas} pts · R$ 1,00/un`} changeType="neutral" icon={Users} color="warning" tooltip="Volume de contas com depósito baixo (R$ 1,00 por unidade)." />
         </div>
 
+
         {/* Gráfico + IA Motivacional */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 rounded-2xl border border-border bg-card/60 backdrop-blur p-5">
+          <div data-tour="operator-chart" className="lg:col-span-2 rounded-2xl border border-border bg-card/60 backdrop-blur p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-base font-semibold text-foreground">Evolução do Faturamento</h3>
@@ -611,7 +614,7 @@ const Dashboard = () => {
           </div>
 
           {/* IA Motivacional */}
-          <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-card/80 to-primary/[0.03] backdrop-blur p-5 space-y-3">
+          <div data-tour="operator-ai" className="rounded-2xl border border-primary/20 bg-gradient-to-br from-card/80 to-primary/[0.03] backdrop-blur p-5 space-y-3">
             <div className="flex items-center gap-2 mb-1">
               <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
                 <Brain className="w-4 h-4 text-primary" />
@@ -639,7 +642,8 @@ const Dashboard = () => {
         </div>
 
         {/* Comandos rápidos */}
-        <div>
+        <div data-tour="operator-quick">
+
           <h3 className="text-[10px] uppercase tracking-[0.2em] font-semibold text-primary/70 mb-3">Comandos Rápidos</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {allowedLinks.map(({ path, label, icon: Icon, desc }) => (

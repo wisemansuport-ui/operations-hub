@@ -16,6 +16,76 @@ export type TourDefinition = {
 };
 
 export const TOURS: Record<string, TourDefinition> = {
+  operador: {
+    id: 'operador',
+    title: 'Painel do Operador',
+    steps: [
+      {
+        route: '/app',
+        selector: '[data-tour="operator-hero"]',
+        title: 'Seu painel ao vivo',
+        description: 'Aqui você vê em tempo real seu saldo do período, a projeção de fechamento e o status da sua operação. Tudo se atualiza conforme você registra remessas.',
+      },
+      {
+        route: '/app',
+        selector: '[data-tour="operator-kpis"]',
+        title: 'KPIs essenciais',
+        description: 'Quatro indicadores que importam: saldo a receber, metas fechadas, contas normais (R$ 2,00) e contas baixo (R$ 1,00). Cada conta validada soma ao seu ganho.',
+      },
+      {
+        route: '/app',
+        selector: '[data-tour="operator-chart"]',
+        title: 'Evolução do seu faturamento',
+        description: 'Acompanhe dia a dia o saldo gerado pela sua produção. Use os filtros de período para comparar hoje, semana ou mês.',
+      },
+      {
+        route: '/app',
+        selector: '[data-tour="operator-ai"]',
+        title: 'IA Motivacional',
+        description: 'O motor lê seus números e devolve uma leitura prática do seu ritmo: o que está indo bem, o que destravar e onde focar.',
+      },
+      {
+        route: '/app',
+        selector: '[data-tour="operator-quick"]',
+        title: 'Comandos rápidos',
+        description: 'Atalhos para as áreas que você usa todo dia: planilhas, extrato, custos e PIX.',
+      },
+      {
+        route: '/tasks',
+        selector: '[data-tour="tasks-tabs"]',
+        title: 'Suas planilhas operacionais',
+        description: 'Aqui ficam as metas atribuídas a você. Cada meta concentra remessas, contas normais e baixas — é onde sua produção é lançada.',
+      },
+      {
+        route: '/tasks',
+        selector: '[data-tour="tasks-meta-entry"]',
+        title: 'Como lançar remessa',
+        description: 'Dentro de uma meta, registre as contas processadas. Quando o controle de qualidade validar, vira saldo no seu extrato automaticamente.',
+      },
+      {
+        route: '/me',
+        title: 'Extrato detalhado',
+        description: 'Cada remessa validada aparece linha a linha no seu extrato, com plataforma, rede, contas e valor. Filtre e exporte quando quiser.',
+      },
+      {
+        route: '/me',
+        title: 'Histórico de pagamentos',
+        description: 'Acompanhe tudo que já recebeu: total acumulado, últimos 30 dias, ticket médio e o último repasse — agrupado por mês.',
+      },
+      {
+        route: '/costs',
+        selector: '[data-tour="costs-center"]',
+        title: 'Registre seus custos',
+        description: 'Lançar custos operacionais aqui mantém seu lucro real correto. Use isso para auditar sua própria operação.',
+      },
+      {
+        route: '/pix',
+        title: 'Chaves PIX',
+        description: 'Gerencie as chaves PIX usadas no seu fluxo financeiro — receba pagamentos sem fricção.',
+      },
+    ],
+  },
+
   primeiros: {
     id: 'primeiros',
     title: 'Primeiros Passos',
