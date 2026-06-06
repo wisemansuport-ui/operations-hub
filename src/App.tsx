@@ -10,6 +10,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { RouteTransition } from "@/components/layout/RouteTransition";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
