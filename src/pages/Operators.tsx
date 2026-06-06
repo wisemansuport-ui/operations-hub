@@ -232,7 +232,6 @@ const Operators = () => {
         newPaidUntil: safePaidUntil,
       });
       toast.success(`Pagamento de ${op.name} registrado: ${formatBRL(op.pendingSalary)}`);
-      setConfirmPayId(null);
     } catch { toast.error('Erro ao registrar pagamento.'); }
     finally { setLoadingAction(false); }
   };
@@ -248,7 +247,6 @@ const Operators = () => {
       const last = opHistory[0];
       await deleteDoc(doc(db, 'operatorPaymentHistory', last.id));
       toast.success(`Último pagamento de ${op.name} desfeito (${formatBRL(last.amount)}).`);
-      setConfirmUndoId(null);
     } catch { toast.error('Erro ao desfazer pagamento.'); }
     finally { setLoadingAction(false); }
   };
