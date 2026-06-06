@@ -105,7 +105,8 @@ export const GuidedTour = () => {
         const s = sig(next);
         const now = performance.now();
         if (s === lastSig) {
-          if (now - stableSince > 140) {
+          // Stable for 120ms OR we've been tracking for >450ms — reveal now.
+          if (now - stableSince > 120 || now - startedAt > 450) {
             setTransitioning(false);
             setTooltipVisible(true);
             return;
@@ -115,7 +116,8 @@ export const GuidedTour = () => {
           stableSince = now;
         }
       }
-      if (performance.now() - startedAt < 1600) {
+      // Hard cap: never wait more than 900ms before showing the tooltip.
+      if (performance.now() - startedAt < 900) {
         followRaf = requestAnimationFrame(() => followScroll(el, startedAt));
       } else {
         setTransitioning(false);
@@ -129,10 +131,16 @@ export const GuidedTour = () => {
       if (el) {
         const r = el.getBoundingClientRect();
         if (r.width > 0 && r.height > 0) setRect(r);
-        el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        // Use 'instant' when supported to avoid waiting on smooth-scroll
+        // animations between steps on the same route.
+        try {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        } catch {
+          el.scrollIntoView();
+        }
         followScroll(el);
-      } else if (step.selector && tries < 50) {
-        retryTimer = window.setTimeout(tryFind, 80) as unknown as number;
+      } else if (step.selector && tries < 40) {
+        retryTimer = window.setTimeout(tryFind, 60) as unknown as number;
         return;
       } else {
         setRect(null);
@@ -140,10 +148,11 @@ export const GuidedTour = () => {
         stableTimer = window.setTimeout(() => {
           setTransitioning(false);
           setTooltipVisible(true);
-        }, 220) as unknown as number;
+        }, 180) as unknown as number;
       }
     };
     tryFind();
+
 
     const onResize = () => {
       const el = getTarget();
