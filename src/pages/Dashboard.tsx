@@ -391,6 +391,8 @@ const Dashboard = () => {
       receitaMensal,
       metasFechadas,
       metasAtivas,
+      metasFechadasInPeriod,
+      metasAtivasInPeriod,
       totalMetas,
       contasProcessadas,
       contasNormais,
