@@ -492,24 +492,26 @@ const Operators = () => {
       </div>
 
 
-      {/* Tabs — minimal underline */}
-      <div className="flex items-center gap-1 border-b border-border/40 overflow-x-auto hide-scrollbar">
+      {/* Tabs — pill style (igual Planilhas) */}
+      <div className="flex bg-muted/20 border border-border/50 rounded-lg p-1.5 overflow-x-auto hide-scrollbar w-fit">
         {TABS.map((tab) => {
           const active = activeTab === tab;
           return (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`relative px-4 py-3 text-sm font-semibold transition-all whitespace-nowrap ${
-                active ? 'text-foreground' : 'text-muted-foreground/70 hover:text-foreground'
+              className={`px-5 py-2 text-sm font-semibold rounded-md transition-all whitespace-nowrap ${
+                active
+                  ? 'bg-muted text-foreground shadow-sm border border-border/50'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
               }`}
             >
               {tab}
-              {active && <span className="absolute left-3 right-3 -bottom-px h-[2px] bg-primary rounded-full" />}
             </button>
           );
         })}
       </div>
+
 
       {/* Period filter */}
       {activeTab !== 'Configurações' && (
