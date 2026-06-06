@@ -12,13 +12,13 @@ import { NotificationProvider } from "@/contexts/NotificationContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { RouteTransition } from "@/components/layout/RouteTransition";
 import { useLocalStorage } from "./hooks/useLocalStorage";
-import Login from "./pages/Login";
-import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 import NotificationPrompt from "@/components/NotificationPrompt";
 import { SubscriptionGuard } from "@/components/layout/SubscriptionGuard";
 
 // Lazy-loaded routes — keeps the initial bundle small and navigation snappy on mobile
+const Login = lazy(() => import("./pages/Login"));
+const Landing = lazy(() => import("./pages/Landing"));
 const Index = lazy(() => import("./pages/Index"));
 const Production = lazy(() => import("./pages/Production"));
 const Tasks = lazy(() => import("./pages/Tasks"));
