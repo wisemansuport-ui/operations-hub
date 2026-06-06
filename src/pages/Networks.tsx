@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useFirestoreData } from '../hooks/useFirestoreData';
+import { NetworkInsightDialog } from '@/components/networks/NetworkInsightDialog';
 
 
 interface NetworkStats {
@@ -169,6 +170,8 @@ const Networks = () => {
   const activeOperator = user?.username || 'admin';
   const role           = user?.role     || 'ADMIN';
   const [selectedNetworkId, setSelectedNetworkId] = useState<string | null>(null);
+  const [insightOpen, setInsightOpen] = useState(false);
+  const [insightNetworkId, setInsightNetworkId] = useState<string | null>(null);
 
 
   const networkData = useMemo((): NetworkStats[] => {
@@ -429,7 +432,7 @@ const Networks = () => {
               <button
                 key={network.id}
                 type="button"
-                onClick={() => setSelectedNetworkId(network.id)}
+                onClick={() => { setSelectedNetworkId(network.id); setInsightNetworkId(network.id); setInsightOpen(true); }}
                 aria-pressed={isSelected}
                 className={`group relative w-full text-left px-6 py-4 transition-all duration-200 ${
                   isSelected
@@ -632,6 +635,19 @@ const Networks = () => {
           })()}
         </div>
       )}
+
+      <NetworkInsightDialog
+        open={insightOpen}
+        onOpenChange={setInsightOpen}
+        network={networkData.find(n => n.id === insightNetworkId) || null}
+        peers={networkData.length > 0 ? {
+          length: networkData.length,
+          avgRoi: networkData.reduce((a, n) => a + n.roi, 0) / networkData.length,
+          avgWin: networkData.reduce((a, n) => a + n.winRate, 0) / networkData.length,
+          avgPpc: networkData.reduce((a, n) => a + n.profitPerConta, 0) / networkData.length,
+          avgProfit: networkData.reduce((a, n) => a + n.totalProfit, 0) / networkData.length,
+        } : null}
+      />
 
     </div>
   );
