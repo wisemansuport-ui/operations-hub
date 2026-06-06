@@ -145,7 +145,7 @@ export default function PixKeys() {
 
 
       {/* Type distribution */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div data-tour="pix-stats" className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           { label: 'Phone', value: getCountType('PHONE'), tone: 'text-success', icon: '📱' },
           { label: 'CPF', value: getCountType('CPF'), tone: 'text-warning', icon: '🪪' },
