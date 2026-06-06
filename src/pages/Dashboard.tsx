@@ -383,7 +383,74 @@ const Dashboard = () => {
   
   if (pieData.length === 0) pieData.push({ name: "Sem Dados", value: 1 });
 
+  // ----- Decision Engine insights (heuristics from real stats) -----
+  const insights: Insight[] = useMemo(() => {
+    const arr: Insight[] = [];
+    const top = stats.rankingRedes[0];
+    const bottom = [...stats.rankingRedes].reverse().find(r => r.lucroRaw < 0);
+
+    if (top && top.lucroRaw > 0) {
+      arr.push({
+        type: "opportunity",
+        title: `Aumente alocação em ${top.title}`,
+        description: `É a rede com maior lucro líquido no período. Reforçar capital aqui tende a maximizar retorno.`,
+        metric: top.val,
+        confidence: Math.min(97, 70 + Math.round((top.lucroRaw / Math.max(stats.receitaMensal, 1)) * 100)),
+      });
+    }
+    if (bottom) {
+      arr.push({
+        type: "risk",
+        title: `Revisar operação em ${bottom.title}`,
+        description: `Rede operando no negativo no período. Avaliar pausa, troca de operador ou ajuste de modelo.`,
+        metric: bottom.val,
+        confidence: 88,
+      });
+    }
+    if (stats.metasAtivas > 0 && stats.medioporMeta > 0) {
+      const forecast = stats.medioporMeta * stats.metasAtivas;
+      arr.push({
+        type: "forecast",
+        title: `Previsão das ${stats.metasAtivas} metas ativas`,
+        description: `Baseado no lucro médio por meta fechada no período (${formatBRL(stats.medioporMeta)}).`,
+        metric: `+${formatBRL(forecast)}`,
+        confidence: 76,
+      });
+    }
+    if (stats.totalCustos > 0 && stats.receitaMensal > 0) {
+      const ratio = (stats.totalCustos / (stats.receitaMensal + stats.totalCustos)) * 100;
+      if (ratio > 35) {
+        arr.push({
+          type: "recommendation",
+          title: "Custos consumindo margem",
+          description: `Custos representam ${ratio.toFixed(0)}% do bruto. Considere auditar fornecedores e plataformas.`,
+          metric: `-${formatBRL(stats.totalCustos)}`,
+          confidence: 82,
+        });
+      }
+    }
+    if (stats.contasProcessadas > 0 && stats.medioporConta > 0) {
+      arr.push({
+        type: "recommendation",
+        title: "Foco em volume",
+        description: `Cada conta processada gera ${formatBRL(stats.medioporConta)} líquido. Escalar volume mantém ROI estável.`,
+        metric: `${stats.contasProcessadas} contas`,
+        confidence: 71,
+      });
+    }
+    return arr.slice(0, 6);
+  }, [stats]);
+
+  const heroForecastValue = stats.medioporMeta > 0
+    ? stats.receitaMensal + (stats.medioporMeta * stats.metasAtivas * 0.6)
+    : stats.receitaMensal;
+
+  const heroDeltaPct = stats.totalCustos > 0
+    ? ((stats.receitaMensal / (stats.receitaMensal + stats.totalCustos)) * 100).toFixed(0)
+    : "100";
+
   // Loading check AFTER all hooks (required by React Rules of Hooks)
+
   if (loading) {
     return <LoadingScreen message="Sincronizando seus dados" />;
   }
@@ -524,72 +591,8 @@ const Dashboard = () => {
     );
   }
 
-  // ----- Decision Engine insights (heuristics from real stats) -----
-  const insights: Insight[] = useMemo(() => {
-    const arr: Insight[] = [];
-    const top = stats.rankingRedes[0];
-    const bottom = [...stats.rankingRedes].reverse().find(r => r.lucroRaw < 0);
+  // insights/heroForecastValue/heroDeltaPct computed above (moved before early returns)
 
-    if (top && top.lucroRaw > 0) {
-      arr.push({
-        type: "opportunity",
-        title: `Aumente alocação em ${top.title}`,
-        description: `É a rede com maior lucro líquido no período. Reforçar capital aqui tende a maximizar retorno.`,
-        metric: top.val,
-        confidence: Math.min(97, 70 + Math.round((top.lucroRaw / Math.max(stats.receitaMensal, 1)) * 100)),
-      });
-    }
-    if (bottom) {
-      arr.push({
-        type: "risk",
-        title: `Revisar operação em ${bottom.title}`,
-        description: `Rede operando no negativo no período. Avaliar pausa, troca de operador ou ajuste de modelo.`,
-        metric: bottom.val,
-        confidence: 88,
-      });
-    }
-    if (stats.metasAtivas > 0 && stats.medioporMeta > 0) {
-      const forecast = stats.medioporMeta * stats.metasAtivas;
-      arr.push({
-        type: "forecast",
-        title: `Previsão das ${stats.metasAtivas} metas ativas`,
-        description: `Baseado no lucro médio por meta fechada no período (${formatBRL(stats.medioporMeta)}).`,
-        metric: `+${formatBRL(forecast)}`,
-        confidence: 76,
-      });
-    }
-    if (stats.totalCustos > 0 && stats.receitaMensal > 0) {
-      const ratio = (stats.totalCustos / (stats.receitaMensal + stats.totalCustos)) * 100;
-      if (ratio > 35) {
-        arr.push({
-          type: "recommendation",
-          title: "Custos consumindo margem",
-          description: `Custos representam ${ratio.toFixed(0)}% do bruto. Considere auditar fornecedores e plataformas.`,
-          metric: `-${formatBRL(stats.totalCustos)}`,
-          confidence: 82,
-        });
-      }
-    }
-    if (stats.contasProcessadas > 0 && stats.medioporConta > 0) {
-      arr.push({
-        type: "recommendation",
-        title: "Foco em volume",
-        description: `Cada conta processada gera ${formatBRL(stats.medioporConta)} líquido. Escalar volume mantém ROI estável.`,
-        metric: `${stats.contasProcessadas} contas`,
-        confidence: 71,
-      });
-    }
-    return arr.slice(0, 6);
-  }, [stats]);
-
-  // Hero forecast = previsão fim de período (extrapola média diária)
-  const heroForecastValue = stats.medioporMeta > 0
-    ? stats.receitaMensal + (stats.medioporMeta * stats.metasAtivas * 0.6)
-    : stats.receitaMensal;
-
-  const heroDeltaPct = stats.totalCustos > 0
-    ? ((stats.receitaMensal / (stats.receitaMensal + stats.totalCustos)) * 100).toFixed(0)
-    : "100";
 
   return (
   <div className="space-y-6 md:space-y-8 relative z-10 pb-20 md:pb-6">
