@@ -216,7 +216,7 @@ const Operators = () => {
       });
       const safePaidUntil = new Date(maxMetaTime + 1000).toISOString(); // Add 1 second
 
-      const opHistory = history.filter(h => h.operatorId === op.id);
+      const opHistory = historyByOperator.get(op.id) || [];
       const previousPaidUntil = opHistory.length > 0 ? opHistory[0].newPaidUntil : null;
       
       await addDoc(collection(db, 'operatorPaymentHistory'), {
@@ -237,7 +237,7 @@ const Operators = () => {
   const handleUndoLastPayment = async (op: OperatorData) => {
     setLoadingAction(true);
     try {
-      const opHistory = history.filter(h => h.operatorId === op.id);
+      const opHistory = historyByOperator.get(op.id) || [];
       if (opHistory.length === 0) {
         toast.error('Nenhum pagamento para desfazer.');
         return;
@@ -965,7 +965,7 @@ const Operators = () => {
           ) : (
             <div className="space-y-2">
               {filteredOps.map(op => {
-                const opHistory = history.filter(h => h.operatorId === op.id);
+                const opHistory = historyByOperator.get(op.id) || [];
                 const paidUntil = opHistory.length > 0 && opHistory[0].newPaidUntil ? opHistory[0].newPaidUntil : null;
                 const isPaidUp = op.pendingSalary === 0 && (paidUntil || op.salary === 0);
                 const isConfirm = confirmPayId === op.id;
