@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { GraduationCap, BookOpen, Rocket, Network, Target, Wallet, Brain, Crown, ArrowRight, Bell, Info, Sparkles, CheckCircle2, Footprints } from 'lucide-react';
+import { GraduationCap, BookOpen, Rocket, Network, Target, Wallet, Brain, Crown, ArrowRight, Bell, Info, Sparkles, CheckCircle2, Footprints, Lock, ShieldCheck } from 'lucide-react';
 import { TasksHero, type HeroKpi } from '../components/heroes/TasksHero';
 import { startTour, TOURS, getTourProgressPercent, TOUR_PROGRESS_EVENT } from '@/lib/tours';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 
 interface Track {
   id: string;
@@ -9,9 +10,10 @@ interface Track {
   desc: string;
   icon: React.ComponentType<any>;
   level: 'Iniciante' | 'Intermediário' | 'Avançado';
+  adminOnly?: boolean;
 }
 
-const TRACKS: Track[] = [
+const ADMIN_TRACKS: Track[] = [
   { id: 'primeiros', title: 'Primeiros Passos', desc: 'Configure sua operação e domine a interface central em minutos.', icon: Rocket, level: 'Iniciante' },
   { id: 'operacoes', title: 'Operações & Remessas', desc: 'Lance metas, registre remessas e domine o ciclo completo de uma operação.', icon: Sparkles, level: 'Iniciante' },
   { id: 'redes', title: 'Redes & Operadores', desc: 'Estruture sua rede, organize operadores e maximize a performance coletiva.', icon: Network, level: 'Intermediário' },
@@ -21,11 +23,23 @@ const TRACKS: Track[] = [
   { id: 'assinatura', title: 'Plano & Acesso Premium', desc: 'Entenda as camadas de acesso, renovação e benefícios exclusivos.', icon: Crown, level: 'Iniciante' },
 ];
 
+const OPERATOR_TRACKS: Track[] = [
+  { id: 'operador', title: 'Painel do Operador', desc: 'Domine seu painel: saldo em tempo real, extrato, planilhas, custos e PIX — passo a passo.', icon: ShieldCheck, level: 'Iniciante' },
+  // tracks abaixo aparecem trancadas (somente admin)
+  { id: 'operacoes', title: 'Operações & Remessas (Admin)', desc: 'Gestão completa de metas e remessas — disponível apenas para administradores.', icon: Sparkles, level: 'Iniciante', adminOnly: true },
+  { id: 'redes', title: 'Redes & Operadores', desc: 'Estruturação de redes e gestão de operadores — área administrativa.', icon: Network, level: 'Intermediário', adminOnly: true },
+  { id: 'metas', title: 'Missões & Forecast', desc: 'Central de missões com previsão IA — restrito ao administrador.', icon: Target, level: 'Intermediário', adminOnly: true },
+  { id: 'custos', title: 'Inteligência de Custos', desc: 'Controle global de custos e detecção de vazamentos — administrativo.', icon: Wallet, level: 'Avançado', adminOnly: true },
+  { id: 'decision', title: 'Motor de Decisão IA', desc: 'Recomendações estratégicas com IA — exclusivo do painel admin.', icon: Brain, level: 'Avançado', adminOnly: true },
+  { id: 'assinatura', title: 'Plano & Acesso Premium', desc: 'Gestão de plano e renovação — somente administrador.', icon: Crown, level: 'Iniciante', adminOnly: true },
+];
+
 const LEVEL_TONE: Record<Track['level'], string> = {
   Iniciante: 'text-success bg-success/10 border-success/30',
   Intermediário: 'text-primary bg-primary/10 border-primary/30',
   Avançado: 'text-warning bg-warning/10 border-warning/30',
 };
+
 
 export default function Tutorial() {
   // Re-render when tour progress changes
