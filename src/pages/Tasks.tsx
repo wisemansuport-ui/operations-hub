@@ -1238,7 +1238,7 @@ const Tasks = () => {
         <tr key={meta.id} className={meta.isAdminMeta ? "bg-black hover:bg-[#0a0a0a] transition-colors group border-y border-border/10 shadow-[inset_4px_0_0_0_hsl(var(--primary))]" : "hover:bg-muted/10 transition-colors group"}>
           <td className="px-6 py-4 cursor-pointer" onClick={() => setSelectedMetaId(meta.id)}>
              <div className="flex items-center gap-3">
-               <div className={`w-2 h-2 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.8)] ${meta.status === 'fechada' ? 'bg-primary' : meta.status === 'lixeira' ? 'bg-red-500' : 'bg-emerald-500'}`} />
+               <div className={`w-2 h-2 rounded-full shadow-[0_0_8px_hsl(var(--primary)/0.8)] ${meta.status === 'fechada' ? 'bg-primary' : meta.status === 'lixeira' ? 'bg-red-500' : 'bg-primary'}`} />
                <div>
                  <div className="flex items-center gap-2">
                    {meta.isAdminMeta && <span className="px-1.5 py-0.5 rounded text-[8px] font-black tracking-widest bg-primary/20 text-primary border border-primary/30 uppercase">Admin</span>}
