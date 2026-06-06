@@ -536,6 +536,7 @@ const Dashboard = () => {
         </div>
 
         {/* HERO — Painel do operador */}
+        <div data-tour="operator-hero">
         <HeroPanel
           status={{ label: "Operação ao vivo", tone: "live" }}
           primaryLabel="Saldo do período"
@@ -561,14 +562,16 @@ const Dashboard = () => {
             { label: "Metas", value: `${stats.metasFechadas}/${stats.totalMetas}`, tone: "primary" },
           ]}
         />
+        </div>
 
         {/* KPIs estratégicos do operador */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+        <div data-tour="operator-kpis" className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           <KPICard highlight title="Saldo do Período" value={formatBRL(stats.totalAutoSalarios)} change={`${stats.contasProcessadas} contas operadas`} changeType="positive" icon={DollarSign} color="success" tooltip="Salário + comissões estimadas da sua produção validada." />
           <KPICard title="Metas Fechadas" value={`${stats.metasFechadas}/${stats.totalMetas}`} change={`${stats.metasAtivas} em andamento`} changeType="positive" icon={Target} color="primary" tooltip="Metas concluídas vs total atribuído." />
           <KPICard title="Contas Normais" value={String(stats.contasNormais)} change={`${stats.contasNormais * 2} pts · R$ 2,00/un`} changeType="neutral" icon={Activity} color="primary" tooltip="Volume de contas normais validadas (R$ 2,00 por unidade)." />
           <KPICard title="Contas Baixo" value={String(stats.contasBaixas)} change={`${stats.contasBaixas} pts · R$ 1,00/un`} changeType="neutral" icon={Users} color="warning" tooltip="Volume de contas com depósito baixo (R$ 1,00 por unidade)." />
         </div>
+
 
         {/* Gráfico + IA Motivacional */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
