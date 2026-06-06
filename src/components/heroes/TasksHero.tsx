@@ -1,4 +1,5 @@
-import { LayoutGrid, Activity, Target, CheckCircle2, Layers } from "lucide-react";
+// "Airy linear" — clean editorial hero for Planilhas. Title + KPI strip on a
+// hairline track, breathing room over heavy cards.
 
 interface Props {
   totalMetas: number;
@@ -10,7 +11,8 @@ interface Props {
   resultadoPositive?: boolean;
 }
 
-// "Operational Workspace" — terminal/grid identity for Tasks (Planilhas) module
+const pad2 = (n: number) => (n < 10 ? `0${n}` : String(n));
+
 export const TasksHero = ({
   totalMetas,
   abertas,
@@ -20,76 +22,96 @@ export const TasksHero = ({
   resultadoValue,
   resultadoPositive,
 }: Props) => {
+  const progress = Math.max(0, Math.min(100, progressoMedio));
+
   return (
-    <section className="hairline-gold glass-premium rounded-3xl relative overflow-hidden">
-      {/* Grid pattern background */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.05]"
-        style={{
-          backgroundImage:
-            "linear-gradient(hsl(var(--primary)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)",
-          backgroundSize: "24px 24px",
-        }}
-      />
-      <div className="absolute -top-16 -left-12 w-[360px] h-[260px] rounded-full bg-primary/[0.07] blur-3xl pointer-events-none" />
+    <section className="relative">
+      {/* Soft background glow */}
+      <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary/[0.05] blur-[120px] rounded-full pointer-events-none" />
 
-      <div className="relative grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-6 p-5 md:p-7">
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.25em] text-primary/80">
-              <LayoutGrid className="w-3 h-3" /> Operational Workspace
-            </span>
-            <span className="inline-flex items-center gap-1 text-[9px] uppercase tracking-widest font-semibold text-muted-foreground">
-              <span className="w-1 h-1 rounded-full bg-success animate-pulse" /> Em operação
-            </span>
+      <div className="relative flex flex-col gap-10 px-1 sm:px-2">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-7 border-b border-primary/10">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <span className="text-[10px] uppercase tracking-[0.22em] text-primary/60 font-semibold">
+                Operational Workspace
+              </span>
+            </div>
+            <h1 className="text-4xl md:text-6xl font-black text-foreground tracking-tighter leading-[1.02]">
+              Planilhas<span className="text-primary">.</span>
+            </h1>
+            <p className="text-muted-foreground max-w-md text-sm leading-relaxed">
+              Workspace tático de metas. Crie, acompanhe progresso e analise cada remessa em tempo real.
+            </p>
           </div>
-          <h1 className="text-3xl md:text-5xl font-black tracking-tight gradient-gold-text leading-[1.05]">
-            Planilhas
-          </h1>
-          <p className="text-sm text-muted-foreground/90 mt-3 max-w-md leading-relaxed">
-            Workspace tático de metas. Crie, acompanhe progresso e analise cada remessa em tempo real.
-          </p>
 
-          {progressoMedio > 0 && (
-            <div className="mt-5 surface-2 ring-gold rounded-xl p-3.5 max-w-md">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground inline-flex items-center gap-1">
-                  <Activity className="w-3 h-3 text-primary" /> Progresso médio
-                </p>
-                <p className="text-xs font-black tabular-nums text-primary">{Math.round(progressoMedio)}%</p>
+          {progress > 0 && (
+            <div className="flex flex-col md:items-end gap-2">
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                  Progresso médio
+                </span>
+                <span className="text-2xl font-bold text-primary tabular-nums">{Math.round(progress)}%</span>
               </div>
-              <div className="h-1.5 w-full rounded-full bg-border/50 overflow-hidden">
+              <div className="w-48 h-1 bg-secondary rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-primary/70 to-primary rounded-full transition-all duration-700"
-                  style={{ width: `${Math.min(100, progressoMedio)}%` }}
+                  className="h-full bg-gradient-to-r from-primary/80 to-primary transition-all duration-700"
+                  style={{ width: `${progress}%` }}
                 />
               </div>
             </div>
           )}
         </div>
 
-        <div className="grid grid-cols-3 gap-2 content-center">
-          <div className="surface-1 rounded-xl p-3 text-center">
-            <Layers className="w-3.5 h-3.5 text-primary/70 mx-auto mb-1" />
-            <p className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Metas</p>
-            <p className="text-xl font-black tabular-nums text-foreground mt-0.5">{totalMetas}</p>
+        {/* KPI strip */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
+          <div className="group">
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1 group-hover:text-primary transition-colors">
+              Total de metas
+            </p>
+            <p className="text-3xl font-black tabular-nums text-foreground">{totalMetas}</p>
+            <div className="mt-4 w-8 h-px bg-primary/30" />
           </div>
-          <div className="surface-1 rounded-xl p-3 text-center">
-            <Target className="w-3.5 h-3.5 text-success mx-auto mb-1" />
-            <p className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Abertas</p>
-            <p className="text-xl font-black tabular-nums text-success mt-0.5">{abertas}</p>
+
+          <div className="group">
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1 group-hover:text-primary transition-colors">
+              Abertas
+            </p>
+            <p className="text-3xl font-black tabular-nums text-foreground">{pad2(abertas)}</p>
+            <div className="mt-4 w-8 h-px bg-primary/30" />
           </div>
-          <div className="surface-1 rounded-xl p-3 text-center">
-            <CheckCircle2 className="w-3.5 h-3.5 text-primary mx-auto mb-1" />
-            <p className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground">Fechadas</p>
-            <p className="text-xl font-black tabular-nums text-foreground mt-0.5">{fechadas}</p>
+
+          <div className="group">
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1 group-hover:text-primary transition-colors">
+              Fechadas
+            </p>
+            <p className="text-3xl font-black tabular-nums text-foreground">{fechadas}</p>
+            <div className="mt-4 w-8 h-px bg-primary/30" />
           </div>
-          {resultadoValue && (
-            <div className="surface-3 hairline-gold col-span-3 rounded-xl p-3.5">
-              <p className="text-[9px] uppercase tracking-widest font-bold text-primary/80">{resultadoLabel || "Resultado consolidado"}</p>
-              <p className={`text-xl md:text-2xl font-black tabular-nums tracking-tight mt-1 ${resultadoPositive ? "text-success" : "text-destructive"}`}>
+
+          {resultadoValue ? (
+            <div className="group">
+              <p className="text-[10px] uppercase tracking-widest text-primary mb-1">
+                {resultadoLabel || "Lucro consolidado"}
+              </p>
+              <p
+                className={`text-3xl font-black tabular-nums tracking-tight ${
+                  resultadoPositive === false ? "text-destructive" : "text-primary"
+                }`}
+              >
                 {resultadoValue}
               </p>
+              <div className="mt-4 w-full h-px bg-primary/10" />
+            </div>
+          ) : (
+            <div className="group">
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">
+                Lucro consolidado
+              </p>
+              <p className="text-3xl font-black tabular-nums text-muted-foreground/60">—</p>
+              <div className="mt-4 w-full h-px bg-primary/10" />
             </div>
           )}
         </div>
