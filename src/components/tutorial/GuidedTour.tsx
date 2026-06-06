@@ -12,6 +12,7 @@ import {
 
 const PAD = 10;
 const FALLBACK_SIZE = { w: 280, h: 80 };
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
 export const GuidedTour = () => {
   const navigate = useNavigate();
@@ -69,22 +70,41 @@ export const GuidedTour = () => {
     }
   }, [step, location.pathname, navigate]);
 
-  // Track target rect
+  // Track target rect with scroll-aware measurements so the spotlight does not
+  // flash into a blank fallback while the page is still moving.
   useLayoutEffect(() => {
     if (!step) { setRect(null); return; }
     if (location.pathname !== step.route) { setRect(null); return; }
 
-    let raf = 0;
+    let retryTimer = 0;
+    let followRaf = 0;
     let tries = 0;
+    let cancelled = false;
+
+    const getTarget = () => (step.selector ? document.querySelector(step.selector) as HTMLElement | null : null);
+
+    const updateRect = (el: HTMLElement) => {
+      const next = el.getBoundingClientRect();
+      if (next.width > 0 && next.height > 0) setRect(next);
+    };
+
+    const followScroll = (el: HTMLElement, startedAt = performance.now()) => {
+      if (cancelled) return;
+      updateRect(el);
+      if (performance.now() - startedAt < 900) {
+        followRaf = requestAnimationFrame(() => followScroll(el, startedAt));
+      }
+    };
+
     const tryFind = () => {
       tries++;
-      const el = step.selector ? document.querySelector(step.selector) as HTMLElement | null : null;
+      const el = getTarget();
       if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // give the scroll a moment so the highlight lands where the eye lands
-        setTimeout(() => setRect(el.getBoundingClientRect()), 250);
+        updateRect(el);
+        el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        followScroll(el);
       } else if (step.selector && tries < 40) {
-        raf = window.setTimeout(tryFind, 100) as unknown as number;
+        retryTimer = window.setTimeout(tryFind, 100) as unknown as number;
         return;
       } else {
         setRect(null);
@@ -93,13 +113,15 @@ export const GuidedTour = () => {
     tryFind();
 
     const onResize = () => {
-      const el = step.selector ? document.querySelector(step.selector) as HTMLElement | null : null;
+      const el = getTarget();
       if (el) setRect(el.getBoundingClientRect());
     };
     window.addEventListener('resize', onResize);
     window.addEventListener('scroll', onResize, true);
     return () => {
-      clearTimeout(raf);
+      cancelled = true;
+      clearTimeout(retryTimer);
+      cancelAnimationFrame(followRaf);
       window.removeEventListener('resize', onResize);
       window.removeEventListener('scroll', onResize, true);
     };
@@ -134,12 +156,16 @@ export const GuidedTour = () => {
   const vw = typeof window !== 'undefined' ? window.innerWidth : 1024;
   const vh = typeof window !== 'undefined' ? window.innerHeight : 768;
   const spot = rect
-    ? {
-        left: rect.left - PAD,
-        top: rect.top - PAD,
-        width: rect.width + PAD * 2,
-        height: rect.height + PAD * 2,
-      }
+    ? (() => {
+        const width = Math.min(rect.width + PAD * 2, vw - 24);
+        const height = Math.min(rect.height + PAD * 2, vh - 24);
+        return {
+          left: clamp(rect.left - PAD, 12, Math.max(12, vw - width - 12)),
+          top: clamp(rect.top - PAD, 12, Math.max(12, vh - height - 12)),
+          width,
+          height,
+        };
+      })()
     : {
         left: vw / 2 - FALLBACK_SIZE.w / 2,
         top: vh / 2 - FALLBACK_SIZE.h / 2,
@@ -193,21 +219,23 @@ export const GuidedTour = () => {
       {/* Backdrop click-catcher */}
       <div className="fixed inset-0 pointer-events-auto" style={{ zIndex: 9990 }} aria-hidden />
 
-      {/* Animated spotlight via box-shadow trick — smoothly transitions
-          left/top/width/height between steps without SVG remounts. */}
+      {/* Animated spotlight via box-shadow trick — the transform follows route
+          changes and scroll motion smoothly instead of snapping. */}
       <div
         className="fixed pointer-events-none"
         style={{
           zIndex: 9991,
-          left: spot.left,
-          top: spot.top,
+          left: 0,
+          top: 0,
           width: spot.width,
           height: spot.height,
+          transform: `translate3d(${spot.left}px, ${spot.top}px, 0)`,
           borderRadius: 16,
           boxShadow:
-            '0 0 0 9999px rgba(0,0,0,0.78), 0 0 0 2px hsl(var(--primary)), 0 0 28px 4px hsl(var(--primary) / 0.55)',
-          transition: `left 520ms ${easing}, top 520ms ${easing}, width 520ms ${easing}, height 520ms ${easing}, box-shadow 320ms ease-out, opacity 220ms ease-out`,
+            '0 0 0 9999px hsl(var(--background) / 0.82), 0 0 0 1px hsl(var(--primary) / 0.88), 0 0 34px 6px hsl(var(--primary) / 0.42), inset 0 0 18px hsl(var(--primary) / 0.12)',
+          transition: `transform 720ms ${easing}, width 640ms ${easing}, height 640ms ${easing}, box-shadow 420ms ease-out, opacity 260ms ease-out`,
           opacity: rect ? 1 : 0.92,
+          willChange: 'transform, width, height, opacity',
         }}
       />
 
@@ -215,10 +243,14 @@ export const GuidedTour = () => {
       <div
         style={{
           ...tooltipStyle,
-          transition: `opacity 280ms ease-out, transform 320ms ${easing}, left 420ms ${easing}, top 420ms ${easing}`,
+          transform: rect
+            ? `translateY(${tooltipVisible ? 0 : 10}px) scale(${tooltipVisible ? 1 : 0.98})`
+            : `translate(-50%, ${tooltipVisible ? 0 : 10}px) scale(${tooltipVisible ? 1 : 0.98})`,
+          transition: `opacity 320ms ease-out, transform 440ms ${easing}, left 560ms ${easing}, top 560ms ${easing}`,
           opacity: tooltipVisible ? 1 : 0,
+          willChange: 'transform, opacity, left, top',
         }}
-        className="surface-3 hairline-gold rounded-2xl p-5 shadow-[0_20px_60px_rgba(0,0,0,0.6)] pointer-events-auto"
+        className="surface-3 hairline-gold rounded-2xl p-5 shadow-[0_24px_70px_hsl(var(--background)/0.65)] pointer-events-auto"
       >
         <div className="flex items-center justify-between mb-2 gap-3">
           <div className="flex items-center gap-2">
