@@ -29,14 +29,16 @@ export const KPICard = ({
   highlight = false,
 }: KPICardProps) => (
   <div
-    className={`relative rounded-2xl p-5 transition-all duration-300 group overflow-hidden min-h-[140px] flex ${
+    className={`relative rounded-2xl p-5 transition-all duration-300 group min-h-[140px] flex isolate ${
       highlight
         ? "hairline-gold surface-3 hover:-translate-y-1 hover:shadow-[0_18px_50px_-18px_hsl(var(--primary)/0.45)]"
         : "surface-2 hover:-translate-y-0.5 hover:shadow-[0_12px_36px_-16px_hsl(var(--primary)/0.3)] hover:border-primary/40"
     }`}
   >
     {highlight && (
-      <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+      <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none -z-10">
+        <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-primary/10 blur-3xl" />
+      </div>
     )}
     <div className="flex items-start justify-between gap-3 relative w-full">
       <div className="min-w-0 flex-1">
