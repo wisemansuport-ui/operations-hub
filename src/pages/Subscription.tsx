@@ -77,8 +77,8 @@ export default function Subscription() {
         <div className="relative text-center mb-6">
           <p className="text-[10px] tracking-[0.3em] font-black text-primary mb-2">CHEGA DE OPERAR NO ESCURO</p>
           <h2 className="text-2xl md:text-3xl font-black tracking-tight">
-            Sua planilha está <span className="text-destructive">custando lucro</span>.{' '}
-            <span className="gradient-gold-text">Nytzer Vision devolve o controle.</span>
+            Sua desorganização está <span className="text-destructive">custando caro</span>.{' '}
+            <span className="gradient-gold-text">A Nytzer Vision devolve o controle.</span>
           </h2>
           <p className="text-sm text-muted-foreground mt-2 max-w-2xl mx-auto">
             Quem opera no Excel perde dinheiro em erros de cálculo, fechamentos manuais e falta de visibilidade sobre os operadores. Nós automatizamos tudo.
