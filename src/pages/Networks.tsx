@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useFirestoreData } from '../hooks/useFirestoreData';
+import { NetworkInsightDialog } from '@/components/networks/NetworkInsightDialog';
 
 
 interface NetworkStats {
