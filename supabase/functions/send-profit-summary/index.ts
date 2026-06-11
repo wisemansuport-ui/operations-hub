@@ -302,15 +302,19 @@ Deno.serve(async (req) => {
       }
     }
 
-    const label = periodLabel(period);
     const results: any[] = [];
+
+    // build admin -> displayName lookup
+    const nameByAdmin: Record<string, string> = {};
+    for (const a of admins) nameByAdmin[a.username] = capitalize(String(a.displayName || a.username));
 
     for (const [admin, total] of profitByAdmin.entries()) {
       if (!total) continue;
-      const phrase = periodPhrase(period);
+      const name = nameByAdmin[admin] || capitalize(admin);
+      const valueStr = formatBRLSigned(total);
+      const body = buildMessage(period, name, total, valueStr);
       const periodTitle = period === 'daily' ? 'Resumo do dia' : period === 'weekly' ? 'Resumo da semana' : 'Resumo do mês';
       const title = `NytzerVision`;
-      const body = `Lucro ${label}: ${formatBRLSigned(total)}\n${phrase}`;
       try {
         const r = await fetch(NOTIFY_URL, {
           method: 'POST',
@@ -333,8 +337,8 @@ Deno.serve(async (req) => {
           body: JSON.stringify({
             fields: {
               title: { stringValue: periodTitle },
-              message: { stringValue: `Lucro ${label}: ${formatBRLSigned(total)} — ${phrase}` },
-              type: { stringValue: 'info' },
+              message: { stringValue: body },
+              type: { stringValue: total < 0 ? 'warning' : 'success' },
               read: { booleanValue: false },
               timestamp: { stringValue: new Date().toISOString() },
               targetUser: { stringValue: admin },
