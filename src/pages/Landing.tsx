@@ -207,6 +207,10 @@ const HeroPreview = () => (
 );
 
 const Landing = () => {
+  const [operators, setOperators] = useState(3);
+  const teamTotal = teamPriceFor(operators);
+  const nextUnit = operatorUnitPrice(operators + 1);
+  const currentDiscount = Math.round((1 - nextUnit / OPERATOR_PRICE) * 100);
   return (
     <div className="min-h-screen bg-[#07070a] text-foreground overflow-x-hidden">
       {/* Ambient gold glow background */}
@@ -552,51 +556,110 @@ const Landing = () => {
             7 dias grátis em todos os planos. Sem cartão. Sem fidelidade. Cancele quando quiser.
           </p>
         </div>
-        <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          {plans.map((p) => (
-            <div
-              key={p.name}
-              className={`relative p-8 rounded-3xl border transition-all ${
-                p.highlighted
-                  ? "bg-gradient-to-b from-primary/15 to-card/40 border-primary shadow-[0_30px_80px_-20px_hsl(var(--primary)/0.4)] md:scale-105"
-                  : "bg-card/30 border-primary/15 hover:border-primary/40"
-              }`}
-            >
-              {p.highlighted && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold tracking-wider">
-                  MAIS POPULAR
-                </div>
-              )}
-              <h3 className="text-2xl font-black mb-1 text-foreground">{p.name}</h3>
-              <p className="text-sm text-muted-foreground mb-6">{p.desc}</p>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-5xl font-black text-foreground">{p.price}</span>
-                <span className="text-muted-foreground">{p.period}</span>
-              </div>
-              <Link to="/login">
-                <Button
-                  className={`w-full rounded-full mb-8 ${
-                    p.highlighted
-                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                  }`}
-                  size="lg"
-                >
-                  {p.cta}
-                </Button>
-              </Link>
-              <ul className="space-y-3">
-                {p.features.map((feat) => (
-                  <li key={feat} className="flex items-start gap-3 text-sm">
-                    <div className="w-5 h-5 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Check className="w-3 h-3 text-primary" />
-                    </div>
-                    <span className="text-foreground/90">{feat}</span>
-                  </li>
-                ))}
-              </ul>
+        <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+          {/* ====== SOLO ====== */}
+          <div className="relative p-8 rounded-3xl border bg-card/30 border-primary/15 hover:border-primary/40 transition-all flex flex-col">
+            <h3 className="text-2xl font-black mb-1 text-foreground">Solo</h3>
+            <p className="text-sm text-muted-foreground mb-6">
+              Dashboard completo só pra você. Sem operadores vinculados.
+            </p>
+            <div className="flex items-baseline gap-1 mb-1">
+              <span className="text-sm text-muted-foreground">R$</span>
+              <span className="text-5xl font-black text-foreground">{formatBRL(SOLO_PRICE)}</span>
+              <span className="text-muted-foreground">/mês</span>
             </div>
-          ))}
+            <p className="text-xs text-muted-foreground mb-6">Cobrança mensal · cancele quando quiser</p>
+            <Link to="/login">
+              <Button className="w-full rounded-full mb-8 bg-secondary text-secondary-foreground hover:bg-secondary/80" size="lg">
+                Começar agora
+              </Button>
+            </Link>
+            <ul className="space-y-3">
+              {[
+                "Dashboard em tempo real",
+                "Motor de Decisão IA",
+                "Ranking de redes com análise IA",
+                "Forecast de metas",
+                "Gestão de PIX e custos",
+                "Relatórios automáticos",
+                "Notificações push iOS/Android",
+                "Suporte por e-mail",
+              ].map((feat) => (
+                <li key={feat} className="flex items-start gap-3 text-sm">
+                  <div className="w-5 h-5 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Check className="w-3 h-3 text-primary" />
+                  </div>
+                  <span className="text-foreground/90">{feat}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* ====== TEAM ====== */}
+          <div className="relative p-8 rounded-3xl border bg-gradient-to-b from-primary/15 to-card/40 border-primary shadow-[0_30px_80px_-20px_hsl(var(--primary)/0.4)] flex flex-col">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold tracking-wider">
+              MAIS POPULAR
+            </div>
+            <h3 className="text-2xl font-black mb-1 text-foreground">Team</h3>
+            <p className="text-sm text-muted-foreground mb-6">
+              Tudo do Solo + operadores vinculados com desconto progressivo.
+            </p>
+
+            <div className="flex items-baseline gap-1 mb-1">
+              <span className="text-sm text-muted-foreground">R$</span>
+              <span className="text-5xl font-black text-foreground">{formatBRL(teamTotal)}</span>
+              <span className="text-muted-foreground">/mês</span>
+            </div>
+            <p className="text-xs text-primary font-semibold mb-6">
+              Base R$ {formatBRL(SOLO_PRICE)} + {operators} {operators === 1 ? "operador" : "operadores"}
+              {currentDiscount > 0 && ` · próx. operador ${currentDiscount}% off`}
+            </p>
+
+            {/* Slider de operadores */}
+            <div className="mb-6 p-4 rounded-2xl bg-background/40 border border-primary/20">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-bold text-foreground uppercase tracking-wider">Operadores</span>
+                <span className="text-lg font-black text-primary">{operators}</span>
+              </div>
+              <input
+                type="range"
+                min={1}
+                max={20}
+                value={operators}
+                onChange={(e) => setOperators(Number(e.target.value))}
+                className="w-full accent-primary cursor-pointer"
+              />
+              <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+                <span>1</span>
+                <span>20+</span>
+              </div>
+            </div>
+
+            <Link to="/login">
+              <Button className="w-full rounded-full mb-8 bg-primary text-primary-foreground hover:bg-primary/90" size="lg">
+                Assinar Team
+              </Button>
+            </Link>
+            <ul className="space-y-3">
+              {[
+                "Tudo do Solo",
+                `Operadores vinculados (R$ ${formatBRL(OPERATOR_PRICE)}/op.)`,
+                "Desconto gradativo até 30% por operador",
+                "Extrato individual por operador",
+                "Ranking e gamificação da equipe",
+                "Notificações push em massa",
+                "Exportação avançada",
+                "Suporte prioritário",
+              ].map((feat) => (
+                <li key={feat} className="flex items-start gap-3 text-sm">
+                  <div className="w-5 h-5 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Check className="w-3 h-3 text-primary" />
+                  </div>
+                  <span className="text-foreground/90">{feat}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </section>
 
