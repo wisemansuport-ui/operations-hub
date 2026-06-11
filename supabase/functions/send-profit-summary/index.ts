@@ -37,24 +37,48 @@ const PHRASES: Record<'daily' | 'weekly' | 'monthly', Record<Tier, ((name: strin
       (n, v) => `Calma, ${n}. ${v} hoje não define nada — amanhã é dia de virar o jogo! 🔥`,
       (n, v) => `${n}, hoje deu ruim (${v}). Mas operador de verdade se mede na recuperação. Bora pra cima! ⚡`,
       (n, v) => `Eita, ${n}! ${v} hoje. Limpa a mente, foca no plano e amanhã a gente devolve com juros! 🚀`,
+      (n, v) => `${n}, dia fechou em ${v}. Toda curva tem retomada — amanhã o ringue é seu de novo. 🥊`,
+      (n, v) => `Vermelho hoje (${v}), ${n}. Mas o histórico de quem vence é cheio de dias assim. Segue firme! 🛡️`,
+      (n, v) => `${n}, ${v} hoje não é fracasso, é dado. Ajusta a mira e amanhã acerta no centro! 🎯`,
+      (n, v) => `Dia complicado, ${n} (${v}). Hoje o mercado falou — amanhã quem fala é você. 🗣️`,
+      (n, v) => `${n}, perdeu uma batalha (${v}), não a guerra. Recarrega e volta com tudo! ⚔️`,
+      (n, v) => `Respira fundo, ${n}. ${v} hoje, mas a régua segue subindo no longo prazo. 📊`,
     ],
     low: [
       (n, v) => `Boa, ${n}! Você lucrou ${v} hoje. Tá no caminho, mas dá pra melhorar! 📈`,
       (n, v) => `Salve, ${n}! ${v} hoje — resultado positivo, mas a gente sabe que tem mais aí dentro! 💡`,
       (n, v) => `${n}, fechou em ${v}. Tá no verde, mas amanhã a meta é dobrar! 🎯`,
       (n, v) => `${v} no bolso hoje, ${n}. Bom começo — agora é hora de subir o nível! ⚙️`,
+      (n, v) => `${n}, ${v} hoje. Tijolinho colocado — o prédio só cresce com constância. 🧱`,
+      (n, v) => `Verde modesto hoje, ${n} (${v}). Repete isso 30x e o mês muda de figura. 📅`,
+      (n, v) => `${n}, ${v} é começo de jornada. Próximo lance vamos atrás de um número mais gordo! 💪`,
+      (n, v) => `Resultado positivo, ${n}: ${v}. Hora de afinar a operação e acelerar! ⚡`,
+      (n, v) => `${n}, ${v} hoje. Sem celebrar demais nem reclamar — só executar amanhã. 🧭`,
+      (n, v) => `Lucrou ${v}, ${n}. Pequeno hoje, gigante amanhã se mantiver a disciplina. 🥇`,
     ],
     mid: [
       (n, v) => `Boa, ${n}! Você já lucrou ${v} hoje. Continue assim! 💰`,
       (n, v) => `Salve, ${n}! ${v} no dia. Operação afiada — segue o jogo! 🔥`,
       (n, v) => `${n}, ${v} hoje. Disciplina pagando — não desacelera! 🚀`,
       (n, v) => `Mandou bem, ${n}! ${v} fechados hoje. Constância é tudo! 💎`,
+      (n, v) => `${n}, ${v} hoje. Esse é o ritmo de quem constrói patrimônio! 🏗️`,
+      (n, v) => `Dia sólido, ${n}: ${v}. Mantém esse padrão que o mês fica lindo. 📈`,
+      (n, v) => `${n}, ${v} no dia. Execução limpa, decisão fria — assim que se faz! ❄️`,
+      (n, v) => `Verde firme hoje, ${n} (${v}). O processo tá fluindo, segue. 🌊`,
+      (n, v) => `${n}, ${v} hoje. Cada dia desses é um passo a mais da liberdade. 🗝️`,
+      (n, v) => `${v} hoje, ${n}. Sem barulho, sem sorte — só método. 🎯`,
     ],
     high: [
-      (n, v) => `Caraca, ${n}! O que um CLT faz no mês, você lucrou HOJE! HAHAHA — Resultado ${v} 🍾🍾`,
+      (n, v) => `Caraca, ${n}! O que um CLT faz no mês, você lucrou HOJE! Resultado ${v} 🍾🍾`,
       (n, v) => `${n}, isso é roubo? ${v} em UM dia! O mercado tá pagando pedágio pra você! 🍾🍾`,
-      (n, v) => `MONSTRO, ${n}! ${v} em um único dia. Imprime esse print e cola na geladeira! 🏆🍾`,
-      (n, v) => `${n}, calma aí... ${v} HOJE?! Cê tá imprimindo dinheiro?? HAHAHA 🤑🍾`,
+      (n, v) => `Show, ${n}! ${v} em um único dia. Imprime esse print e cola na geladeira! 🏆🍾`,
+      (n, v) => `${n}, calma aí... ${v} HOJE?! Cê tá imprimindo dinheiro?? 🤑🍾`,
+      (n, v) => `${n}, ${v} num dia só?! O mercado tá te devendo aluguel já! 🏠💸`,
+      (n, v) => `${n}, ${v} hoje é coisa de quem opera em outro nível. Respeita! 👑`,
+      (n, v) => `Hoje foi cinema, ${n}: ${v}! Próxima cena, mesma direção. 🎬🍾`,
+      (n, v) => `${n}, ${v} num dia. Tá brincando comigo?! Vai com tudo amanhã também! 🚀`,
+      (n, v) => `Resultado de fim de mês em UM dia, ${n}: ${v}. Inacreditável! 🤯`,
+      (n, v) => `${n}, ${v} hoje. Esse aí entra pro hall da fama do seu histórico! 🏛️`,
     ],
   },
   weekly: {
@@ -62,21 +86,37 @@ const PHRASES: Record<'daily' | 'weekly' | 'monthly', Record<Tier, ((name: strin
       (n, v) => `${n}, a semana fechou em ${v}. Faz parte — agora é resetar a cabeça e atacar a próxima com tudo! 💪`,
       (n, v) => `Semana difícil, ${n} (${v}). Mas é nas quedas que se mede operador. Próxima semana é nossa! 🔥`,
       (n, v) => `Olha, ${n}, ${v} essa semana. Analisa o que travou, ajusta o plano e bora pra cima! ⚡`,
+      (n, v) => `${n}, semana ${v}. 7 dias podem ser ruins, o mês ainda é seu. Próxima é virada! 🔁`,
+      (n, v) => `Semana no vermelho (${v}), ${n}. Hoje é dia de revisar, amanhã é dia de vencer. 🧠`,
+      (n, v) => `${n}, ${v} na semana. Não é o final, é só um capítulo. Vira a página! 📖`,
+      (n, v) => `Calma, ${n}: ${v} na semana. Quem desiste aqui não chega no topo. Continua! 🧗`,
     ],
     low: [
       (n, v) => `Boa, ${n}! Semana fechada em ${v}. Tá no azul, mas a próxima a gente sobe o ritmo! 📈`,
       (n, v) => `${n}, ${v} na semana. Resultado positivo — agora bora multiplicar isso! 💡`,
       (n, v) => `Semana ${v}, ${n}. Tá no caminho, mas tem espaço pra MUITO mais! 🎯`,
+      (n, v) => `${n}, ${v} na semana. Pé no chão, mas próxima a gente acelera. 🏎️`,
+      (n, v) => `Verde modesto, ${n} (${v}) na semana. Repete 4x e o mês fecha forte! 🗓️`,
+      (n, v) => `${n}, ${v} em 7 dias. Tem combustível pra mais — bora gastar! ⛽`,
+      (n, v) => `Semana positiva, ${n}: ${v}. Próxima a gente coloca um zero a mais. ⚙️`,
     ],
     mid: [
       (n, v) => `Boa, ${n}! Semana fechada em ${v}. Continue assim! 💰`,
       (n, v) => `${n}, ${v} na semana. 7 dias de execução fina — segue o jogo! 🏆`,
       (n, v) => `Mandou bem, ${n}! ${v} na semana. Constância é o motor do crescimento! ⚡`,
+      (n, v) => `${n}, ${v} essa semana. Esse é o ritmo de quem vai longe. 🛤️`,
+      (n, v) => `Semana sólida, ${n}: ${v}. Mantém o padrão e o mês vira festa. 🎉`,
+      (n, v) => `${n}, ${v} na semana. Operação afinada, mente fria. 🧊`,
+      (n, v) => `Resultado limpo, ${n}: ${v} em 7 dias. Próxima a gente repete. 🔁`,
     ],
     high: [
-      (n, v) => `Caraca, ${n}! ${v} em UMA semana?! Tem gente que não ganha isso em SEIS MESES! HAHAHA 🍾🍾`,
+      (n, v) => `Caraca, ${n}! ${v} em UMA semana?! Tem gente que não ganha isso em SEIS MESES! 🍾🍾`,
       (n, v) => `${n}, isso aí é coisa de outro patamar! ${v} na semana. Imperador! 👑🍾`,
-      (n, v) => `MONSTRO, ${n}! ${v} de lucro semanal. O jogo é seu! 🏆🍾`,
+      (n, v) => `Show, ${n}! ${v} de lucro semanal. O jogo é seu! 🏆🍾`,
+      (n, v) => `${n}, ${v} em 7 dias?! Isso vale ano de CLT, hein! 💼💥`,
+      (n, v) => `Semana monstra, ${n}: ${v}! Print, salva e olha quando bater dúvida. 📸`,
+      (n, v) => `${n}, ${v} na semana. Esse é o tipo de número que muda a vida! 🌍`,
+      (n, v) => `${v} em UMA semana, ${n}?! Cê tá descontrolado (do bem)! 🚀🍾`,
     ],
   },
   monthly: {
@@ -84,21 +124,34 @@ const PHRASES: Record<'daily' | 'weekly' | 'monthly', Record<Tier, ((name: strin
       (n, v) => `${n}, o mês fechou em ${v}. Mês ruim acontece — agora é levantar, revisar e voltar com fome dobrada! 💪🔥`,
       (n, v) => `Mês desafiador, ${n} (${v}). Mas operador de elite se forja na adversidade. Próximo mês é virada! ⚡`,
       (n, v) => `Olha, ${n}, ${v} no mês. Hora de auditar tudo, ajustar a estratégia e atacar com tudo! 🚀`,
+      (n, v) => `${n}, mês ${v}. Reseta o psicológico, refaz o plano — o próximo é nosso! 🧠`,
+      (n, v) => `Mês no vermelho (${v}), ${n}. Quem aguenta esse round, vence o próximo. 🥊`,
+      (n, v) => `${n}, ${v} no mês. Vai doer, mas é combustível pra próxima fase. 🔥`,
     ],
     low: [
       (n, v) => `Boa, ${n}! Mês fechado em ${v}. Tá no positivo — próximo mês a gente dobra! 📈`,
       (n, v) => `${n}, ${v} no mês. Resultado válido, mas o teto é MUITO mais alto! 💡`,
       (n, v) => `Mês ${v}, ${n}. Tá no caminho — bora subir o nível! 🎯`,
+      (n, v) => `${n}, ${v} em 30 dias. Base construída, agora é multiplicar. ✖️`,
+      (n, v) => `Mês positivo, ${n}: ${v}. Próximo a gente coloca pra rodar mais forte. ⚙️`,
+      (n, v) => `${n}, ${v} no mês. Pé no chão, olho na próxima escalada. 🧗`,
     ],
     mid: [
       (n, v) => `Boa, ${n}! Mês fechado em ${v}. Continue assim! 💰`,
       (n, v) => `${n}, ${v} no mês. Mais um mês de história escrita no preto! 🏛️`,
       (n, v) => `Mandou bem, ${n}! ${v} no mês. Império em expansão! 👑`,
+      (n, v) => `${n}, ${v} no mês. Esse é o ritmo de quem constrói patrimônio sério. 🏗️`,
+      (n, v) => `Mês sólido, ${n}: ${v}. Próximo a gente sobe mais um degrau. 🪜`,
+      (n, v) => `${n}, ${v} em 30 dias. Disciplina virando dinheiro — segue. 💎`,
     ],
     high: [
-      (n, v) => `Caraca, ${n}! ${v} em UM mês?! HAHAHA o que CLT faz em ANOS, cê faz em 30 dias! 🍾🍾`,
+      (n, v) => `Caraca, ${n}! ${v} em UM mês?! O que CLT faz em ANOS, cê faz em 30 dias! 🍾🍾`,
       (n, v) => `${n}, ${v} mensais?! Cê tá jogando outro game! REI! 👑🍾`,
-      (n, v) => `MONSTRO, ${n}! ${v} de lucro no mês. Imprime, emoldura e pendura na parede! 🏆🍾`,
+      (n, v) => `Show, ${n}! ${v} de lucro no mês. Imprime, emoldura e pendura na parede! 🏆🍾`,
+      (n, v) => `${n}, ${v} num mês?! Salário de diretor de multinacional, hein! 💼🚀`,
+      (n, v) => `Mês histórico, ${n}: ${v}! Esse vai no portfólio pra sempre. 📚`,
+      (n, v) => `${n}, ${v} em 30 dias. O mercado tá te devendo bônus já! 🎁`,
+      (n, v) => `${v} no mês, ${n}?! Tá imprimindo do bom e do melhor! 🖨️💵`,
     ],
   },
 };
@@ -112,11 +165,82 @@ function tierOf(v: number): Tier {
   return 'high';
 }
 
-function buildMessage(period: Period, name: string, value: number, valueStr: string, goalPct?: number) {
+// ─── AI-powered phrase generator (Lovable AI Gateway) ─────────────────────
+// Sempre tenta gerar uma frase fresca via IA. Em caso de falha (sem chave,
+// rate limit, timeout ou resposta vazia), cai pro catálogo local — então a
+// notificação NUNCA falha por causa da IA.
+async function generateAiPhrase(
+  period: 'daily' | 'weekly' | 'monthly',
+  tier: Tier,
+  name: string,
+  valueStr: string,
+): Promise<string | null> {
+  const apiKey = Deno.env.get('LOVABLE_API_KEY');
+  if (!apiKey) return null;
+
+  const periodLabel =
+    period === 'daily' ? 'do DIA de hoje'
+    : period === 'weekly' ? 'da SEMANA'
+    : 'do MÊS';
+
+  const toneLabel =
+    tier === 'neg'  ? 'O resultado foi NEGATIVO. Tom acolhedor, motivacional e de levante — sem clichês fracos, sem pena. Frase que faz o operador respirar fundo e voltar com fome.'
+    : tier === 'low' ? 'Resultado POSITIVO mas modesto (até R$500). Tom de "tá no caminho, bora subir o nível" — reconhece e provoca pra mais.'
+    : tier === 'mid' ? 'Resultado POSITIVO sólido (R$500 a R$1500). Tom de "operação afiada, continue assim" — celebra com pé no chão.'
+    : 'Resultado EXCEPCIONAL (R$1500+). Tom descontraído, de brincadeira e festa — celebra com humor, sem ser cafona.';
+
+  const prompt = `Você escreve UMA frase curta de notificação push em PORTUGUÊS BRASILEIRO para um operador chamado "${name}" sobre o lucro ${periodLabel}: ${valueStr}.
+
+${toneLabel}
+
+REGRAS OBRIGATÓRIAS:
+- Máximo 160 caracteres.
+- Inclua o nome "${name}" e o valor exato "${valueStr}" na frase.
+- Pode usar 1 a 2 emojis no final, com moderação.
+- Linguagem direta, brasileira, com personalidade — nada genérico tipo "parabéns pelo seu desempenho".
+- NÃO comece com "MONSTRO", "Caraca" nem clichês repetidos.
+- NÃO use aspas, nem hashtags, nem markdown.
+- Retorne SOMENTE a frase final, sem prefixo, sem explicação.`;
+
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 6000);
+    const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      signal: ctrl.signal,
+      body: JSON.stringify({
+        model: 'google/gemini-3-flash-preview',
+        messages: [
+          { role: 'system', content: 'Você é um copywriter brasileiro de elite especializado em mensagens curtas, criativas e variadas de notificação push para traders e operadores. Cada frase deve ser ORIGINAL — nunca repita o mesmo gancho.' },
+          { role: 'user', content: prompt },
+        ],
+        temperature: 1.1,
+      }),
+    });
+    clearTimeout(timer);
+    if (!res.ok) return null;
+    const json = await res.json();
+    let text: string = json?.choices?.[0]?.message?.content ?? '';
+    text = String(text).trim().replace(/^["'`]+|["'`]+$/g, '').trim();
+    if (!text) return null;
+    // Garante que nome e valor estão presentes; se não, descarta e usa fallback local
+    if (!text.includes(name) || !text.includes(valueStr)) return null;
+    if (text.length > 220) text = text.slice(0, 217).trimEnd() + '…';
+    return text;
+  } catch {
+    return null;
+  }
+}
+
+async function buildMessage(period: Period, name: string, value: number, valueStr: string, goalPct?: number) {
   const key = periodKey(period);
   const t = tierOf(value);
-  const fn = pick(PHRASES[key][t]);
-  let msg = fn(name, valueStr);
+  const ai = await generateAiPhrase(key, t, name, valueStr);
+  let msg = ai ?? pick(PHRASES[key][t])(name, valueStr);
   if (goalPct !== undefined && (period === 'monthly' || period === '30d')) {
     const pct = Math.round(goalPct);
     if (pct >= 100) msg += ` 🎯 Meta mensal BATIDA (${pct}%)!`;
