@@ -187,9 +187,10 @@ function fsValue(v: any): any {
   return null;
 }
 
-async function fetchCollection(name: string, opts: { optional?: boolean } = {}): Promise<any[]> {
+async function fetchCollection(name: string, opts: { optional?: boolean; retries?: number } = {}): Promise<any[]> {
   const docs: any[] = [];
   let pageToken: string | undefined;
+  const maxRetries = opts.retries ?? 3;
   try {
     do {
       const url = new URL(
@@ -198,14 +199,26 @@ async function fetchCollection(name: string, opts: { optional?: boolean } = {}):
       url.searchParams.set('key', FIREBASE_API_KEY);
       url.searchParams.set('pageSize', '300');
       if (pageToken) url.searchParams.set('pageToken', pageToken);
-      const res = await fetch(url.toString());
-      if (!res.ok) {
-        const txt = await res.text();
+
+      let res: Response | null = null;
+      let lastTxt = '';
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        res = await fetch(url.toString());
+        if (res.ok) break;
+        lastTxt = await res.text();
+        if (res.status === 429 || res.status >= 500) {
+          // exponential backoff: 500ms, 1s, 2s
+          await new Promise((r) => setTimeout(r, 500 * Math.pow(2, attempt)));
+          continue;
+        }
+        break;
+      }
+      if (!res || !res.ok) {
         if (opts.optional) {
-          console.warn(`[fetchCollection:${name}] ${res.status} — degradando para vazio. ${txt.slice(0, 200)}`);
+          console.warn(`[fetchCollection:${name}] ${res?.status} — degradando para vazio. ${lastTxt.slice(0, 200)}`);
           return docs;
         }
-        throw new Error(`Firestore ${name} ${res.status}: ${txt}`);
+        throw new Error(`Firestore ${name} ${res?.status}: ${lastTxt}`);
       }
       const json = await res.json();
       for (const d of json.documents || []) {
@@ -435,10 +448,18 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (e) {
+    const msg = String(e);
     console.error('[send-profit-summary]', e);
-    return new Response(JSON.stringify({ error: String(e) }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    const isQuota = /429|RESOURCE_EXHAUSTED|Quota exceeded/i.test(msg);
+    return new Response(
+      JSON.stringify({
+        error: isQuota
+          ? 'Firestore atingiu o limite de quota. Tente novamente em alguns instantes.'
+          : msg,
+        fallback: true,
+        count: 0,
+      }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    );
   }
 });

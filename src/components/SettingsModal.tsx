@@ -166,6 +166,7 @@ export const SettingsModal = ({ open, onOpenChange, adminUserId }: Props) => {
       });
       toast.dismiss("fire-notif");
       if (error) throw new Error(error.message || "Erro ao invocar função");
+      if ((data as any)?.fallback) { toast.warning((data as any).error || "Serviço temporariamente indisponível."); return; }
       const count = (data as any)?.count ?? (Array.isArray((data as any)?.results) ? (data as any).results.length : 0);
       if (count > 0) toast.success("✅ Notificação enviada!");
       else toast.info("Função executada, mas nenhum envio realizado.");
