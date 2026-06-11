@@ -490,7 +490,7 @@ Deno.serve(async (req) => {
       const name = nameByAdmin[admin] || capitalize(admin);
       const valueStr = formatBRLSigned(total);
       const goalPct = goalPctByAdmin[admin];
-      const body = buildMessage(period, name, total, valueStr, goalPct);
+      const body = await buildMessage(period, name, total, valueStr, goalPct);
       const periodTitle = periodTitleOf(period);
       const titleMap: Record<string, string> = {
         daily:   'Fechamento do Dia 🗓️',
