@@ -1230,7 +1230,7 @@ const Tasks = () => {
       const isNegative = lucroProj < 0;
 
       return (
-        <tr key={meta.id} className={meta.isAdminMeta ? "bg-black hover:bg-[#0a0a0a] transition-colors group border-y border-border/10 shadow-[inset_4px_0_0_0_hsl(var(--primary))]" : "hover:bg-muted/10 transition-colors group"}>
+        <tr key={meta.id} className={meta.isAdminMeta ? "bg-black hover:bg-[#0a0a0a] transition-colors group border-y border-primary/10 shadow-[inset_4px_0_0_0_hsl(var(--primary))]" : "hover:bg-muted/10 transition-colors group"}>
           <td className="px-6 py-4 cursor-pointer" onClick={() => setSelectedMetaId(meta.id)}>
              <div className="flex items-center gap-3">
                <div className={`w-2 h-2 rounded-full shadow-[0_0_8px_hsl(var(--primary)/0.8)] ${meta.status === 'fechada' ? 'bg-primary' : meta.status === 'lixeira' ? 'bg-red-500' : 'bg-primary'}`} />
