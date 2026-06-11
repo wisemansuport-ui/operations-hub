@@ -859,16 +859,6 @@ const Dashboard = () => {
       <KPICard title="Lucro / Conta" value={formatBRL(stats.medioporConta)} change={`Média sobre ${stats.contasProcessadas}`} changeType={stats.medioporConta >= 0 ? "positive" : "negative"} icon={DollarSign} color="success" tooltip="Lucro líquido médio gerado por cada conta operada no período." />
     </div>
 
-    {/* Funil de Hoje + Motivação Diária */}
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-      <TodayFunnel
-        lucroHoje={todayStats.lucroHoje}
-        contasHoje={todayStats.contasHoje}
-        remessasHoje={todayStats.remessasHoje}
-        sparkData={todayStats.sparkData}
-      />
-      <MotivationWidget />
-    </div>
 
     {/* Evolução do Faturamento (full width, financeira) */}
     <div className="hairline-gold surface-3 rounded-2xl p-4 md:p-6 relative overflow-hidden group">
@@ -1037,6 +1027,17 @@ const Dashboard = () => {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* Funil de Hoje + Motivação Diária */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+          <TodayFunnel
+            lucroHoje={todayStats.lucroHoje}
+            contasHoje={todayStats.contasHoje}
+            remessasHoje={todayStats.remessasHoje}
+            sparkData={todayStats.sparkData}
+          />
+          <MotivationWidget />
         </div>
       </div>
     )}
