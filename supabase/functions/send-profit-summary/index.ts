@@ -9,6 +9,8 @@
 //            (skipped if isAdminMeta or naoContabilizarSalario)
 //   Finally subtract custos in period for the workspace.
 
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -17,6 +19,7 @@ const corsHeaders = {
 const FIREBASE_PROJECT = 'nytzer-vision';
 const FIREBASE_API_KEY = 'AIzaSyDiiKqZWL3X880z1Lcy5_QGXgjSaOHUdhA';
 const NOTIFY_URL = 'https://www.nytzervision.com/api/notify';
+const CACHE_MAX_AGE_MS = 90 * 60 * 1000; // 90 min
 
 // Tone tiers based on profit value:
 //   negative          -> motivacional / levante
