@@ -187,26 +187,41 @@ function fsValue(v: any): any {
   return null;
 }
 
-async function fetchCollection(name: string): Promise<any[]> {
+async function fetchCollection(name: string, opts: { optional?: boolean } = {}): Promise<any[]> {
   const docs: any[] = [];
   let pageToken: string | undefined;
-  do {
-    const url = new URL(
-      `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT}/databases/(default)/documents/${name}`
-    );
-    url.searchParams.set('key', FIREBASE_API_KEY);
-    url.searchParams.set('pageSize', '300');
-    if (pageToken) url.searchParams.set('pageToken', pageToken);
-    const res = await fetch(url.toString());
-    if (!res.ok) throw new Error(`Firestore ${name} ${res.status}: ${await res.text()}`);
-    const json = await res.json();
-    for (const d of json.documents || []) {
-      const obj: any = { id: d.name.split('/').pop() };
-      for (const k in d.fields || {}) obj[k] = fsValue(d.fields[k]);
-      docs.push(obj);
+  try {
+    do {
+      const url = new URL(
+        `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT}/databases/(default)/documents/${name}`
+      );
+      url.searchParams.set('key', FIREBASE_API_KEY);
+      url.searchParams.set('pageSize', '300');
+      if (pageToken) url.searchParams.set('pageToken', pageToken);
+      const res = await fetch(url.toString());
+      if (!res.ok) {
+        const txt = await res.text();
+        if (opts.optional) {
+          console.warn(`[fetchCollection:${name}] ${res.status} — degradando para vazio. ${txt.slice(0, 200)}`);
+          return docs;
+        }
+        throw new Error(`Firestore ${name} ${res.status}: ${txt}`);
+      }
+      const json = await res.json();
+      for (const d of json.documents || []) {
+        const obj: any = { id: d.name.split('/').pop() };
+        for (const k in d.fields || {}) obj[k] = fsValue(d.fields[k]);
+        docs.push(obj);
+      }
+      pageToken = json.nextPageToken;
+    } while (pageToken);
+  } catch (e) {
+    if (opts.optional) {
+      console.warn(`[fetchCollection:${name}] erro, degradando:`, e);
+      return docs;
     }
-    pageToken = json.nextPageToken;
-  } while (pageToken);
+    throw e;
+  }
   return docs;
 }
 
@@ -240,7 +255,7 @@ Deno.serve(async (req) => {
     const [users, metas, costs] = await Promise.all([
       fetchCollection('users'),
       fetchCollection('metas'),
-      fetchCollection('costs'),
+      fetchCollection('costs', { optional: true }),
     ]);
     const startMs = getPeriodStart(period);
 

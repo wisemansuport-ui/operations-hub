@@ -222,16 +222,19 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
     // Notification Hook - Remessa Registered
     const resValue = newR.saque - newR.deposito;
     const operatorName = getOperatorName(activeOperator, users);
+    const operatorFirst = String(operatorName).trim().split(/\s+/)[0] || operatorName;
+    const plataformaFirst = String(meta.plataforma || '').trim().split(/\s+/)[0] || meta.plataforma;
     const redeLabel = meta.rede && meta.rede !== 'Selecione' ? ` ${meta.rede}` : '';
+    const resStr = `R$ ${resValue >= 0 ? '+' : '-'}${Math.abs(resValue).toFixed(2)}`;
     pushNotify(
-      `📊 ${operatorName} • ${meta.plataforma}${redeLabel}`,
-      `${numTotal} contas registradas | L/P: R$ ${resValue >= 0 ? '+' : ''}${resValue.toFixed(2)}`,
+      `📊 ${operatorFirst} • ${plataformaFirst}${redeLabel}`,
+      `O operador ${operatorFirst} registrou ${numTotal} contas | Resultado: ${resStr}`,
       targetAdmins
     );
     targetAdmins.forEach(adminUsername => {
       addNotification({
-        title: `Remessa Registrada 📊`,
-        message: `[${meta.plataforma}] Operador registrou: Lucro/Prej. R$ ${resValue.toFixed(2)}`,
+        title: `📊 ${operatorFirst} • ${plataformaFirst}${redeLabel}`,
+        message: `O operador ${operatorFirst} registrou ${numTotal} contas | Resultado: ${resStr}`,
         type: resValue >= 0 ? 'success' : 'error',
         targetRole: 'ADMIN',
         targetUser: adminUsername
