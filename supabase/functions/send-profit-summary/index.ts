@@ -94,6 +94,11 @@ const PHRASES: Record<'daily' | 'weekly' | 'monthly', Record<Tier, ((name: strin
       (n, v) => `${n}, ${v} num dia. Tá brincando comigo?! Vai com tudo amanhã também! 🚀`,
       (n, v) => `Resultado de fim de mês em UM dia, ${n}: ${v}. Inacreditável! 🤯`,
       (n, v) => `${n}, ${v} hoje. Esse aí entra pro hall da fama do seu histórico! 🏛️`,
+      // curtinhas
+      (n, v) => `${v} hoje, ${n}?! 🤯`,
+      (n, v) => `${n}, ${v}. Absurdo. 🍾`,
+      (n, v) => `Cinema, ${n}: ${v}. 🎬`,
+      (n, v) => `${n}: ${v} num dia. 👑`,
     ],
   },
   weekly: {
