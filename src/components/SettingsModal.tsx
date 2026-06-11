@@ -166,9 +166,11 @@ export const SettingsModal = ({ open, onOpenChange, adminUserId }: Props) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ period, targetAdmin: user.username, allowZero: true }),
       });
-      const data = await res.json();
+      const raw = await res.text();
+      let data: any = {};
+      try { data = raw ? JSON.parse(raw) : {}; } catch { data = { error: raw?.slice(0, 200) || "Resposta vazia do servidor" }; }
       toast.dismiss("fire-notif");
-      if (!res.ok) throw new Error(data.error || "Erro na chamada da API");
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
       const count = (data as any)?.count ?? 0;
       if (count > 0) toast.success("✅ Notificação enviada!");
       else toast.info("Função executada, mas nenhum envio realizado.");
