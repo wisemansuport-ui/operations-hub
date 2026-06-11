@@ -242,9 +242,9 @@ async function generateAiPhrase(
 ${toneLabel}
 
 REGRAS OBRIGATÓRIAS:
-- Máximo 160 caracteres.
+- Tamanho entre 25 e 140 caracteres. Varie MUITO o comprimento: às vezes uma frase BEM curta e direta (tipo "${valueStr} hoje, ${name}. Segue. 🚀"), às vezes um pouco mais elaborada. Nunca enrole.
 - Inclua o nome "${name}" e o valor exato "${valueStr}" na frase.
-- Pode usar 1 a 2 emojis no final, com moderação.
+- Pode usar 0 a 2 emojis no final, com moderação.
 - Linguagem direta, brasileira, com personalidade — nada genérico tipo "parabéns pelo seu desempenho".
 - NÃO comece com "MONSTRO", "Caraca" nem clichês repetidos.
 - NÃO use aspas, nem hashtags, nem markdown.
