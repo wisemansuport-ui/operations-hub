@@ -13,7 +13,9 @@ const FIREBASE_PROJECT = 'nytzer-vision';
 const FIREBASE_API_KEY = 'AIzaSyDiiKqZWL3X880z1Lcy5_QGXgjSaOHUdhA';
 const NOTIFY_URL = 'https://www.nytzervision.com/api/notify';
 
-const INACTIVE_MS = 2 * 60 * 60 * 1000; // 2h
+const DEFAULT_INACTIVE_MS = 2 * 60 * 60 * 1000; // 2h padrão
+const MIN_INACTIVE_MS = 15 * 60 * 1000; // 15 min
+const MAX_INACTIVE_MS = 12 * 60 * 60 * 1000; // 12h
 
 function fsValue(v: any): any {
   if (v == null) return null;
