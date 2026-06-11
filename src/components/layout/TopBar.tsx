@@ -35,7 +35,7 @@ const formatRelativeTime = (ts: string | Date) => {
 const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 const formatCount = (n: number) => (n > 99 ? "99+" : String(n));
 
-type Category = "remessa" | "meta_finalizada" | "meta_iniciada" | "info_oficial" | "generic";
+type Category = "remessa" | "meta_finalizada" | "meta_iniciada" | "info_oficial" | "resumo_lucro" | "generic";
 
 interface ParsedNotif {
   category: Category;
