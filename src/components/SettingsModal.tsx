@@ -30,31 +30,8 @@ const avatarUrl = (seed: string) =>
   `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(seed)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
 const AVATARS = AVATAR_SEEDS.map(avatarUrl);
 
-async function resizeToDataURL(file: File, max = 320): Promise<string> {
-  const img = document.createElement("img");
-  const reader = new FileReader();
-  const dataUrl: string = await new Promise((res, rej) => {
-    reader.onload = () => res(reader.result as string);
-    reader.onerror = rej;
-    reader.readAsDataURL(file);
-  });
-  await new Promise<void>((res, rej) => {
-    img.onload = () => res();
-    img.onerror = rej;
-    img.src = dataUrl;
-  });
-  const ratio = Math.min(1, max / Math.max(img.width, img.height));
-  const w = Math.round(img.width * ratio);
-  const h = Math.round(img.height * ratio);
-  const canvas = document.createElement("canvas");
-  canvas.width = w; canvas.height = h;
-  canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
-  return canvas.toDataURL("image/jpeg", 0.85);
-}
-
 export const SettingsModal = ({ open, onOpenChange, adminUserId }: Props) => {
   const [user, setUser] = useLocalStorage<any>("nytzer-user", null);
-  const { metas, users, costs, loading: loadingData } = useFirestoreData();
 
   // workspace
   const [threshold, setThreshold] = useState<string>(String(DEFAULT_MIN));
@@ -65,17 +42,12 @@ export const SettingsModal = ({ open, onOpenChange, adminUserId }: Props) => {
   const [displayName, setDisplayName] = useState("");
   const [photoURL, setPhotoURL] = useState<string>("");
   const [savingAcc, setSavingAcc] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   // password
   const [curPwd, setCurPwd] = useState("");
   const [newPwd, setNewPwd] = useState("");
   const [confirmPwd, setConfirmPwd] = useState("");
   const [savingPwd, setSavingPwd] = useState(false);
-
-  // manual notification
-  const [period, setPeriod] = useState<Period>("daily");
-  const [firing, setFiring] = useState(false);
 
   useEffect(() => {
     if (!open || !adminUserId) return;
@@ -107,16 +79,6 @@ export const SettingsModal = ({ open, onOpenChange, adminUserId }: Props) => {
       console.error(e);
       toast.error("Erro ao salvar.");
     } finally { setSavingWs(false); }
-  };
-
-  const handlePhotoPick = async (file: File | null) => {
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { toast.error("Imagem máx 5MB."); return; }
-    try {
-      const dataUrl = await resizeToDataURL(file, 320);
-      setPhotoURL(dataUrl);
-      toast.success("Foto pronta — clique em Salvar.");
-    } catch { toast.error("Falha ao processar imagem."); }
   };
 
   const handleSaveAccount = async () => {
@@ -154,36 +116,6 @@ export const SettingsModal = ({ open, onOpenChange, adminUserId }: Props) => {
     } finally { setSavingPwd(false); }
   };
 
-  const handleFire = async () => {
-    if (!user?.username) { toast.error("Sem usuário logado."); return; }
-    if (loadingData) { toast.info("Carregando dados da operação. Tente novamente em instantes."); return; }
-    const localSummary = calculateProfitSummary({ period, adminUsername: user.username, metas, users, costs });
-    setFiring(true);
-    toast.loading("Disparando notificação...", { id: "fire-notif" });
-    try {
-      const { data, error } = await supabase.functions.invoke("send-profit-summary", {
-        body: { period, targetAdmin: user.username, allowZero: true, localSummary },
-      });
-      toast.dismiss("fire-notif");
-      if (error) throw new Error(error.message || "Erro ao invocar função");
-      if ((data as any)?.fallback) {
-        const raw = (data as any).error || "Serviço temporariamente indisponível.";
-        const message = /firestore|quota|limite/i.test(raw)
-          ? "Lucro ainda não sincronizado no banco. Aguarde a próxima atualização automática e tente novamente."
-          : raw;
-        toast.warning(message);
-        return;
-      }
-      const count = (data as any)?.count ?? (Array.isArray((data as any)?.results) ? (data as any).results.length : 0);
-      if (count > 0) toast.success("✅ Notificação enviada!");
-      else toast.info("Função executada, mas nenhum envio realizado.");
-    } catch (e: any) {
-      toast.dismiss("fire-notif");
-      console.error(e);
-      toast.error("Falha ao disparar: " + (e?.message || e));
-    } finally { setFiring(false); }
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-[#0a0a0a]/95 border-primary/20 max-w-2xl">
@@ -192,41 +124,56 @@ export const SettingsModal = ({ open, onOpenChange, adminUserId }: Props) => {
             Configurações
           </DialogTitle>
           <DialogDescription>
-            Gerencie sua conta, o workspace e dispare notificações.
+            Gerencie sua conta e o workspace.
           </DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="conta" className="w-full">
-          <TabsList className="grid grid-cols-3 bg-black/40 border border-primary/15">
+          <TabsList className="grid grid-cols-2 bg-black/40 border border-primary/15">
             <TabsTrigger value="conta"><UserIcon className="w-3.5 h-3.5 mr-1.5" />Conta</TabsTrigger>
             <TabsTrigger value="workspace"><Clock className="w-3.5 h-3.5 mr-1.5" />Workspace</TabsTrigger>
-            <TabsTrigger value="disparo"><Megaphone className="w-3.5 h-3.5 mr-1.5" />Disparo</TabsTrigger>
           </TabsList>
 
           {/* ───── CONTA ───── */}
           <TabsContent value="conta" className="space-y-4 pt-4">
             <div className="flex items-center gap-4">
-              <div className="relative">
-                <div className="w-20 h-20 rounded-full bg-primary/10 border-2 border-primary/30 overflow-hidden flex items-center justify-center">
-                  {photoURL
-                    ? <img src={photoURL} alt="avatar" className="w-full h-full object-cover" />
-                    : <UserIcon className="w-8 h-8 text-primary" />}
-                </div>
-                <button
-                  onClick={() => fileRef.current?.click()}
-                  className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:bg-primary/90"
-                  title="Trocar foto"
-                >
-                  <Camera className="w-3.5 h-3.5" />
-                </button>
-                <input
-                  ref={fileRef} type="file" accept="image/*" className="hidden"
-                  onChange={(e) => handlePhotoPick(e.target.files?.[0] || null)}
-                />
+              <div className="w-20 h-20 rounded-full bg-primary/10 border-2 border-primary/30 overflow-hidden flex items-center justify-center shrink-0">
+                {photoURL
+                  ? <img src={photoURL} alt="avatar" className="w-full h-full object-cover" />
+                  : <UserIcon className="w-8 h-8 text-primary" />}
               </div>
               <div className="flex-1 space-y-2">
                 <Label htmlFor="dn" className="text-xs text-muted-foreground">Nome do admin (exibição)</Label>
                 <Input id="dn" value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="bg-black/40 border-primary/20" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">Escolha seu avatar</Label>
+              <div className="grid grid-cols-6 gap-2">
+                {AVATARS.map((url) => {
+                  const selected = photoURL === url;
+                  return (
+                    <button
+                      key={url}
+                      type="button"
+                      onClick={() => setPhotoURL(url)}
+                      className={`relative aspect-square rounded-full overflow-hidden border-2 transition-all ${
+                        selected
+                          ? "border-primary ring-2 ring-primary/40 scale-105"
+                          : "border-primary/15 hover:border-primary/40"
+                      }`}
+                      title="Selecionar avatar"
+                    >
+                      <img src={url} alt="avatar" className="w-full h-full object-cover bg-black/40" />
+                      {selected && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-primary/20">
+                          <Check className="w-4 h-4 text-primary" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -264,31 +211,6 @@ export const SettingsModal = ({ open, onOpenChange, adminUserId }: Props) => {
             <Button onClick={handleSaveWorkspace} disabled={savingWs || loadingWs} className="bg-primary text-primary-foreground hover:bg-primary/90 w-full">
               {savingWs ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               Salvar workspace
-            </Button>
-          </TabsContent>
-
-          {/* ───── DISPARO ───── */}
-          <TabsContent value="disparo" className="space-y-3 pt-4">
-            <Label className="text-sm">Período</Label>
-            <div className="grid grid-cols-2 gap-2">
-              {PERIOD_OPTS.map(opt => (
-                <button
-                  key={opt.value}
-                  onClick={() => setPeriod(opt.value)}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors text-left ${
-                    period === opt.value
-                      ? "bg-primary/15 border-primary/50 text-primary"
-                      : "bg-black/30 border-primary/15 text-muted-foreground hover:text-foreground"
-                  }`}
-                >{opt.label}</button>
-              ))}
-            </div>
-            <p className="text-[11px] text-muted-foreground">
-              Calcula o lucro do período em tempo real, aplica o tom de voz adequado (negativo / até R$ 500 / até R$ 1.500 / acima) e envia push + alerta no sino. Mensal e 30 dias incluem o % da sua meta mensal de objetivo.
-            </p>
-            <Button onClick={handleFire} disabled={firing} className="bg-primary text-primary-foreground hover:bg-primary/90 w-full">
-              {firing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
-              Disparar agora
             </Button>
           </TabsContent>
         </Tabs>
