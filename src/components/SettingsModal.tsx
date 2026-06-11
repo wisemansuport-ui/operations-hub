@@ -161,11 +161,14 @@ export const SettingsModal = ({ open, onOpenChange, adminUserId }: Props) => {
     setFiring(true);
     toast.loading("Disparando notificação...", { id: "fire-notif" });
     try {
-      const { data, error } = await supabase.functions.invoke("send-profit-summary", {
-        body: { period, targetAdmin: user.username, allowZero: true },
+      const res = await fetch("/api/send-profit-summary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ period, targetAdmin: user.username, allowZero: true }),
       });
+      const data = await res.json();
       toast.dismiss("fire-notif");
-      if (error) throw error;
+      if (!res.ok) throw new Error(data.error || "Erro na chamada da API");
       const count = (data as any)?.count ?? 0;
       if (count > 0) toast.success("✅ Notificação enviada!");
       else toast.info("Função executada, mas nenhum envio realizado.");
