@@ -246,7 +246,9 @@ Deno.serve(async (req) => {
 
 
     // Build admin list: every user with role ADMIN
-    const admins: any[] = users.filter((u: any) => u.role === 'ADMIN');
+    let admins: any[] = users.filter((u: any) => u.role === 'ADMIN');
+    if (targetAdmin) admins = admins.filter((a: any) => a.username === targetAdmin);
+
 
     // For each admin, compute set of "visible operator usernames" (workspace):
     //   admin himself + every operator whose affiliatedTo === admin.username
