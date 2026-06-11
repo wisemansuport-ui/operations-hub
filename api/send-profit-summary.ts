@@ -249,7 +249,7 @@ export default async function handler(req: any, res: any) {
     const [users, metas, costs] = await Promise.all([
       fetchCollection('users'),
       fetchCollection('metas'),
-      fetchCollection('costs'),
+      fetchCollection('costs', { optional: true }),
     ]);
     const startMs = getPeriodStart(period);
 
