@@ -19,14 +19,22 @@ const QUOTES: { text: string; author: string }[] = [
   { text: "Trabalhe enquanto eles dormem. Aprenda enquanto eles se divertem.", author: "Anônimo" },
 ];
 
-const ROTATE_MS = 4500;
+const getDayIndex = () => {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const diff = now.getTime() - start.getTime();
+  const dayOfYear = Math.floor(diff / 86400000);
+  return dayOfYear % QUOTES.length;
+};
+
+const ROTATE_MS = 60_000; // checa virada de dia a cada minuto
 
 export const MotivationWidget = () => {
-  const [idx, setIdx] = useState(() => Math.floor(Math.random() * QUOTES.length));
+  const [idx, setIdx] = useState(getDayIndex);
 
   useEffect(() => {
     const id = setInterval(() => {
-      setIdx((p) => (p + 1) % QUOTES.length);
+      setIdx(getDayIndex());
     }, ROTATE_MS);
     return () => clearInterval(id);
   }, []);
