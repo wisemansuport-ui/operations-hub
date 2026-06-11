@@ -163,6 +163,9 @@ export const LoadingScreen = ({
       </div>
     </div>
   );
+
+  if (typeof document === "undefined") return node;
+  return createPortal(node, document.body);
 };
 
 export default LoadingScreen;
