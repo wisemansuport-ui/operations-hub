@@ -77,6 +77,11 @@ const PHRASES: Record<'daily' | 'weekly' | 'monthly', Record<Tier, ((name: strin
       (n, v) => `Verde firme hoje, ${n} (${v}). O processo tá fluindo, segue. 🌊`,
       (n, v) => `${n}, ${v} hoje. Cada dia desses é um passo a mais da liberdade. 🗝️`,
       (n, v) => `${v} hoje, ${n}. Sem barulho, sem sorte — só método. 🎯`,
+      // curtinhas
+      (n, v) => `${v} hoje, ${n}. 💰`,
+      (n, v) => `${n}: ${v}. Segue. 🚀`,
+      (n, v) => `Dia firme, ${n}: ${v}. 🔥`,
+      (n, v) => `${n}, ${v}. Continua. 💎`,
     ],
     high: [
       (n, v) => `Caraca, ${n}! O que um CLT faz no mês, você lucrou HOJE! Resultado ${v} 🍾🍾`,
