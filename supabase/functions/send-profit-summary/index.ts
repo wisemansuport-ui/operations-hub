@@ -262,6 +262,9 @@ Deno.serve(async (req) => {
     const period = ((bodyParams.period || url.searchParams.get('period') || 'daily') as Period);
     const targetAdmin = (bodyParams.targetAdmin || url.searchParams.get('targetAdmin') || '').toString().trim();
     const allowZero = !!(bodyParams.allowZero || url.searchParams.get('allowZero'));
+    const localSummary = bodyParams.localSummary && typeof bodyParams.localSummary === 'object'
+      ? bodyParams.localSummary
+      : null;
     if (!['daily', 'weekly', 'monthly', '7d', '30d'].includes(period)) {
       return new Response(JSON.stringify({ error: 'invalid period' }), {
         status: 400,
@@ -304,12 +307,38 @@ Deno.serve(async (req) => {
     const nameByAdmin: Record<string, string> = {};
     const goalPctByAdmin: Record<string, number | undefined> = {};
 
+    const hasValidLocalSummary = !!targetAdmin &&
+      localSummary?.adminUsername === targetAdmin &&
+      Number.isFinite(Number(localSummary?.total));
+
     if (cacheUsable) {
       console.log(`[cache] ${cacheFresh ? 'hit' : 'stale-hit'} period=${period} rows=${cacheRows.length}`);
       for (const r of cacheRows) {
         profitByAdmin.set(r.admin_username, Number(r.total));
         nameByAdmin[r.admin_username] = r.display_name || capitalize(r.admin_username);
         if (r.goal_pct != null) goalPctByAdmin[r.admin_username] = Number(r.goal_pct);
+      }
+    } else if (hasValidLocalSummary) {
+      const localTotal = Number(Number(localSummary.total).toFixed(2));
+      console.log(`[cache] miss period=${period} — usando cálculo local recebido do app`);
+      profitByAdmin.set(targetAdmin, localTotal);
+      nameByAdmin[targetAdmin] = localSummary.displayName || capitalize(targetAdmin);
+      if (Number.isFinite(Number(localSummary.goalPct))) goalPctByAdmin[targetAdmin] = Number(localSummary.goalPct);
+
+      try {
+        await supabase
+          .from('profit_aggregates')
+          .upsert({
+            admin_username: targetAdmin,
+            period,
+            period_start: startIsoExpected,
+            total: localTotal,
+            goal_pct: goalPctByAdmin[targetAdmin] ?? null,
+            display_name: nameByAdmin[targetAdmin],
+            computed_at: new Date().toISOString(),
+          }, { onConflict: 'admin_username,period,period_start' });
+      } catch (e) {
+        console.warn('[cache:local-write]', e);
       }
     } else {
       console.log(`[cache] miss period=${period} — disparo manual cancelado sem consultar Firestore`);
