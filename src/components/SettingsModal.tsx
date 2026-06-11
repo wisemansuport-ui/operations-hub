@@ -12,6 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Clock, User as UserIcon, Lock, Megaphone, Camera, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useFirestoreData } from "@/hooks/useFirestoreData";
+import { calculateProfitSummary } from "@/lib/profitSummary";
 
 interface Props {
   open: boolean;
@@ -57,6 +59,7 @@ async function resizeToDataURL(file: File, max = 320): Promise<string> {
 
 export const SettingsModal = ({ open, onOpenChange, adminUserId }: Props) => {
   const [user, setUser] = useLocalStorage<any>("nytzer-user", null);
+  const { metas, users, costs, loading: loadingData } = useFirestoreData();
 
   // workspace
   const [threshold, setThreshold] = useState<string>(String(DEFAULT_MIN));
@@ -158,11 +161,13 @@ export const SettingsModal = ({ open, onOpenChange, adminUserId }: Props) => {
 
   const handleFire = async () => {
     if (!user?.username) { toast.error("Sem usuário logado."); return; }
+    if (loadingData) { toast.info("Carregando dados da operação. Tente novamente em instantes."); return; }
+    const localSummary = calculateProfitSummary({ period, adminUsername: user.username, metas, users, costs });
     setFiring(true);
     toast.loading("Disparando notificação...", { id: "fire-notif" });
     try {
       const { data, error } = await supabase.functions.invoke("send-profit-summary", {
-        body: { period, targetAdmin: user.username, allowZero: true },
+        body: { period, targetAdmin: user.username, allowZero: true, localSummary },
       });
       toast.dismiss("fire-notif");
       if (error) throw new Error(error.message || "Erro ao invocar função");
