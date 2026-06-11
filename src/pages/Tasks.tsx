@@ -1603,7 +1603,7 @@ const Tasks = () => {
                 {/* LINHA 2 — LUCRO em destaque */}
                 <div className="relative flex-1 flex flex-col justify-center items-start py-2 my-1.5 border-y border-border/20">
                   <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 mb-1">Lucro líquido</p>
-                  <p className={`text-[28px] font-black tracking-tight leading-none ${theme.lucro}`}>
+                  <p className={`text-[28px] font-black tracking-tight leading-none ${positivo ? 'text-yellow-400 drop-shadow-[0_0_14px_rgba(234,179,8,0.4)]' : 'text-red-500 drop-shadow-[0_0_14px_rgba(239,68,68,0.4)]'}`}>
                     {lucroLiquido > 0 ? '+' : lucroLiquido < 0 ? '-' : ''}R${Math.abs(lucroLiquido).toFixed(0)}
                   </p>
                   <div className="flex items-center gap-1.5 mt-2 flex-wrap">
