@@ -373,7 +373,14 @@ Deno.serve(async (req) => {
       const goalPct = await goalPctOf(admin, total);
       const body = buildMessage(period, name, total, valueStr, goalPct);
       const periodTitle = periodTitleOf(period);
-      const title = `NytzerVision`;
+      const titleMap: Record<string, string> = {
+        daily: 'Caixa do Dia 💰',
+        weekly: 'Balanço da Semana 🏛️',
+        monthly: 'Resultado do Mês 🏆',
+        '7d': 'Radar 7 Dias 📡',
+        '30d': 'Visão 30 Dias 🔭'
+      };
+      const title = titleMap[period] || 'Caixa do Dia 💰';
       try {
         const r = await fetch(NOTIFY_URL, {
           method: 'POST',
