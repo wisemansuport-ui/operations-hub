@@ -1504,6 +1504,93 @@ const Tasks = () => {
             )}
           </div>
         </div>
+      ) : activeTab === 'Visao geral' ? (
+        <div data-tour="tasks-meta-entry" className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          {paginatedList.map(meta => {
+            const rem = meta.remessas || [];
+            const lucroBruto = rem.reduce((acc, r) => acc + (r.saque - r.deposito), 0);
+            const salario = meta.salarioOperador || 0;
+            let autoSalarioMeta = 0;
+            if (!meta.isAdminMeta) {
+              if (meta.modelo === 'Recarga') {
+                autoSalarioMeta = Number(meta.pagamentoOperador) || 0;
+              } else {
+                autoSalarioMeta = rem.reduce((acc, r) => {
+                  if (r.naoContabilizarSalario) return acc;
+                  return acc + ((r.contasNormais || 0) * 2) + ((r.contasBaixas || 0) * 1);
+                }, 0);
+              }
+            }
+            const lucroLiquido = lucroBruto + salario - autoSalarioMeta;
+            const positivo = lucroLiquido >= 0;
+            const rede = meta.rede && meta.rede !== 'Selecione' ? meta.rede : 'Geral';
+            return (
+              <button
+                key={meta.id}
+                onClick={() => setSelectedMetaId(meta.id)}
+                className={`group relative aspect-square rounded-2xl border p-4 flex flex-col justify-between text-left overflow-hidden transition-all hover:-translate-y-0.5 ${
+                  meta.isAdminMeta
+                    ? 'bg-[#111111]/95 border-yellow-500/25 hover:border-yellow-500/50 hover:shadow-[0_10px_40px_-12px_rgba(234,179,8,0.25)]'
+                    : 'glass-card border-border/30 hover:border-primary/40 hover:shadow-[0_10px_40px_-12px_hsl(var(--primary)/0.25)]'
+                }`}
+              >
+                <div className={`absolute inset-x-0 top-0 h-[2px] ${
+                  meta.status === 'fechada' ? 'bg-primary/40'
+                  : meta.status === 'lixeira' ? 'bg-red-500'
+                  : meta.isAdminMeta ? 'bg-gradient-to-r from-transparent via-yellow-500 to-transparent'
+                  : positivo ? 'bg-gradient-to-r from-transparent via-emerald-400 to-transparent'
+                  : 'bg-gradient-to-r from-transparent via-red-500 to-transparent'
+                }`} />
+                <div className={`absolute -top-16 -right-16 w-40 h-40 rounded-full blur-3xl opacity-40 ${positivo ? 'bg-emerald-500/10' : 'bg-red-500/10'}`} />
+
+                <div className="relative flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <span className={`w-1.5 h-1.5 rounded-full ${
+                        meta.status === 'fechada' ? 'bg-primary/50'
+                        : meta.status === 'lixeira' ? 'bg-red-500'
+                        : meta.isAdminMeta ? 'bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.7)]'
+                        : 'bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.7)] animate-pulse'
+                      }`} />
+                      <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/70">
+                        {meta.isAdminMeta ? 'Admin' : meta.modelo}
+                      </span>
+                    </div>
+                    <p className="font-extrabold text-foreground text-sm leading-tight truncate group-hover:text-primary transition-colors">
+                      {meta.plataforma}
+                    </p>
+                  </div>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all shrink-0" />
+                </div>
+
+                <div className="relative">
+                  <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest border ${
+                    meta.isAdminMeta
+                      ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30'
+                      : 'bg-muted/40 text-muted-foreground border-border/50'
+                  }`}>
+                    {rede}
+                  </span>
+                  <p className="text-[10px] text-muted-foreground/70 mt-1.5 truncate">
+                    {rem.length} remessa{rem.length === 1 ? '' : 's'} · {meta.modelo === 'Recarga' ? `R$ ${meta.contas}` : `${meta.contas} contas`}
+                  </p>
+                </div>
+
+                <div className="relative pt-2 border-t border-border/30">
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-0.5">Lucro líquido</p>
+                  <p className={`text-lg font-black tracking-tight leading-none ${
+                    positivo ? 'text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.25)]' : 'text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.25)]'
+                  }`}>
+                    {lucroLiquido > 0 ? '+' : lucroLiquido < 0 ? '-' : ''}R$ {Math.abs(lucroLiquido).toFixed(2).replace('.', ',')}
+                  </p>
+                  <p className="text-[9px] text-muted-foreground/60 mt-1 font-mono">
+                    Bruto R$ {Math.abs(lucroBruto).toFixed(0)}{salario > 0 ? ` · FAT +${salario.toFixed(0)}` : ''}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
       ) : (
         <div data-tour="tasks-meta-entry" className="mt-4 space-y-3">
           {paginatedList.map(meta => {
