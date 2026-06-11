@@ -222,9 +222,10 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
     // Notification Hook - Remessa Registered
     const resValue = newR.saque - newR.deposito;
     const operatorName = getOperatorName(activeOperator, users);
+    const redeLabel = meta.rede && meta.rede !== 'Selecione' ? ` ${meta.rede}` : '';
     pushNotify(
-      `NytzerVision`,
-      `${numTotal} contas registradas - Resultado: ${resValue >= 0 ? '+' : '-'}${Math.abs(Math.round(resValue))}`,
+      `📊 ${operatorName} • ${meta.plataforma}${redeLabel}`,
+      `${numTotal} contas registradas | L/P: R$ ${resValue >= 0 ? '+' : ''}${resValue.toFixed(2)}`,
       targetAdmins
     );
     targetAdmins.forEach(adminUsername => {
