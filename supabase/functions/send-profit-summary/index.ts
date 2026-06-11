@@ -1,10 +1,13 @@
 // Sends daily / weekly / monthly profit push summary to each admin.
-// Triggered via pg_cron with ?period=daily|weekly|monthly.
-//
-// Pipeline:
-//   1) Read Firestore (users + metas) via public REST API.
-//   2) Compute profit per admin for the requested period.
-//   3) POST to https://www.nytzervision.com/api/notify (which uses OneSignal).
+// Mirrors the Dashboard "Receita líquida — período" formula exactly:
+//   For each fechada meta visible in the admin workspace, for each remessa
+//   whose `data` falls inside the period:
+//     contribution = (saque - deposito) + (salarioOperador * prop) - autoSalario
+//   prop  = remessa.contas / sum(contas of meta), or 1/len if zero
+//   autoSal: Recarga model => pagamentoOperador * prop
+//            other       => contasNormais*2 + contasBaixas*1
+//            (skipped if isAdminMeta or naoContabilizarSalario)
+//   Finally subtract custos in period for the workspace.
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -36,22 +39,27 @@ const MONTHLY_PHRASES = [
 
 const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
 
-function getPeriodStart(period: 'daily' | 'weekly' | 'monthly'): Date {
+function getPeriodStart(period: 'daily' | 'weekly' | 'monthly'): number {
   const now = new Date();
-  // Use Brazil timezone (UTC-3) approximation by shifting
+  // Brasília = UTC-3 (no DST). Shift to local then compute boundary in UTC.
   const local = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+  const y = local.getUTCFullYear();
+  const m = local.getUTCMonth();
+  const d = local.getUTCDate();
+  let startLocalMs: number;
   if (period === 'daily') {
-    return new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate()) + 3 * 60 * 60 * 1000);
+    startLocalMs = Date.UTC(y, m, d);
+  } else if (period === 'weekly') {
+    // Week starts Sunday (matches getDay=0). Adjust day-of-week.
+    const dow = local.getUTCDay();
+    startLocalMs = Date.UTC(y, m, d - dow);
+  } else {
+    startLocalMs = Date.UTC(y, m, 1);
   }
-  if (period === 'weekly') {
-    const day = local.getUTCDay();
-    const diff = day; // start of week: Sunday
-    return new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate() - diff) + 3 * 60 * 60 * 1000);
-  }
-  return new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), 1) + 3 * 60 * 60 * 1000);
+  // Convert local-midnight back to real UTC instant
+  return startLocalMs + 3 * 60 * 60 * 1000;
 }
 
-// Convert Firestore REST document → plain JS object
 function fsValue(v: any): any {
   if (v == null) return null;
   if ('stringValue' in v) return v.stringValue;
@@ -93,7 +101,7 @@ async function fetchCollection(name: string): Promise<any[]> {
   return docs;
 }
 
-function formatBRL(v: number) {
+function formatBRLSigned(v: number) {
   const sign = v >= 0 ? '+' : '-';
   return `${sign}R$ ${Math.abs(v).toFixed(2).replace('.', ',')}`;
 }
@@ -101,7 +109,6 @@ function formatBRL(v: number) {
 function periodLabel(p: string) {
   return p === 'daily' ? 'do dia' : p === 'weekly' ? 'da semana' : 'do mês';
 }
-
 function periodPhrase(p: string) {
   return p === 'daily' ? pick(DAILY_PHRASES) : p === 'weekly' ? pick(WEEKLY_PHRASES) : pick(MONTHLY_PHRASES);
 }
@@ -119,37 +126,102 @@ Deno.serve(async (req) => {
       });
     }
 
-    const [users, metas] = await Promise.all([fetchCollection('users'), fetchCollection('metas')]);
-    const start = getPeriodStart(period).getTime();
+    const [users, metas, costs] = await Promise.all([
+      fetchCollection('users'),
+      fetchCollection('metas'),
+      fetchCollection('costs'),
+    ]);
+    const startMs = getPeriodStart(period);
 
-    // Map operator → admin (workspace owner)
-    const adminFor = (username: string): string | null => {
-      const u = users.find((x: any) => x.username === username);
-      if (!u) return null;
-      if (u.affiliatedTo) return u.affiliatedTo;
-      if (u.role === 'ADMIN') return u.username;
-      return null;
-    };
+    // Build admin list: every user with role ADMIN
+    const admins: any[] = users.filter((u: any) => u.role === 'ADMIN');
 
-    // Aggregate profit per admin from each remessa within period
+    // For each admin, compute set of "visible operator usernames" (workspace):
+    //   admin himself + every operator whose affiliatedTo === admin.username
+    const workspaceOfAdmin: Record<string, Set<string>> = {};
+    for (const a of admins) {
+      const set = new Set<string>([a.username]);
+      for (const u of users) {
+        if (u.affiliatedTo === a.username) set.add(u.username);
+      }
+      workspaceOfAdmin[a.username] = set;
+    }
+
     const profitByAdmin = new Map<string, number>();
+
+    // Aggregate per-remessa contribution for fechada metas
     for (const meta of metas) {
-      if (meta.status === 'lixeira') continue;
-      const owner = adminFor(meta.operador || '');
+      if (meta.status !== 'fechada') continue;
+      const owner = meta.operador;
       if (!owner) continue;
+
       const remessas: any[] = meta.remessas || [];
+      const sal = Number(meta.salarioOperador || 0);
+      const pagOp = Number(meta.pagamentoOperador || 0);
+      const totalContasMeta = remessas.reduce(
+        (acc: number, r: any) => acc + Number(r.contas || 0),
+        0
+      );
+
       for (const r of remessas) {
-        const ts = r.data ? new Date(r.data).getTime() : 0;
-        if (!ts || ts < start) continue;
+        const ts = r.data ? new Date(r.data).getTime() : new Date(meta.createdAt).getTime();
+        if (!ts || ts < startMs) continue;
+
         const dep = Number(r.deposito || 0);
         const saq = Number(r.saque || 0);
-        let result = saq - dep;
-        // Apply admin salário / operator pagamento same as UI net result
-        if (!meta.isAdminMeta) {
-          const auto = ((Number(r.contasNormais || 0)) * 2) + ((Number(r.contasBaixas || 0)) * 1);
-          result = result + (Number(meta.salarioOperador || 0) > 0 ? 0 : 0) - auto;
+        const originalRc = Number(r.contas || 0);
+        let normais = Number(r.contasNormais || 0);
+        let baixas = Number(r.contasBaixas || 0);
+
+        if (meta.modelo === 'Recarga') {
+          normais = 0;
+          baixas = 0;
         }
-        profitByAdmin.set(owner, (profitByAdmin.get(owner) || 0) + result);
+        if (r.naoContabilizarSalario) {
+          normais = 0;
+          baixas = 0;
+        }
+
+        const prop =
+          totalContasMeta > 0
+            ? originalRc / totalContasMeta
+            : remessas.length > 0
+            ? 1 / remessas.length
+            : 1;
+
+        const remSal = sal * prop;
+        let remAutoSal = 0;
+        if (!meta.isAdminMeta && !r.naoContabilizarSalario) {
+          if (meta.modelo === 'Recarga') remAutoSal = pagOp * prop;
+          else remAutoSal = normais * 2 + baixas * 1;
+        }
+
+        const contribution = saq - dep + remSal - remAutoSal;
+
+        // attribute to every admin whose workspace includes this operator
+        for (const a of admins) {
+          if (workspaceOfAdmin[a.username].has(owner)) {
+            profitByAdmin.set(a.username, (profitByAdmin.get(a.username) || 0) + contribution);
+          }
+        }
+      }
+    }
+
+    // Subtract custos within period for each admin workspace
+    for (const cost of costs) {
+      const costDate = cost.date
+        ? new Date(cost.date + 'T12:00:00').getTime()
+        : cost.createdAt
+        ? new Date(cost.createdAt).getTime()
+        : 0;
+      if (!costDate || costDate < startMs) continue;
+      const amt = Number(cost.amount || 0);
+      const costOp = cost.operador;
+      for (const a of admins) {
+        if (!costOp) continue;
+        if (workspaceOfAdmin[a.username].has(costOp)) {
+          profitByAdmin.set(a.username, (profitByAdmin.get(a.username) || 0) - amt);
+        }
       }
     }
 
@@ -157,10 +229,10 @@ Deno.serve(async (req) => {
     const results: any[] = [];
 
     for (const [admin, total] of profitByAdmin.entries()) {
-      if (total === 0) continue;
+      if (!total) continue;
       const phrase = periodPhrase(period);
       const title = `NytzerVision`;
-      const body = `Lucro ${label}: ${formatBRL(total)}\n${phrase}`;
+      const body = `Lucro ${label}: ${formatBRLSigned(total)}\n${phrase}`;
       try {
         const r = await fetch(NOTIFY_URL, {
           method: 'POST',
