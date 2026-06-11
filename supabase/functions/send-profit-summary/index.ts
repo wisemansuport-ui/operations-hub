@@ -184,14 +184,10 @@ async function fetchCollection(name: string): Promise<any[]> {
 
 function formatBRLSigned(v: number) {
   const sign = v >= 0 ? '+' : '-';
-  return `${sign}R$ ${Math.abs(v).toFixed(2).replace('.', ',')}`;
-}
-
-function periodLabel(p: string) {
-  return p === 'daily' ? 'do dia' : p === 'weekly' ? 'da semana' : 'do mês';
-}
-function periodPhrase(p: string) {
-  return p === 'daily' ? pick(DAILY_PHRASES) : p === 'weekly' ? pick(WEEKLY_PHRASES) : pick(MONTHLY_PHRASES);
+  const abs = Math.abs(v).toFixed(2);
+  const [int, dec] = abs.split('.');
+  const intFmt = int.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return `${sign}R$ ${intFmt},${dec}`;
 }
 
 Deno.serve(async (req) => {
