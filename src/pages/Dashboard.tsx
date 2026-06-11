@@ -371,7 +371,7 @@ const Dashboard = () => {
           title: nome, 
           subtitle: `${d.metas} metas · ${d.contas} contas`,
           desc: `R$ ${(profitPerConta).toFixed(2)}/cta · ${Math.round(winRate)}% acerto`,
-          val: `${d.lucro >= 0 ? '+' : ''}${formatBRL(d.lucro)}`,
+          val: formatBRLSigned(d.lucro),
           lucroRaw: d.lucro
         };
       })
@@ -886,7 +886,7 @@ const Dashboard = () => {
                   <div className="bg-background/95 backdrop-blur-md border border-primary/25 p-3 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)]">
                     <p className="text-foreground font-bold mb-2">{label}</p>
                     <p className="text-sm font-medium text-muted-foreground">Contas criadas: <span className="text-foreground font-bold tabular-nums">{payload[0].payload.contas}</span></p>
-                    <p className="text-sm font-medium text-primary mt-1">Lucro contabilizado: <span className="font-extrabold tabular-nums">{formatBRL(payload[0].payload.lucro)}</span></p>
+                    <p className={`text-sm font-medium mt-1 ${payload[0].payload.lucro < 0 ? 'text-destructive' : 'text-primary'}`}>Lucro contabilizado: <span className="font-extrabold tabular-nums">{formatBRLSigned(payload[0].payload.lucro)}</span></p>
                   </div>
                 );
               }
