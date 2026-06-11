@@ -443,6 +443,23 @@ export default function Subscription() {
           </button>
         </div>
       )}
+      {adminUser && (
+        <PixCheckoutModal
+          open={pixOpen}
+          onOpenChange={setPixOpen}
+          amount={planTotal}
+          description={`NytzerVision ${selectedPlan === 'team' ? `Team (${operators} op.)` : 'Solo'} · 30 dias`}
+          plan={selectedPlan}
+          operators={selectedPlan === 'team' ? operators : 0}
+          extendDays={30}
+          admin={{
+            id: adminUser.id,
+            username: adminUser.username,
+            email: adminUser.email,
+            planExpiry: adminUser.planExpiry,
+          }}
+        />
+      )}
     </div>
   );
 }
