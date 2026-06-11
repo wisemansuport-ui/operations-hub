@@ -114,17 +114,25 @@ Deno.serve(async (req) => {
       if (!lastActivity) continue;
 
       const elapsed = now - lastActivity;
-      if (elapsed < INACTIVE_MS) continue;
-
-      // Anti-spam: só re-alertar a cada 2h
-      const lastAlert = meta.lastInactiveAlertAt ? new Date(meta.lastInactiveAlertAt).getTime() : 0;
-      if (lastAlert && now - lastAlert < INACTIVE_MS) continue;
 
       // Descobre admin(s) do workspace do operador
       const operator = usersByName[meta.operador];
       if (!operator) continue;
       const adminUsername = operator.affiliatedTo || (operator.role === 'ADMIN' ? operator.username : null);
       if (!adminUsername) continue;
+
+      // Threshold por workspace (config no doc do admin), com clamp.
+      const admin = usersByName[adminUsername];
+      const raw = Number(admin?.inactiveThresholdMinutes);
+      const thresholdMs = Number.isFinite(raw) && raw > 0
+        ? Math.min(Math.max(raw * 60_000, MIN_INACTIVE_MS), MAX_INACTIVE_MS)
+        : DEFAULT_INACTIVE_MS;
+
+      if (elapsed < thresholdMs) continue;
+
+      // Anti-spam: só re-alertar a cada N (mesmo threshold do workspace)
+      const lastAlert = meta.lastInactiveAlertAt ? new Date(meta.lastInactiveAlertAt).getTime() : 0;
+      if (lastAlert && now - lastAlert < thresholdMs) continue;
 
       const opName = capitalize(String(operator.displayName || operator.username));
       const elapsedStr = fmtHrs(elapsed);
