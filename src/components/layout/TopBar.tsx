@@ -489,9 +489,12 @@ export const TopBar = () => {
 
           {/* ── User Menu ── */}
           <div className="ml-1.5 flex items-center gap-2 pl-2 relative group">
-            <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center">
-              <User className="w-3.5 h-3.5 text-primary" />
+            <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center overflow-hidden">
+              {user?.photoURL
+                ? <img src={user.photoURL} alt="avatar" className="w-full h-full object-cover" />
+                : <User className="w-3.5 h-3.5 text-primary" />}
             </div>
+
             <div className="hidden sm:block leading-tight">
               <p className="text-[13px] font-medium text-foreground truncate max-w-[120px]">
                 {user?.username || "Usuário"}
