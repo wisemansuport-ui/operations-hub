@@ -1532,7 +1532,7 @@ const Tasks = () => {
                 onClick={() => setSelectedMetaId(meta.id)}
                 className={`group relative aspect-square rounded-2xl border p-3.5 flex flex-col text-left overflow-hidden transition-all hover:-translate-y-0.5 ${
                   meta.isAdminMeta
-                    ? 'bg-[#111111]/95 border-yellow-500/25 hover:border-yellow-500/60 hover:shadow-[0_10px_40px_-12px_rgba(234,179,8,0.3)]'
+                    ? 'bg-[#050505] border-[#0a0a0a] hover:border-[#1a1a1a] hover:shadow-[0_10px_40px_-12px_rgba(0,0,0,0.9)]'
                     : positivo
                       ? 'glass-card border-emerald-500/15 hover:border-emerald-400/50 hover:shadow-[0_10px_40px_-12px_rgba(52,211,153,0.3)]'
                       : 'glass-card border-red-500/15 hover:border-red-400/50 hover:shadow-[0_10px_40px_-12px_rgba(239,68,68,0.3)]'
