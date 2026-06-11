@@ -19,8 +19,8 @@ const BENEFITS = [
   { icon: Crown, title: 'Performance Center', desc: 'Centro de controle premium com benchmarks e ranking interno.' },
 ];
 
-const BASE_ADMIN = 49.9;
-const BASE_OP = 19.9;
+const BASE_ADMIN = 29.9;
+const BASE_OP = 17.9;
 
 // Progressive discount tiers based on operator count
 const TIERS = [
