@@ -191,7 +191,7 @@ async function fetchCollection(name: string): Promise<any[]> {
   const docs: any[] = [];
   let pageToken: string | undefined;
   do {
-    
+    const url = new URL(
       `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT}/databases/(default)/documents/${name}`
     );
     url.searchParams.set('key', FIREBASE_API_KEY);
@@ -221,13 +221,9 @@ function formatBRLSigned(v: number) {
 export default async function handler(req: any, res: any) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  if (req.method === 'OPTIONS') return res.status(200).end();
-
   try {
-    const bodyParams = req.body || {}; const queryParams = req.query || {};
-    
-     catch { bodyParams = {}; }
-    }
+    let bodyParams: any = req.body || {};
+    let queryParams: any = req.query || {};
     const period = ((bodyParams.period || queryParams.period || 'daily') as Period);
     const targetAdmin = (bodyParams.targetAdmin || queryParams.targetAdmin || '').toString().trim();
     const allowZero = !!(bodyParams.allowZero || queryParams.allowZero);
@@ -364,193 +360,7 @@ export default async function handler(req: any, res: any) {
       } catch { return undefined; }
     };
 
-    for (const [admin, total] of profitByAdmin.entries()) {
-      if (!allowZero && !targetAdmin && !total) continue;
-      const name = nameByAdmin[admin] || capitalize(admin);
-      const valueStr = formatBRLSigned(total);
-      const goalPct = await goalPctOf(admin, total);
-      const body = buildMessage(period, name, total, valueStr, goalPct);
-      const periodTitle = periodTitleOf(period);
-      const titleMap: Record<string, string> = {
-        daily: 'Caixa do Dia 💰',
-        weekly: 'Balanço da Semana 🏛️',
-        monthly: 'Resultado do Mês 🏆',
-        '7d': 'Radar 7 Dias 📡',
-        '30d': 'Visão 30 Dias 🔭'
-      };
-      const title = titleMap[period] || 'Caixa do Dia 💰';
-      try {
-        const r = await fetch(NOTIFY_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, body, targets: [admin] }),
-        });
-        const j = await r.json().catch(() => ({}));
-        results.push({ admin, total, status: r.status, response: j });
-      } catch (e) {
-        results.push({ admin, total, error: String(e) });
-      }
-
-      try {
-        const fsUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT}/databases/(default)/documents/notifications?key=${FIREBASE_API_KEY}`;
-        await fetch(fsUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            fields: {
-              title: { stringValue: periodTitle },
-              message: { stringValue: body },
-              type: { stringValue: total < 0 ? 'warning' : 'success' },
-              read: { booleanValue: false },
-              timestamp: { stringValue: new Date().toISOString() },
-              targetUser: { stringValue: admin },
-              targetRole: { stringValue: 'ADMIN' },
-            },
-          }),
-        });
-      } catch (e) {
-        console.error('[firestore-notif]', admin, e);
-
-  try {
-    const bodyParams = req.body || {}; const queryParams = req.query || {};
-    
-    const period = ((bodyParams.period || queryParams.period || 'daily') as Period);
-    const targetAdmin = (bodyParams.targetAdmin || queryParams.targetAdmin || '').toString().trim();
-    const allowZero = !!(bodyParams.allowZero || queryParams.allowZero);
-    if (!['daily', 'weekly', 'monthly', '7d', '30d'].includes(period)) {
-      return res.status(400).json({ error: 'invalid period' });
-    }
-
-    const [users, metas, costs] = await Promise.all([
-      fetchCollection('users'),
-      fetchCollection('metas'),
-      fetchCollection('costs'),
-    ]);
-    const startMs = getPeriodStart(period);
-
-
-    // Build admin list: every user with role ADMIN
-    let admins: any[] = users.filter((u: any) => u.role === 'ADMIN');
-    if (targetAdmin) admins = admins.filter((a: any) => a.username === targetAdmin);
-
-
-    // For each admin, compute set of "visible operator usernames" (workspace):
-    //   admin himself + every operator whose affiliatedTo === admin.username
-    const workspaceOfAdmin: Record<string, Set<string>> = {};
-    for (const a of admins) {
-      const set = new Set<string>([a.username]);
-      for (const u of users) {
-        if (u.affiliatedTo === a.username) set.add(u.username);
-      }
-      workspaceOfAdmin[a.username] = set;
-    }
-
-    const profitByAdmin = new Map<string, number>();
-
-    // Aggregate per-remessa contribution for fechada metas
-    for (const meta of metas) {
-      if (meta.status !== 'fechada') continue;
-      const owner = meta.operador;
-      if (!owner) continue;
-
-      const remessas: any[] = meta.remessas || [];
-      const sal = Number(meta.salarioOperador || 0);
-      const pagOp = Number(meta.pagamentoOperador || 0);
-      const totalContasMeta = remessas.reduce(
-        (acc: number, r: any) => acc + Number(r.contas || 0),
-        0
-      );
-
-      for (const r of remessas) {
-        const ts = r.data ? new Date(r.data).getTime() : new Date(meta.createdAt).getTime();
-        if (!ts || ts < startMs) continue;
-
-        const dep = Number(r.deposito || 0);
-        const saq = Number(r.saque || 0);
-        const originalRc = Number(r.contas || 0);
-        let normais = Number(r.contasNormais || 0);
-        let baixas = Number(r.contasBaixas || 0);
-
-        if (meta.modelo === 'Recarga') {
-          normais = 0;
-          baixas = 0;
-        }
-        if (r.naoContabilizarSalario) {
-          normais = 0;
-          baixas = 0;
-        }
-
-        const prop =
-          totalContasMeta > 0
-            ? originalRc / totalContasMeta
-            : remessas.length > 0
-            ? 1 / remessas.length
-            : 1;
-
-        const remSal = sal * prop;
-        let remAutoSal = 0;
-        if (!meta.isAdminMeta && !r.naoContabilizarSalario) {
-          if (meta.modelo === 'Recarga') remAutoSal = pagOp * prop;
-          else remAutoSal = normais * 2 + baixas * 1;
-        }
-
-        const contribution = saq - dep + remSal - remAutoSal;
-
-        // attribute to every admin whose workspace includes this operator
-        for (const a of admins) {
-          if (workspaceOfAdmin[a.username].has(owner)) {
-            profitByAdmin.set(a.username, (profitByAdmin.get(a.username) || 0) + contribution);
-          }
-        }
-      }
-    }
-
-    // Subtract custos within period for each admin workspace
-    for (const cost of costs) {
-      const costDate = cost.date
-        ? new Date(cost.date + 'T12:00:00').getTime()
-        : cost.createdAt
-        ? new Date(cost.createdAt).getTime()
-        : 0;
-      if (!costDate || costDate < startMs) continue;
-      const amt = Number(cost.amount || 0);
-      const costOp = cost.operador;
-      for (const a of admins) {
-        if (!costOp) continue;
-        if (workspaceOfAdmin[a.username].has(costOp)) {
-          profitByAdmin.set(a.username, (profitByAdmin.get(a.username) || 0) - amt);
-        }
-      }
-    }
-
-    const results: any[] = [];
-
-    // build admin -> displayName lookup
-    const nameByAdmin: Record<string, string> = {};
-    for (const a of admins) nameByAdmin[a.username] = capitalize(String(a.displayName || a.username));
-
-    // ensure target admin shows up even with zero profit (manual trigger)
-    if (targetAdmin && !profitByAdmin.has(targetAdmin) && admins.find(a => a.username === targetAdmin)) {
-      profitByAdmin.set(targetAdmin, 0);
-    }
-
-    // monthly goal lookup helper (used only for monthly / 30d periods)
-    const goalPctOf = async (adminUsername: string, total: number): Promise<number | undefined> => {
-      if (!(period === 'monthly' || period === '30d')) return undefined;
-      try {
-        const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT}/databases/(default)/documents/user_data/${encodeURIComponent(adminUsername + '_nytzer-goals')}?key=${FIREBASE_API_KEY}`;
-        const r = await fetch(url);
-        if (!r.ok) return undefined;
-        const j = await r.json();
-        const value = fsValue(j.fields?.value);
-        const goals: any[] = Array.isArray(value) ? value : [];
-        const monthly = goals.find((g: any) => g?.type === 'monthly' && Number(g?.target) > 0);
-        if (!monthly) return undefined;
-        return (total / Number(monthly.target)) * 100;
-      } catch { return undefined; }
-    };
-
-    for (const [admin, total] of profitByAdmin.entries()) {
+    for (const [admin, total] of Array.from(profitByAdmin.entries())) {
       if (!allowZero && !targetAdmin && !total) continue;
       const name = nameByAdmin[admin] || capitalize(admin);
       const valueStr = formatBRLSigned(total);
