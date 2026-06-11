@@ -1524,14 +1524,18 @@ const Tasks = () => {
             const lucroLiquido = lucroBruto + salario - autoSalarioMeta;
             const positivo = lucroLiquido >= 0;
             const rede = meta.rede && meta.rede !== 'Selecione' ? meta.rede : 'Geral';
+            const operatorName = meta.operador && !meta.isAdminMeta ? getOperatorName(meta.operador, users) : null;
+            const totalContas = rem.reduce((acc, r) => acc + (r.contas || 0), 0);
             return (
               <button
                 key={meta.id}
                 onClick={() => setSelectedMetaId(meta.id)}
-                className={`group relative aspect-square rounded-2xl border p-4 flex flex-col justify-between text-left overflow-hidden transition-all hover:-translate-y-0.5 ${
+                className={`group relative aspect-square rounded-2xl border p-3.5 flex flex-col text-left overflow-hidden transition-all hover:-translate-y-0.5 ${
                   meta.isAdminMeta
-                    ? 'bg-[#111111]/95 border-yellow-500/25 hover:border-yellow-500/50 hover:shadow-[0_10px_40px_-12px_rgba(234,179,8,0.25)]'
-                    : 'glass-card border-border/30 hover:border-primary/40 hover:shadow-[0_10px_40px_-12px_hsl(var(--primary)/0.25)]'
+                    ? 'bg-[#111111]/95 border-yellow-500/25 hover:border-yellow-500/60 hover:shadow-[0_10px_40px_-12px_rgba(234,179,8,0.3)]'
+                    : positivo
+                      ? 'glass-card border-emerald-500/15 hover:border-emerald-400/50 hover:shadow-[0_10px_40px_-12px_rgba(52,211,153,0.3)]'
+                      : 'glass-card border-red-500/15 hover:border-red-400/50 hover:shadow-[0_10px_40px_-12px_rgba(239,68,68,0.3)]'
                 }`}
               >
                 <div className={`absolute inset-x-0 top-0 h-[2px] ${
@@ -1541,51 +1545,77 @@ const Tasks = () => {
                   : positivo ? 'bg-gradient-to-r from-transparent via-emerald-400 to-transparent'
                   : 'bg-gradient-to-r from-transparent via-red-500 to-transparent'
                 }`} />
-                <div className={`absolute -top-16 -right-16 w-40 h-40 rounded-full blur-3xl opacity-40 ${positivo ? 'bg-emerald-500/10' : 'bg-red-500/10'}`} />
+                <div className={`absolute -top-20 -right-20 w-44 h-44 rounded-full blur-3xl opacity-60 ${positivo ? 'bg-emerald-500/15' : 'bg-red-500/15'}`} />
 
+                {/* LINHA 1 — Cabeçalho */}
                 <div className="relative flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5 mb-1.5">
+                    <div className="flex items-center gap-1.5 mb-1">
                       <span className={`w-1.5 h-1.5 rounded-full ${
                         meta.status === 'fechada' ? 'bg-primary/50'
                         : meta.status === 'lixeira' ? 'bg-red-500'
                         : meta.isAdminMeta ? 'bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.7)]'
                         : 'bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.7)] animate-pulse'
                       }`} />
-                      <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/70">
+                      <span className={`text-[9px] font-bold uppercase tracking-[0.15em] ${meta.isAdminMeta ? 'text-yellow-500/80' : 'text-muted-foreground/70'}`}>
                         {meta.isAdminMeta ? 'Admin' : meta.modelo}
                       </span>
+                      <span className="ml-auto px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest bg-muted/40 text-muted-foreground/80 border border-border/50">
+                        {rede}
+                      </span>
                     </div>
-                    <p className="font-extrabold text-foreground text-sm leading-tight truncate group-hover:text-primary transition-colors">
+                    <p className="font-extrabold text-foreground text-[15px] leading-tight truncate group-hover:text-primary transition-colors">
                       {meta.plataforma}
                     </p>
                   </div>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all shrink-0" />
                 </div>
 
-                <div className="relative">
-                  <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest border ${
-                    meta.isAdminMeta
-                      ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30'
-                      : 'bg-muted/40 text-muted-foreground border-border/50'
+                {/* LINHA 2 — LUCRO em destaque */}
+                <div className="relative flex-1 flex flex-col justify-center items-start py-2 my-1.5 border-y border-border/20">
+                  <p className="text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 mb-1">Lucro líquido</p>
+                  <p className={`text-[26px] font-black tracking-tight leading-none ${
+                    positivo ? 'text-emerald-400 drop-shadow-[0_0_14px_rgba(52,211,153,0.35)]' : 'text-red-500 drop-shadow-[0_0_14px_rgba(239,68,68,0.35)]'
                   }`}>
-                    {rede}
-                  </span>
-                  <p className="text-[10px] text-muted-foreground/70 mt-1.5 truncate">
-                    {rem.length} remessa{rem.length === 1 ? '' : 's'} · {meta.modelo === 'Recarga' ? `R$ ${meta.contas}` : `${meta.contas} contas`}
+                    {lucroLiquido > 0 ? '+' : lucroLiquido < 0 ? '-' : ''}R${Math.abs(lucroLiquido).toFixed(0)}
                   </p>
+                  <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                    <span className="text-[9px] font-bold text-muted-foreground/70 font-mono">
+                      Bruto R${Math.abs(lucroBruto).toFixed(0)}
+                    </span>
+                    {salario > 0 && (
+                      <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/25">
+                        FAT +{salario.toFixed(0)}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                <div className="relative pt-2 border-t border-border/30">
-                  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-0.5">Lucro líquido</p>
-                  <p className={`text-lg font-black tracking-tight leading-none ${
-                    positivo ? 'text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.25)]' : 'text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.25)]'
-                  }`}>
-                    {lucroLiquido > 0 ? '+' : lucroLiquido < 0 ? '-' : ''}R$ {Math.abs(lucroLiquido).toFixed(2).replace('.', ',')}
-                  </p>
-                  <p className="text-[9px] text-muted-foreground/60 mt-1 font-mono">
-                    Bruto R$ {Math.abs(lucroBruto).toFixed(0)}{salario > 0 ? ` · FAT +${salario.toFixed(0)}` : ''}
-                  </p>
+                {/* LINHA 3 — Operador + métricas */}
+                <div className="relative flex items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    {operatorName ? (
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <div className={`w-5 h-5 rounded-md flex items-center justify-center text-[9px] font-black shrink-0 ${meta.isAdminMeta ? 'bg-yellow-500/15 text-yellow-500 border border-yellow-500/30' : 'bg-primary/15 text-primary border border-primary/30'}`}>
+                          {operatorName.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground/60 leading-none">Operador</p>
+                          <p className="text-[11px] font-bold text-foreground truncate leading-tight mt-0.5">{operatorName}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-5 h-5 rounded-md flex items-center justify-center bg-yellow-500/15 text-yellow-500 border border-yellow-500/30 text-[9px] font-black shrink-0">A</div>
+                        <p className="text-[11px] font-bold text-yellow-500/90 leading-tight">Admin</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-[10px] font-black text-foreground leading-none">{rem.length}<span className="text-muted-foreground/60 font-bold"> rem.</span></p>
+                    <p className="text-[9px] text-muted-foreground/60 mt-0.5 leading-none">
+                      {meta.modelo === 'Recarga' ? `R$${meta.contas}` : `${totalContas}/${meta.contas}`}
+                    </p>
+                  </div>
                 </div>
               </button>
             );
