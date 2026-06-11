@@ -19,14 +19,17 @@ export const RouteTransition = ({ children }: { children: ReactNode }) => {
       <div
         key={pathname}
         style={{
-          animation: `nytzer-route-in 220ms ${easing} both`,
+          animation: `nytzer-route-in 180ms ${easing} both`,
+          minHeight: '100dvh',
+          background: 'hsl(var(--background))',
+          willChange: 'opacity, transform',
         }}
       >
         {children}
       </div>
       <style>{`
         @keyframes nytzer-route-in {
-          0%   { opacity: 0; transform: translateY(6px); }
+          0%   { opacity: 0.15; transform: translateY(4px); }
           100% { opacity: 1; transform: translateY(0); }
         }
         @media (prefers-reduced-motion: reduce) {
