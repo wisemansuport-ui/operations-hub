@@ -69,7 +69,10 @@ const parseNotif = (n: AppNotification): ParsedNotif => {
   let category: Category = "generic";
   let headline = n.title || "Notificação";
 
-  if (title.includes("remessa")) {
+  if (title.includes("resumo") || title.includes("lucro do") || title.includes("lucro da")) {
+    category = "resumo_lucro";
+    headline = n.title || "Resumo de lucro";
+  } else if (title.includes("remessa")) {
     category = "remessa";
     headline = "Remessa registrada";
   } else if (title.includes("meta") && (title.includes("final") || title.includes("conclu"))) {
