@@ -1218,7 +1218,7 @@ const Tasks = () => {
   if (activeTab === 'Lixeira') { displayList = listLixeira; emptyMsg = "Lixeira limpa."; }
   if (activeTab === 'Visao geral') { displayList = visibleMetas.filter(m => m.status !== 'lixeira'); emptyMsg = "Nenhuma meta registrada no sistema."; } // Visao geral mocks totality
 
-  const ITEMS_PER_PAGE = 10;
+  const ITEMS_PER_PAGE = activeTab === 'Visao geral' ? 25 : 10;
   const totalPages = Math.ceil(displayList.length / ITEMS_PER_PAGE);
   const paginatedList = displayList.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
