@@ -19,14 +19,22 @@ const QUOTES: { text: string; author: string }[] = [
   { text: "Trabalhe enquanto eles dormem. Aprenda enquanto eles se divertem.", author: "Anônimo" },
 ];
 
-const ROTATE_MS = 4500;
+const getDayIndex = () => {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const diff = now.getTime() - start.getTime();
+  const dayOfYear = Math.floor(diff / 86400000);
+  return dayOfYear % QUOTES.length;
+};
+
+const ROTATE_MS = 60_000; // checa virada de dia a cada minuto
 
 export const MotivationWidget = () => {
-  const [idx, setIdx] = useState(() => Math.floor(Math.random() * QUOTES.length));
+  const [idx, setIdx] = useState(getDayIndex);
 
   useEffect(() => {
     const id = setInterval(() => {
-      setIdx((p) => (p + 1) % QUOTES.length);
+      setIdx(getDayIndex());
     }, ROTATE_MS);
     return () => clearInterval(id);
   }, []);
@@ -63,14 +71,12 @@ export const MotivationWidget = () => {
         </div>
       </div>
 
-      {/* Progress dots */}
-      <div className="flex gap-1 relative z-10">
-        {QUOTES.slice(0, 6).map((_, i) => (
-          <div
-            key={i}
-            className={`h-1 flex-1 rounded-full transition-all duration-500 ${i === idx % 6 ? "bg-primary" : "bg-primary/15"}`}
-          />
-        ))}
+      {/* Footer — frase do dia */}
+      <div className="flex items-center justify-between relative z-10 pt-1">
+        <span className="text-[10px] uppercase tracking-[0.2em] font-semibold text-primary/60">Frase do dia</span>
+        <span className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground tabular-nums">
+          {new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })}
+        </span>
       </div>
     </div>
   );
