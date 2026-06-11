@@ -448,10 +448,18 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (e) {
+    const msg = String(e);
     console.error('[send-profit-summary]', e);
-    return new Response(JSON.stringify({ error: String(e) }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    const isQuota = /429|RESOURCE_EXHAUSTED|Quota exceeded/i.test(msg);
+    return new Response(
+      JSON.stringify({
+        error: isQuota
+          ? 'Firestore atingiu o limite de quota. Tente novamente em alguns instantes.'
+          : msg,
+        fallback: true,
+        count: 0,
+      }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    );
   }
 });
