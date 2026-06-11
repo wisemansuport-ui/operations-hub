@@ -110,6 +110,10 @@ const PHRASES: Record<'daily' | 'weekly' | 'monthly', Record<Tier, ((name: strin
       (n, v) => `Semana no vermelho (${v}), ${n}. Hoje é dia de revisar, amanhã é dia de vencer. 🧠`,
       (n, v) => `${n}, ${v} na semana. Não é o final, é só um capítulo. Vira a página! 📖`,
       (n, v) => `Calma, ${n}: ${v} na semana. Quem desiste aqui não chega no topo. Continua! 🧗`,
+      // curtinhas
+      (n, v) => `Semana ${v}, ${n}. Reseta. 🔁`,
+      (n, v) => `${n}: ${v}. Próxima vira. 💪`,
+      (n, v) => `${n}, ${v} na semana. Foco. 🎯`,
     ],
     low: [
       (n, v) => `Boa, ${n}! Semana fechada em ${v}. Tá no azul, mas a próxima a gente sobe o ritmo! 📈`,
@@ -119,6 +123,10 @@ const PHRASES: Record<'daily' | 'weekly' | 'monthly', Record<Tier, ((name: strin
       (n, v) => `Verde modesto, ${n} (${v}) na semana. Repete 4x e o mês fecha forte! 🗓️`,
       (n, v) => `${n}, ${v} em 7 dias. Tem combustível pra mais — bora gastar! ⛽`,
       (n, v) => `Semana positiva, ${n}: ${v}. Próxima a gente coloca um zero a mais. ⚙️`,
+      // curtinhas
+      (n, v) => `${v} na semana, ${n}. 📈`,
+      (n, v) => `${n}: ${v}. Tá verde. ✅`,
+      (n, v) => `Semana ${v}, ${n}. Bora. 💪`,
     ],
     mid: [
       (n, v) => `Boa, ${n}! Semana fechada em ${v}. Continue assim! 💰`,
@@ -128,6 +136,10 @@ const PHRASES: Record<'daily' | 'weekly' | 'monthly', Record<Tier, ((name: strin
       (n, v) => `Semana sólida, ${n}: ${v}. Mantém o padrão e o mês vira festa. 🎉`,
       (n, v) => `${n}, ${v} na semana. Operação afinada, mente fria. 🧊`,
       (n, v) => `Resultado limpo, ${n}: ${v} em 7 dias. Próxima a gente repete. 🔁`,
+      // curtinhas
+      (n, v) => `${v} na semana, ${n}. 💰`,
+      (n, v) => `${n}: ${v}. Segue. 🚀`,
+      (n, v) => `Semana firme, ${n}: ${v}. 🏆`,
     ],
     high: [
       (n, v) => `Caraca, ${n}! ${v} em UMA semana?! Tem gente que não ganha isso em SEIS MESES! 🍾🍾`,
@@ -137,6 +149,10 @@ const PHRASES: Record<'daily' | 'weekly' | 'monthly', Record<Tier, ((name: strin
       (n, v) => `Semana monstra, ${n}: ${v}! Print, salva e olha quando bater dúvida. 📸`,
       (n, v) => `${n}, ${v} na semana. Esse é o tipo de número que muda a vida! 🌍`,
       (n, v) => `${v} em UMA semana, ${n}?! Cê tá descontrolado (do bem)! 🚀🍾`,
+      // curtinhas
+      (n, v) => `${v} na semana, ${n}?! 🤯`,
+      (n, v) => `${n}: ${v}. Absurdo. 🍾`,
+      (n, v) => `${n}, ${v} em 7 dias. 👑`,
     ],
   },
   monthly: {
@@ -147,6 +163,9 @@ const PHRASES: Record<'daily' | 'weekly' | 'monthly', Record<Tier, ((name: strin
       (n, v) => `${n}, mês ${v}. Reseta o psicológico, refaz o plano — o próximo é nosso! 🧠`,
       (n, v) => `Mês no vermelho (${v}), ${n}. Quem aguenta esse round, vence o próximo. 🥊`,
       (n, v) => `${n}, ${v} no mês. Vai doer, mas é combustível pra próxima fase. 🔥`,
+      // curtinhas
+      (n, v) => `Mês ${v}, ${n}. Reseta. 🔁`,
+      (n, v) => `${n}: ${v}. Próximo vira. 💪`,
     ],
     low: [
       (n, v) => `Boa, ${n}! Mês fechado em ${v}. Tá no positivo — próximo mês a gente dobra! 📈`,
@@ -155,6 +174,9 @@ const PHRASES: Record<'daily' | 'weekly' | 'monthly', Record<Tier, ((name: strin
       (n, v) => `${n}, ${v} em 30 dias. Base construída, agora é multiplicar. ✖️`,
       (n, v) => `Mês positivo, ${n}: ${v}. Próximo a gente coloca pra rodar mais forte. ⚙️`,
       (n, v) => `${n}, ${v} no mês. Pé no chão, olho na próxima escalada. 🧗`,
+      // curtinhas
+      (n, v) => `${v} no mês, ${n}. 📈`,
+      (n, v) => `${n}: ${v}. Bora dobrar. 💪`,
     ],
     mid: [
       (n, v) => `Boa, ${n}! Mês fechado em ${v}. Continue assim! 💰`,
@@ -163,6 +185,9 @@ const PHRASES: Record<'daily' | 'weekly' | 'monthly', Record<Tier, ((name: strin
       (n, v) => `${n}, ${v} no mês. Esse é o ritmo de quem constrói patrimônio sério. 🏗️`,
       (n, v) => `Mês sólido, ${n}: ${v}. Próximo a gente sobe mais um degrau. 🪜`,
       (n, v) => `${n}, ${v} em 30 dias. Disciplina virando dinheiro — segue. 💎`,
+      // curtinhas
+      (n, v) => `${v} no mês, ${n}. 💰`,
+      (n, v) => `${n}: ${v}. Segue. 🏆`,
     ],
     high: [
       (n, v) => `Caraca, ${n}! ${v} em UM mês?! O que CLT faz em ANOS, cê faz em 30 dias! 🍾🍾`,
@@ -172,6 +197,9 @@ const PHRASES: Record<'daily' | 'weekly' | 'monthly', Record<Tier, ((name: strin
       (n, v) => `Mês histórico, ${n}: ${v}! Esse vai no portfólio pra sempre. 📚`,
       (n, v) => `${n}, ${v} em 30 dias. O mercado tá te devendo bônus já! 🎁`,
       (n, v) => `${v} no mês, ${n}?! Tá imprimindo do bom e do melhor! 🖨️💵`,
+      // curtinhas
+      (n, v) => `${v} no mês, ${n}?! 🤯`,
+      (n, v) => `${n}: ${v}. Histórico. 👑`,
     ],
   },
 };
