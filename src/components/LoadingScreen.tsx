@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { WifiOff } from "lucide-react";
+import { createPortal } from "react-dom";
 
 const QUOTES = [
   "A constância vence o talento quando o talento não é constante.",
@@ -24,19 +25,26 @@ export const LoadingScreen = ({
   const [offline, setOffline] = useState(
     typeof navigator !== "undefined" ? !navigator.onLine : false
   );
+  // Safety: hide loading screen after 8s to prevent permanent black screen
+  const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setSlow(true), 4000);
+    // Force-remove loading screen after 8s if still stuck
+    const killTimer = setTimeout(() => setHidden(true), 8000);
     const on = () => setOffline(false);
     const off = () => setOffline(true);
     window.addEventListener("online", on);
     window.addEventListener("offline", off);
     return () => {
       clearTimeout(t);
+      clearTimeout(killTimer);
       window.removeEventListener("online", on);
       window.removeEventListener("offline", off);
     };
   }, []);
+
+  if (hidden) return null;
 
   return (
     <div
@@ -139,7 +147,7 @@ export const LoadingScreen = ({
 
         {/* Quote */}
         <blockquote className="text-sm md:text-base text-muted-foreground italic leading-relaxed border-l-2 border-primary/60 pl-4 text-left max-w-sm">
-          "{quote}"
+          {quote}
         </blockquote>
 
         {/* Slow / offline hint */}
