@@ -102,6 +102,7 @@ const CATEGORY_META: Record<Category, { icon: React.ElementType; tint: string; b
   meta_finalizada: { icon: Trophy,     tint: "text-emerald-300",      bar: "bg-emerald-400/70", chip: "bg-emerald-500/10 text-emerald-300 border-emerald-500/20", label: "Meta finalizada" },
   meta_iniciada:   { icon: PlayCircle, tint: "text-sky-300",          bar: "bg-sky-400/70",     chip: "bg-sky-500/10 text-sky-300 border-sky-500/20",           label: "Meta iniciada" },
   info_oficial:    { icon: Megaphone,  tint: "text-violet-300",       bar: "bg-violet-400/70",  chip: "bg-violet-500/10 text-violet-300 border-violet-500/20",   label: "Comunicado" },
+  resumo_lucro:    { icon: TrendingUp,  tint: "text-primary",          bar: "bg-primary/70",     chip: "bg-primary/10 text-primary border-primary/20",            label: "Resumo" },
   generic:         { icon: Info,       tint: "text-muted-foreground", bar: "bg-white/20",       chip: "bg-white/5 text-muted-foreground border-white/10",       label: "Aviso" },
 };
 
