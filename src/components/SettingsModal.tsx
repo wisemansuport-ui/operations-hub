@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
@@ -9,11 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Clock, User as UserIcon, Lock, Megaphone, Camera, Send, Loader2 } from "lucide-react";
+import { Clock, User as UserIcon, Lock, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { useFirestoreData } from "@/hooks/useFirestoreData";
-import { calculateProfitSummary } from "@/lib/profitSummary";
 
 interface Props {
   open: boolean;
@@ -25,15 +22,13 @@ const DEFAULT_MIN = 120;
 const MIN_VAL = 15;
 const MAX_VAL = 720;
 
-type Period = "daily" | "weekly" | "monthly" | "7d" | "30d";
-
-const PERIOD_OPTS: { value: Period; label: string }[] = [
-  { value: "daily",   label: "Hoje (diário)" },
-  { value: "weekly",  label: "Esta semana" },
-  { value: "monthly", label: "Este mês" },
-  { value: "7d",      label: "Últimos 7 dias" },
-  { value: "30d",     label: "Últimos 30 dias" },
+const AVATAR_SEEDS = [
+  "Luna", "Zeus", "Atlas", "Nova", "Orion", "Sage",
+  "Phoenix", "Echo", "Vega", "Kai", "Ember", "Onyx",
 ];
+const avatarUrl = (seed: string) =>
+  `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(seed)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
+const AVATARS = AVATAR_SEEDS.map(avatarUrl);
 
 async function resizeToDataURL(file: File, max = 320): Promise<string> {
   const img = document.createElement("img");
