@@ -7,6 +7,7 @@ import { format, isAfter } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { SubscriptionHero } from '../components/heroes/SubscriptionHero';
+import { PixCheckoutModal } from '../components/PixCheckoutModal';
 import { cn } from '@/lib/utils';
 
 const BENEFITS = [
@@ -41,6 +42,7 @@ export default function Subscription() {
   const { users } = useFirestoreData();
   const [operators, setOperators] = useState(1);
   const [selectedPlan, setSelectedPlan] = useState<'solo' | 'team'>('team');
+  const [pixOpen, setPixOpen] = useState(false);
 
   const adminUser = user?.role === 'ADMIN'
     ? users.find(u => u.username === user.username)
@@ -59,7 +61,11 @@ export default function Subscription() {
   const opsToNext = nextTier ? nextTier.min - operators : 0;
 
   const handleSubscribe = () => {
-    toast.success(`Assinatura iniciada — R$ ${fmt(planTotal)}/mês`);
+    if (!adminUser) {
+      toast.error('Usuário não encontrado.');
+      return;
+    }
+    setPixOpen(true);
   };
 
   return (
