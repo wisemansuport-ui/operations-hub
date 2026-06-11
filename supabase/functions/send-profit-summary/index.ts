@@ -435,16 +435,12 @@ Deno.serve(async (req) => {
       localSummary?.adminUsername === targetAdmin &&
       Number.isFinite(Number(localSummary?.total));
 
-    if (cacheUsable) {
-      console.log(`[cache] ${cacheFresh ? 'hit' : 'stale-hit'} period=${period} rows=${cacheRows.length}`);
-      for (const r of cacheRows) {
-        profitByAdmin.set(r.admin_username, Number(r.total));
-        nameByAdmin[r.admin_username] = r.display_name || capitalize(r.admin_username);
-        if (r.goal_pct != null) goalPctByAdmin[r.admin_username] = Number(r.goal_pct);
-      }
-    } else if (hasValidLocalSummary) {
+    if (hasValidLocalSummary) {
+      // localSummary é a fonte da verdade — espelha 100% a "Receita Líquida"
+      // exibida no Dashboard. Sobrescreve qualquer cache potencialmente
+      // calculado com fórmula diferente / desatualizada.
       const localTotal = Number(Number(localSummary.total).toFixed(2));
-      console.log(`[cache] miss period=${period} — usando cálculo local recebido do app`);
+      console.log(`[sync] usando localSummary do app (dashboard-aligned) period=${period} total=${localTotal}`);
       profitByAdmin.set(targetAdmin, localTotal);
       nameByAdmin[targetAdmin] = localSummary.displayName || capitalize(targetAdmin);
       if (Number.isFinite(Number(localSummary.goalPct))) goalPctByAdmin[targetAdmin] = Number(localSummary.goalPct);
@@ -463,6 +459,13 @@ Deno.serve(async (req) => {
           }, { onConflict: 'admin_username,period,period_start' });
       } catch (e) {
         console.warn('[cache:local-write]', e);
+      }
+    } else if (cacheUsable) {
+      console.log(`[cache] ${cacheFresh ? 'hit' : 'stale-hit'} period=${period} rows=${cacheRows.length}`);
+      for (const r of cacheRows) {
+        profitByAdmin.set(r.admin_username, Number(r.total));
+        nameByAdmin[r.admin_username] = r.display_name || capitalize(r.admin_username);
+        if (r.goal_pct != null) goalPctByAdmin[r.admin_username] = Number(r.goal_pct);
       }
     } else {
       console.log(`[cache] miss period=${period} — disparo manual cancelado sem consultar Firestore`);
