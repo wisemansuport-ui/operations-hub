@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 
-export type PeriodPreset = 'HOJE' | 'SEMANA' | 'MES' | 'TODOS' | 'CUSTOM';
+export type PeriodPreset = 'HOJE' | '7D' | '30D' | 'SEMANA' | 'MES' | 'TODOS' | 'CUSTOM';
 
 export interface DateFilter {
   preset: PeriodPreset;
@@ -23,6 +23,8 @@ interface PeriodFilterProps {
 
 const PRESETS: { key: PeriodPreset; label: string }[] = [
   { key: 'HOJE', label: 'Hoje' },
+  { key: '7D', label: '7D' },
+  { key: '30D', label: '30D' },
   { key: 'SEMANA', label: 'Semana' },
   { key: 'MES', label: 'Mês' },
   { key: 'TODOS', label: 'Todos' },
@@ -33,6 +35,10 @@ export function buildDateFilter(preset: PeriodPreset): DateFilter {
   switch (preset) {
     case 'HOJE':
       return { preset, from: startOfDay(now), to: endOfDay(now) };
+    case '7D':
+      return { preset, from: startOfDay(subDays(now, 6)), to: endOfDay(now) };
+    case '30D':
+      return { preset, from: startOfDay(subDays(now, 29)), to: endOfDay(now) };
     case 'SEMANA':
       return { preset, from: startOfWeek(now), to: endOfWeek(now) };
     case 'MES':
@@ -79,6 +85,8 @@ export function PeriodFilter({ value, onChange, className }: PeriodFilterProps) 
   const label = React.useMemo(() => {
     if (value.preset === 'TODOS') return 'Todos';
     if (value.preset === 'HOJE') return 'Hoje';
+    if (value.preset === '7D') return 'Últimos 7 dias';
+    if (value.preset === '30D') return 'Últimos 30 dias';
     if (value.preset === 'SEMANA') return 'Esta semana';
     if (value.preset === 'MES') return 'Este mês';
     if (value.preset === 'CUSTOM' && value.from && value.to) {
@@ -134,6 +142,8 @@ export function PeriodFilter({ value, onChange, className }: PeriodFilterProps) 
           <div className="flex gap-1 px-3 pt-3 pb-1 border-b border-border/50 flex-wrap">
             {[
               { label: 'Hoje', preset: 'HOJE' as PeriodPreset },
+              { label: 'Últimos 7 dias', preset: '7D' as PeriodPreset },
+              { label: 'Últimos 30 dias', preset: '30D' as PeriodPreset },
               { label: 'Esta semana', preset: 'SEMANA' as PeriodPreset },
               { label: 'Este mês', preset: 'MES' as PeriodPreset },
             ].map(s => (
