@@ -43,6 +43,11 @@ const PHRASES: Record<'daily' | 'weekly' | 'monthly', Record<Tier, ((name: strin
       (n, v) => `Dia complicado, ${n} (${v}). Hoje o mercado falou — amanhã quem fala é você. 🗣️`,
       (n, v) => `${n}, perdeu uma batalha (${v}), não a guerra. Recarrega e volta com tudo! ⚔️`,
       (n, v) => `Respira fundo, ${n}. ${v} hoje, mas a régua segue subindo no longo prazo. 📊`,
+      // curtinhas
+      (n, v) => `${v} hoje, ${n}. Levanta. ⚡`,
+      (n, v) => `${n}, ${v}. Amanhã vira. 🔁`,
+      (n, v) => `Dia ${v}, ${n}. Bora. 💪`,
+      (n, v) => `${n}: ${v}. Reset. 🧠`,
     ],
     low: [
       (n, v) => `Boa, ${n}! Você lucrou ${v} hoje. Tá no caminho, mas dá pra melhorar! 📈`,
