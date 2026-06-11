@@ -120,8 +120,12 @@ function capitalize(s: string) {
 }
 
 
-function getPeriodStart(period: 'daily' | 'weekly' | 'monthly'): number {
+type Period = 'daily' | 'weekly' | 'monthly' | '7d' | '30d';
+
+function getPeriodStart(period: Period): number {
   const now = new Date();
+  if (period === '7d') return now.getTime() - 7 * 24 * 60 * 60 * 1000;
+  if (period === '30d') return now.getTime() - 30 * 24 * 60 * 60 * 1000;
   // Brasília = UTC-3 (no DST). Shift to local then compute boundary in UTC.
   const local = new Date(now.getTime() - 3 * 60 * 60 * 1000);
   const y = local.getUTCFullYear();
@@ -131,15 +135,30 @@ function getPeriodStart(period: 'daily' | 'weekly' | 'monthly'): number {
   if (period === 'daily') {
     startLocalMs = Date.UTC(y, m, d);
   } else if (period === 'weekly') {
-    // Week starts Sunday (matches getDay=0). Adjust day-of-week.
     const dow = local.getUTCDay();
     startLocalMs = Date.UTC(y, m, d - dow);
   } else {
     startLocalMs = Date.UTC(y, m, 1);
   }
-  // Convert local-midnight back to real UTC instant
   return startLocalMs + 3 * 60 * 60 * 1000;
 }
+
+function periodKey(period: Period): 'daily' | 'weekly' | 'monthly' {
+  if (period === 'daily') return 'daily';
+  if (period === '7d' || period === 'weekly') return 'weekly';
+  return 'monthly';
+}
+
+function periodTitleOf(period: Period): string {
+  switch (period) {
+    case 'daily': return 'Resumo do dia';
+    case 'weekly': return 'Resumo da semana';
+    case 'monthly': return 'Resumo do mês';
+    case '7d': return 'Resumo — últimos 7 dias';
+    case '30d': return 'Resumo — últimos 30 dias';
+  }
+}
+
 
 function fsValue(v: any): any {
   if (v == null) return null;
