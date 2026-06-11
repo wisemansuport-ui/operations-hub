@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import {
   ShieldCheck,
   Bell,
@@ -110,58 +111,25 @@ const features = [
   },
 ];
 
-const plans = [
-  {
-    name: "Starter",
-    price: "R$ 97",
-    period: "/mês",
-    desc: "Pra quem está saindo da planilha agora",
-    features: [
-      "Até 5 operadores",
-      "Dashboard em tempo real",
-      "Notificações push iOS/Android",
-      "Relatórios automáticos",
-      "Suporte por e-mail",
-    ],
-    cta: "Começar agora",
-    highlighted: false,
-  },
-  {
-    name: "Pro",
-    price: "R$ 297",
-    period: "/mês",
-    desc: "Pra quem opera sério e quer escalar com IA",
-    features: [
-      "Até 25 operadores",
-      "Tudo do Starter",
-      "Motor de Decisão IA",
-      "Ranking de redes com análise IA",
-      "Forecast de metas",
-      "Gestão de PIX e custos",
-      "Ranking e gamificação",
-      "Exportação avançada",
-      "Suporte prioritário",
-    ],
-    cta: "Assinar Pro",
-    highlighted: true,
-  },
-  {
-    name: "Enterprise",
-    price: "R$ 897",
-    period: "/mês",
-    desc: "Pra operações de alta escala",
-    features: [
-      "Operadores ilimitados",
-      "Tudo do Pro",
-      "API dedicada",
-      "Onboarding 1:1",
-      "Gerente de conta exclusivo",
-      "SLA 99.9%",
-    ],
-    cta: "Falar com vendas",
-    highlighted: false,
-  },
-];
+const SOLO_PRICE = 29.9;
+const OPERATOR_PRICE = 19.9;
+const MAX_OPERATOR_DISCOUNT = 0.3; // até 30% por operador
+
+// Desconto gradativo: cada operador adicional reduz 3% no preço unitário,
+// limitado a 30%. Operador 1 = preço cheio, operador 11+ = 30% off.
+const operatorUnitPrice = (index: number) => {
+  const discount = Math.min(MAX_OPERATOR_DISCOUNT, Math.max(0, index - 1) * 0.03);
+  return OPERATOR_PRICE * (1 - discount);
+};
+
+const teamPriceFor = (operators: number) => {
+  let total = SOLO_PRICE;
+  for (let i = 1; i <= operators; i++) total += operatorUnitPrice(i);
+  return total;
+};
+
+const formatBRL = (n: number) =>
+  n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const stats = [
   { value: "20h", label: "Economizadas / semana" },
