@@ -60,6 +60,11 @@ const PHRASES: Record<'daily' | 'weekly' | 'monthly', Record<Tier, ((name: strin
       (n, v) => `Resultado positivo, ${n}: ${v}. Hora de afinar a operação e acelerar! ⚡`,
       (n, v) => `${n}, ${v} hoje. Sem celebrar demais nem reclamar — só executar amanhã. 🧭`,
       (n, v) => `Lucrou ${v}, ${n}. Pequeno hoje, gigante amanhã se mantiver a disciplina. 🥇`,
+      // curtinhas
+      (n, v) => `${v} hoje, ${n}. 📈`,
+      (n, v) => `${n}, ${v}. Tá no verde. ✅`,
+      (n, v) => `Boa, ${n}: ${v}. 💚`,
+      (n, v) => `${n}, ${v}. Bora mais. 🔥`,
     ],
     mid: [
       (n, v) => `Boa, ${n}! Você já lucrou ${v} hoje. Continue assim! 💰`,
