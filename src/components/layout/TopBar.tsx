@@ -537,6 +537,9 @@ export const TopBar = () => {
           </div>
         </div>
 
+      {user?.id && (
+        <SettingsModal open={showSettings} onOpenChange={setShowSettings} adminUserId={user.id} />
+      )}
     </header>
   );
 };
