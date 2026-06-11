@@ -21,6 +21,14 @@ const OPTS: { value: Period; label: string; sub: string; icon: any }[] = [
   { value: "30d",     label: "Últimos 30 dias",    sub: "Janela móvel 30d + Meta",   icon: Calendar },
 ];
 
+const friendlyTriggerError = (message?: string) => {
+  const text = message || "Serviço temporariamente indisponível.";
+  if (/firestore|quota|limite/i.test(text)) {
+    return "Lucro ainda não sincronizado no banco. Aguarde a próxima atualização automática e tente novamente.";
+  }
+  return text;
+};
+
 export const TriggerProfitModal = ({ open, onOpenChange }: Props) => {
   const [user] = useLocalStorage<any>("nytzer-user", null);
   const [period, setPeriod] = useState<Period>("daily");
@@ -50,8 +58,9 @@ export const TriggerProfitModal = ({ open, onOpenChange }: Props) => {
 
       const d: any = data || {};
       if (d.fallback) {
-        toast.warning(d.error || "Serviço temporariamente indisponível. Tente novamente em alguns segundos.");
-        setLastResult("⚠️ " + (d.error || "fallback"));
+        const message = friendlyTriggerError(d.error);
+        toast.warning(message);
+        setLastResult("⚠️ " + message);
         return;
       }
 

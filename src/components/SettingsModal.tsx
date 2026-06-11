@@ -166,7 +166,14 @@ export const SettingsModal = ({ open, onOpenChange, adminUserId }: Props) => {
       });
       toast.dismiss("fire-notif");
       if (error) throw new Error(error.message || "Erro ao invocar função");
-      if ((data as any)?.fallback) { toast.warning((data as any).error || "Serviço temporariamente indisponível."); return; }
+      if ((data as any)?.fallback) {
+        const raw = (data as any).error || "Serviço temporariamente indisponível.";
+        const message = /firestore|quota|limite/i.test(raw)
+          ? "Lucro ainda não sincronizado no banco. Aguarde a próxima atualização automática e tente novamente."
+          : raw;
+        toast.warning(message);
+        return;
+      }
       const count = (data as any)?.count ?? (Array.isArray((data as any)?.results) ? (data as any).results.length : 0);
       if (count > 0) toast.success("✅ Notificação enviada!");
       else toast.info("Função executada, mas nenhum envio realizado.");
