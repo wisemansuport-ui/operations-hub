@@ -231,6 +231,7 @@ Deno.serve(async (req) => {
     for (const [admin, total] of profitByAdmin.entries()) {
       if (!total) continue;
       const phrase = periodPhrase(period);
+      const periodTitle = period === 'daily' ? 'Resumo do dia' : period === 'weekly' ? 'Resumo da semana' : 'Resumo do mês';
       const title = `NytzerVision`;
       const body = `Lucro ${label}: ${formatBRLSigned(total)}\n${phrase}`;
       try {
@@ -243,6 +244,29 @@ Deno.serve(async (req) => {
         results.push({ admin, total, status: r.status, response: j });
       } catch (e) {
         results.push({ admin, total, error: String(e) });
+      }
+
+      // Also persist as an in-app notification (Firestore) so it shows
+      // up in the bell center under "Todas" and "Info".
+      try {
+        const fsUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT}/databases/(default)/documents/notifications?key=${FIREBASE_API_KEY}`;
+        await fetch(fsUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fields: {
+              title: { stringValue: periodTitle },
+              message: { stringValue: `Lucro ${label}: ${formatBRLSigned(total)} — ${phrase}` },
+              type: { stringValue: 'info' },
+              read: { booleanValue: false },
+              timestamp: { stringValue: new Date().toISOString() },
+              targetUser: { stringValue: admin },
+              targetRole: { stringValue: 'ADMIN' },
+            },
+          }),
+        });
+      } catch (e) {
+        console.error('[firestore-notif]', admin, e);
       }
     }
 
