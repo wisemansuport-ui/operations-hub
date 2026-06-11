@@ -1,4 +1,4 @@
-import { Bell, Sun, Moon, User, Check, Trash2, Info, AlertTriangle, XCircle, CheckCircle2, Zap, RefreshCw, ArrowDownRight, ArrowUpRight, Trophy, PlayCircle, Megaphone, Receipt } from "lucide-react";
+import { Bell, Sun, Moon, User, Check, Trash2, Info, AlertTriangle, XCircle, CheckCircle2, Zap, RefreshCw, ArrowDownRight, ArrowUpRight, Trophy, PlayCircle, Megaphone, Receipt, TrendingUp } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useNotifications, AppNotification } from "@/contexts/NotificationContext";
 import { useState, useRef, useEffect, useMemo } from "react";
@@ -17,7 +17,6 @@ const TABS: { key: FilterTab; label: string }[] = [
   { key: "info", label: "Info" },
   { key: "success", label: "Sucesso" },
   { key: "warning", label: "Aviso" },
-  { key: "error", label: "Erro" },
 ];
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
@@ -36,7 +35,7 @@ const formatRelativeTime = (ts: string | Date) => {
 const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 const formatCount = (n: number) => (n > 99 ? "99+" : String(n));
 
-type Category = "remessa" | "meta_finalizada" | "meta_iniciada" | "info_oficial" | "generic";
+type Category = "remessa" | "meta_finalizada" | "meta_iniciada" | "info_oficial" | "resumo_lucro" | "generic";
 
 interface ParsedNotif {
   category: Category;
@@ -70,7 +69,10 @@ const parseNotif = (n: AppNotification): ParsedNotif => {
   let category: Category = "generic";
   let headline = n.title || "Notificação";
 
-  if (title.includes("remessa")) {
+  if (title.includes("resumo") || title.includes("lucro do") || title.includes("lucro da")) {
+    category = "resumo_lucro";
+    headline = n.title || "Resumo de lucro";
+  } else if (title.includes("remessa")) {
     category = "remessa";
     headline = "Remessa registrada";
   } else if (title.includes("meta") && (title.includes("final") || title.includes("conclu"))) {
@@ -100,6 +102,7 @@ const CATEGORY_META: Record<Category, { icon: React.ElementType; tint: string; b
   meta_finalizada: { icon: Trophy,     tint: "text-emerald-300",      bar: "bg-emerald-400/70", chip: "bg-emerald-500/10 text-emerald-300 border-emerald-500/20", label: "Meta finalizada" },
   meta_iniciada:   { icon: PlayCircle, tint: "text-sky-300",          bar: "bg-sky-400/70",     chip: "bg-sky-500/10 text-sky-300 border-sky-500/20",           label: "Meta iniciada" },
   info_oficial:    { icon: Megaphone,  tint: "text-violet-300",       bar: "bg-violet-400/70",  chip: "bg-violet-500/10 text-violet-300 border-violet-500/20",   label: "Comunicado" },
+  resumo_lucro:    { icon: TrendingUp,  tint: "text-primary",          bar: "bg-primary/70",     chip: "bg-primary/10 text-primary border-primary/20",            label: "Resumo" },
   generic:         { icon: Info,       tint: "text-muted-foreground", bar: "bg-white/20",       chip: "bg-white/5 text-muted-foreground border-white/10",       label: "Aviso" },
 };
 
@@ -230,7 +233,10 @@ export const TopBar = () => {
       return notifications.filter((n) => parseNotif(n).category === "meta_finalizada");
     }
     if (activeTab === "info") {
-      return notifications.filter((n) => parseNotif(n).category === "info_oficial");
+      return notifications.filter((n) => {
+        const c = parseNotif(n).category;
+        return c === "info_oficial" || c === "resumo_lucro";
+      });
     }
     return notifications.filter((n) => n.type === activeTab);
   }, [notifications, activeTab]);
@@ -239,9 +245,12 @@ export const TopBar = () => {
     const counts: Partial<Record<FilterTab, number>> = {
       all: notifications.filter((n) => !n.read).length,
       success: notifications.filter((n) => !n.read && parseNotif(n).category === "meta_finalizada").length,
-      info: notifications.filter((n) => !n.read && parseNotif(n).category === "info_oficial").length,
+      info: notifications.filter((n) => {
+        if (n.read) return false;
+        const c = parseNotif(n).category;
+        return c === "info_oficial" || c === "resumo_lucro";
+      }).length,
       warning: notifications.filter((n) => !n.read && n.type === "warning").length,
-      error: notifications.filter((n) => !n.read && n.type === "error").length,
     };
     return counts;
   }, [notifications]);
