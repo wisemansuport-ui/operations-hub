@@ -1,6 +1,8 @@
 import { KPICard } from "@/components/dashboard/KPICard";
 import { HeroPanel } from "@/components/dashboard/HeroPanel";
 import { DecisionEngine, Insight } from "@/components/dashboard/DecisionEngine";
+import { MotivationWidget } from "@/components/dashboard/MotivationWidget";
+import { TodayFunnel } from "@/components/dashboard/TodayFunnel";
 import { DollarSign, Target, Activity, Users, CalendarDays, ListTodo, ShieldCheck, Wrench, BarChart3, Globe, ChartNoAxesCombined, CreditCard, PlayCircle, Wallet, UserCog, Receipt, Wallet2, Brain } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from "recharts";
@@ -485,6 +487,88 @@ const Dashboard = () => {
     return arr.slice(0, 6);
   }, [stats]);
 
+  // ----- Today's metrics for funnel (Lucro Hoje · Contas Produzidas · Remessas) -----
+  const todayStats = useMemo(() => {
+    const now = new Date();
+    const isToday = (d: Date) =>
+      d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+
+    let lucroHoje = 0;
+    let contasHoje = 0;
+    let remessasHoje = 0;
+    // 12 buckets across the day for sparkline
+    const hourly: Record<number, number> = {};
+    for (let h = 0; h < 24; h += 2) hourly[h] = 0;
+
+    for (const meta of metas) {
+      if (meta.status !== 'fechada') continue;
+      let isVisible = false;
+      if (role === 'ADMIN') {
+        isVisible = meta.operador === operatorName ||
+          (users.find(u => u.username === meta.operador)?.affiliatedTo === operatorName) ||
+          (!meta.operador && operatorName === 'wiseman');
+      } else {
+        isVisible = meta.operador === operatorName;
+      }
+      if (!isVisible) continue;
+
+      const remessas = meta.remessas || [];
+      const sal = Number(meta.salarioOperador) || 0;
+      const pagOp = Number(meta.pagamentoOperador) || 0;
+      const totalContasMeta = remessas.reduce((acc, r) => acc + Number(r.contas || 0), 0);
+
+      remessas.forEach(r => {
+        const rDate = new Date(r.data || meta.createdAt);
+        if (!isToday(rDate)) return;
+        const dep = Number(r.deposito || 0);
+        const saq = Number(r.saque || 0);
+        let rc = Number(r.contas || 0);
+        let normais = Number((r as any).contasNormais || 0);
+        let baixas = Number((r as any).contasBaixas || 0);
+        const originalRc = rc;
+        if (meta.modelo === 'Recarga') { rc = 0; normais = 0; baixas = 0; }
+        if ((r as any).naoContabilizarSalario) { normais = 0; baixas = 0; }
+
+        const prop = totalContasMeta > 0 ? originalRc / totalContasMeta : (remessas.length > 0 ? 1 / remessas.length : 1);
+        const remSal = sal * prop;
+        let remAutoSal = 0;
+        if (!meta.isAdminMeta && !(r as any).naoContabilizarSalario) {
+          remAutoSal = meta.modelo === 'Recarga' ? pagOp * prop : (normais * 2) + (baixas * 1);
+        }
+
+        const liquido = (saq - dep) + remSal - remAutoSal;
+        lucroHoje += liquido;
+        contasHoje += rc;
+        remessasHoje += 1;
+
+        const bucket = Math.floor(rDate.getHours() / 2) * 2;
+        hourly[bucket] = (hourly[bucket] || 0) + liquido;
+      });
+    }
+
+    // Subtract today's costs
+    for (const cost of costs) {
+      let isVisible = false;
+      if (role === 'ADMIN') {
+        isVisible = cost.operador === operatorName ||
+          (users.find(u => u.username === cost.operador)?.affiliatedTo === operatorName) ||
+          (!cost.operador && operatorName === 'wiseman');
+      } else {
+        isVisible = cost.operador === operatorName;
+      }
+      if (!isVisible) continue;
+      const cDate = cost.date ? new Date(cost.date + 'T12:00:00') : new Date(cost.createdAt);
+      if (isToday(cDate)) lucroHoje -= Number(cost.amount || 0);
+    }
+
+    const sparkData = Object.entries(hourly)
+      .map(([h, v]) => ({ name: `${h}h`, value: Math.max(0, v) }))
+      .sort((a, b) => parseInt(a.name) - parseInt(b.name));
+
+    return { lucroHoje, contasHoje, remessasHoje, sparkData };
+  }, [metas, costs, users, role, operatorName]);
+
+
   // Standard pattern: gate via <DataGate> in JSX (NEVER early-return on loading
   // before hooks — see src/components/layout/DataGate.tsx for the convention).
 
@@ -775,6 +859,16 @@ const Dashboard = () => {
       <KPICard title="Lucro / Conta" value={formatBRL(stats.medioporConta)} change={`Média sobre ${stats.contasProcessadas}`} changeType={stats.medioporConta >= 0 ? "positive" : "negative"} icon={DollarSign} color="success" tooltip="Lucro líquido médio gerado por cada conta operada no período." />
     </div>
 
+    {/* Funil de Hoje + Motivação Diária */}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+      <TodayFunnel
+        lucroHoje={todayStats.lucroHoje}
+        contasHoje={todayStats.contasHoje}
+        remessasHoje={todayStats.remessasHoje}
+        sparkData={todayStats.sparkData}
+      />
+      <MotivationWidget />
+    </div>
 
     {/* Evolução do Faturamento (full width, financeira) */}
     <div className="hairline-gold surface-3 rounded-2xl p-4 md:p-6 relative overflow-hidden group">
