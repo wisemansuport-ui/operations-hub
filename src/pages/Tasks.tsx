@@ -223,8 +223,8 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
     const resValue = newR.saque - newR.deposito;
     const operatorName = getOperatorName(activeOperator, users);
     pushNotify(
-      `📊 ${operatorName} • ${meta.plataforma}`,
-      `${numTotal} contas registradas | L/P: ${resValue >= 0 ? '+' : ''}R$ ${resValue.toFixed(2)}`,
+      `NytzerVision`,
+      `${numTotal} contas registradas - Resultado: ${resValue >= 0 ? '+' : '-'}${Math.abs(Math.round(resValue))}`,
       targetAdmins
     );
     targetAdmins.forEach(adminUsername => {
