@@ -108,11 +108,20 @@ function tierOf(v: number): Tier {
   return 'high';
 }
 
-function buildMessage(period: 'daily' | 'weekly' | 'monthly', name: string, value: number, valueStr: string) {
+function buildMessage(period: Period, name: string, value: number, valueStr: string, goalPct?: number) {
+  const key = periodKey(period);
   const t = tierOf(value);
-  const fn = pick(PHRASES[period][t]);
-  return fn(name, valueStr);
+  const fn = pick(PHRASES[key][t]);
+  let msg = fn(name, valueStr);
+  if (goalPct !== undefined && (period === 'monthly' || period === '30d')) {
+    const pct = Math.round(goalPct);
+    if (pct >= 100) msg += ` 🎯 Meta mensal BATIDA (${pct}%)!`;
+    else if (pct >= 70) msg += ` 🎯 Você já bateu ${pct}% da meta mensal!`;
+    else if (pct > 0) msg += ` 🎯 ${pct}% da meta mensal.`;
+  }
+  return msg;
 }
+
 
 function capitalize(s: string) {
   if (!s) return s;
