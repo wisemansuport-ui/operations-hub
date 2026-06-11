@@ -14,7 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profit_aggregates: {
+        Row: {
+          admin_username: string
+          computed_at: string
+          created_at: string
+          display_name: string | null
+          goal_pct: number | null
+          id: string
+          period: string
+          period_start: string
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          admin_username: string
+          computed_at?: string
+          created_at?: string
+          display_name?: string | null
+          goal_pct?: number | null
+          id?: string
+          period: string
+          period_start: string
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          admin_username?: string
+          computed_at?: string
+          created_at?: string
+          display_name?: string | null
+          goal_pct?: number | null
+          id?: string
+          period?: string
+          period_start?: string
+          total?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
