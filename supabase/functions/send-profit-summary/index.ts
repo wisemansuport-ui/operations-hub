@@ -388,11 +388,10 @@ Deno.serve(async (req) => {
   } catch (e) {
     const msg = String(e);
     console.error('[send-profit-summary]', e);
-    const isQuota = /429|RESOURCE_EXHAUSTED|Quota exceeded/i.test(msg);
     return new Response(
       JSON.stringify({
-        error: isQuota
-          ? 'Firestore atingiu o limite de quota. Tente novamente em alguns instantes.'
+        error: /429|RESOURCE_EXHAUSTED|Quota exceeded/i.test(msg)
+          ? 'Lucro ainda não sincronizado no banco. Aguarde a próxima atualização automática e tente novamente.'
           : msg,
         fallback: true,
         count: 0,
