@@ -552,6 +552,7 @@ export const TopBar = () => {
       {user?.id && (
         <SettingsModal open={showSettings} onOpenChange={setShowSettings} adminUserId={user.id} />
       )}
+      <TriggerProfitModal open={showTrigger} onOpenChange={setShowTrigger} />
     </header>
   );
 };
