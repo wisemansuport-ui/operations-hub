@@ -204,6 +204,7 @@ export const TopBar = () => {
   const { theme, toggleTheme } = useTheme();
   const { notifications, unreadCount, markAsRead, markAllRead, deleteNotification } = useNotifications();
   const [showNotifs, setShowNotifs] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const ref = useRef<HTMLDivElement>(null);
   const [user, setUser] = useLocalStorage<any>("nytzer-user", null);
