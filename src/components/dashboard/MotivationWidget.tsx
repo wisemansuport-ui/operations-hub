@@ -71,14 +71,12 @@ export const MotivationWidget = () => {
         </div>
       </div>
 
-      {/* Progress dots */}
-      <div className="flex gap-1 relative z-10">
-        {QUOTES.slice(0, 6).map((_, i) => (
-          <div
-            key={i}
-            className={`h-1 flex-1 rounded-full transition-all duration-500 ${i === idx % 6 ? "bg-primary" : "bg-primary/15"}`}
-          />
-        ))}
+      {/* Footer — frase do dia */}
+      <div className="flex items-center justify-between relative z-10 pt-1">
+        <span className="text-[10px] uppercase tracking-[0.2em] font-semibold text-primary/60">Frase do dia</span>
+        <span className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground tabular-nums">
+          {new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })}
+        </span>
       </div>
     </div>
   );
