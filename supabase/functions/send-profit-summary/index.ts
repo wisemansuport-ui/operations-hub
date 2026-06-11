@@ -18,26 +18,107 @@ const FIREBASE_PROJECT = 'nytzer-vision';
 const FIREBASE_API_KEY = 'AIzaSyDiiKqZWL3X880z1Lcy5_QGXgjSaOHUdhA';
 const NOTIFY_URL = 'https://www.nytzervision.com/api/notify';
 
-const DAILY_PHRASES = [
-  '🔥 Dia fechado com vitória! O resultado fala por si.',
-  '💎 Outro dia, outra prova de consistência.',
-  '🚀 Operação afiada — o lucro de hoje confirma a disciplina.',
-  '✨ Cada dia produtivo é um tijolo a mais no império.',
-];
-const WEEKLY_PHRASES = [
-  '📈 Semana encerrada com domínio total do jogo!',
-  '🏆 7 dias de execução fina — resultado merecido.',
-  '⚡ Semana fechada no azul. Vamos para a próxima!',
-  '🎯 Constância semanal: o motor do crescimento.',
-];
-const MONTHLY_PHRASES = [
-  '👑 Mês fechado como rei do tabuleiro!',
-  '🌟 Um mês inteiro de execução premium — orgulhe-se.',
-  '💰 Resultado mensal sólido. Império em expansão.',
-  '🏛️ Mais um mês de história escrita no preto.',
-];
+// Tone tiers based on profit value:
+//   negative          -> motivacional / levante
+//   0 < x <= 500      -> "dá pra melhorar"
+//   500 < x < 1500    -> positivo padrão "continue assim"
+//   x >= 1500         -> descontraído / brincadeira
+
+type Tier = 'neg' | 'low' | 'mid' | 'high';
+
+const PHRASES: Record<'daily' | 'weekly' | 'monthly', Record<Tier, ((name: string, valueStr: string) => string)[]>> = {
+  daily: {
+    neg: [
+      (n, v) => `Ô, ${n}... o dia fechou em ${v}. Respira, levanta a cabeça e amanhã a gente corre em dobro! 💪`,
+      (n, v) => `Calma, ${n}. ${v} hoje não define nada — amanhã é dia de virar o jogo! 🔥`,
+      (n, v) => `${n}, hoje deu ruim (${v}). Mas operador de verdade se mede na recuperação. Bora pra cima! ⚡`,
+      (n, v) => `Eita, ${n}! ${v} hoje. Limpa a mente, foca no plano e amanhã a gente devolve com juros! 🚀`,
+    ],
+    low: [
+      (n, v) => `Boa, ${n}! Você lucrou ${v} hoje. Tá no caminho, mas dá pra melhorar! 📈`,
+      (n, v) => `Salve, ${n}! ${v} hoje — resultado positivo, mas a gente sabe que tem mais aí dentro! 💡`,
+      (n, v) => `${n}, fechou em ${v}. Tá no verde, mas amanhã a meta é dobrar! 🎯`,
+      (n, v) => `${v} no bolso hoje, ${n}. Bom começo — agora é hora de subir o nível! ⚙️`,
+    ],
+    mid: [
+      (n, v) => `Boa, ${n}! Você já lucrou ${v} hoje. Continue assim! 💰`,
+      (n, v) => `Salve, ${n}! ${v} no dia. Operação afiada — segue o jogo! 🔥`,
+      (n, v) => `${n}, ${v} hoje. Disciplina pagando — não desacelera! 🚀`,
+      (n, v) => `Mandou bem, ${n}! ${v} fechados hoje. Constância é tudo! 💎`,
+    ],
+    high: [
+      (n, v) => `Caraca, ${n}! O que um CLT faz no mês, você lucrou HOJE! HAHAHA — Resultado ${v} 🍾🍾`,
+      (n, v) => `${n}, isso é roubo? ${v} em UM dia! O mercado tá pagando pedágio pra você! 🍾🍾`,
+      (n, v) => `MONSTRO, ${n}! ${v} em um único dia. Imprime esse print e cola na geladeira! 🏆🍾`,
+      (n, v) => `${n}, calma aí... ${v} HOJE?! Cê tá imprimindo dinheiro?? HAHAHA 🤑🍾`,
+    ],
+  },
+  weekly: {
+    neg: [
+      (n, v) => `${n}, a semana fechou em ${v}. Faz parte — agora é resetar a cabeça e atacar a próxima com tudo! 💪`,
+      (n, v) => `Semana difícil, ${n} (${v}). Mas é nas quedas que se mede operador. Próxima semana é nossa! 🔥`,
+      (n, v) => `Olha, ${n}, ${v} essa semana. Analisa o que travou, ajusta o plano e bora pra cima! ⚡`,
+    ],
+    low: [
+      (n, v) => `Boa, ${n}! Semana fechada em ${v}. Tá no azul, mas a próxima a gente sobe o ritmo! 📈`,
+      (n, v) => `${n}, ${v} na semana. Resultado positivo — agora bora multiplicar isso! 💡`,
+      (n, v) => `Semana ${v}, ${n}. Tá no caminho, mas tem espaço pra MUITO mais! 🎯`,
+    ],
+    mid: [
+      (n, v) => `Boa, ${n}! Semana fechada em ${v}. Continue assim! 💰`,
+      (n, v) => `${n}, ${v} na semana. 7 dias de execução fina — segue o jogo! 🏆`,
+      (n, v) => `Mandou bem, ${n}! ${v} na semana. Constância é o motor do crescimento! ⚡`,
+    ],
+    high: [
+      (n, v) => `Caraca, ${n}! ${v} em UMA semana?! Tem gente que não ganha isso em SEIS MESES! HAHAHA 🍾🍾`,
+      (n, v) => `${n}, isso aí é coisa de outro patamar! ${v} na semana. Imperador! 👑🍾`,
+      (n, v) => `MONSTRO, ${n}! ${v} de lucro semanal. O jogo é seu! 🏆🍾`,
+    ],
+  },
+  monthly: {
+    neg: [
+      (n, v) => `${n}, o mês fechou em ${v}. Mês ruim acontece — agora é levantar, revisar e voltar com fome dobrada! 💪🔥`,
+      (n, v) => `Mês desafiador, ${n} (${v}). Mas operador de elite se forja na adversidade. Próximo mês é virada! ⚡`,
+      (n, v) => `Olha, ${n}, ${v} no mês. Hora de auditar tudo, ajustar a estratégia e atacar com tudo! 🚀`,
+    ],
+    low: [
+      (n, v) => `Boa, ${n}! Mês fechado em ${v}. Tá no positivo — próximo mês a gente dobra! 📈`,
+      (n, v) => `${n}, ${v} no mês. Resultado válido, mas o teto é MUITO mais alto! 💡`,
+      (n, v) => `Mês ${v}, ${n}. Tá no caminho — bora subir o nível! 🎯`,
+    ],
+    mid: [
+      (n, v) => `Boa, ${n}! Mês fechado em ${v}. Continue assim! 💰`,
+      (n, v) => `${n}, ${v} no mês. Mais um mês de história escrita no preto! 🏛️`,
+      (n, v) => `Mandou bem, ${n}! ${v} no mês. Império em expansão! 👑`,
+    ],
+    high: [
+      (n, v) => `Caraca, ${n}! ${v} em UM mês?! HAHAHA o que CLT faz em ANOS, cê faz em 30 dias! 🍾🍾`,
+      (n, v) => `${n}, ${v} mensais?! Cê tá jogando outro game! REI! 👑🍾`,
+      (n, v) => `MONSTRO, ${n}! ${v} de lucro no mês. Imprime, emoldura e pendura na parede! 🏆🍾`,
+    ],
+  },
+};
 
 const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
+
+function tierOf(v: number): Tier {
+  if (v < 0) return 'neg';
+  if (v <= 500) return 'low';
+  if (v < 1500) return 'mid';
+  return 'high';
+}
+
+function buildMessage(period: 'daily' | 'weekly' | 'monthly', name: string, value: number, valueStr: string) {
+  const t = tierOf(value);
+  const fn = pick(PHRASES[period][t]);
+  return fn(name, valueStr);
+}
+
+function capitalize(s: string) {
+  if (!s) return s;
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 
 function getPeriodStart(period: 'daily' | 'weekly' | 'monthly'): number {
   const now = new Date();
@@ -103,14 +184,10 @@ async function fetchCollection(name: string): Promise<any[]> {
 
 function formatBRLSigned(v: number) {
   const sign = v >= 0 ? '+' : '-';
-  return `${sign}R$ ${Math.abs(v).toFixed(2).replace('.', ',')}`;
-}
-
-function periodLabel(p: string) {
-  return p === 'daily' ? 'do dia' : p === 'weekly' ? 'da semana' : 'do mês';
-}
-function periodPhrase(p: string) {
-  return p === 'daily' ? pick(DAILY_PHRASES) : p === 'weekly' ? pick(WEEKLY_PHRASES) : pick(MONTHLY_PHRASES);
+  const abs = Math.abs(v).toFixed(2);
+  const [int, dec] = abs.split('.');
+  const intFmt = int.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return `${sign}R$ ${intFmt},${dec}`;
 }
 
 Deno.serve(async (req) => {
@@ -225,15 +302,19 @@ Deno.serve(async (req) => {
       }
     }
 
-    const label = periodLabel(period);
     const results: any[] = [];
+
+    // build admin -> displayName lookup
+    const nameByAdmin: Record<string, string> = {};
+    for (const a of admins) nameByAdmin[a.username] = capitalize(String(a.displayName || a.username));
 
     for (const [admin, total] of profitByAdmin.entries()) {
       if (!total) continue;
-      const phrase = periodPhrase(period);
+      const name = nameByAdmin[admin] || capitalize(admin);
+      const valueStr = formatBRLSigned(total);
+      const body = buildMessage(period, name, total, valueStr);
       const periodTitle = period === 'daily' ? 'Resumo do dia' : period === 'weekly' ? 'Resumo da semana' : 'Resumo do mês';
       const title = `NytzerVision`;
-      const body = `Lucro ${label}: ${formatBRLSigned(total)}\n${phrase}`;
       try {
         const r = await fetch(NOTIFY_URL, {
           method: 'POST',
@@ -256,8 +337,8 @@ Deno.serve(async (req) => {
           body: JSON.stringify({
             fields: {
               title: { stringValue: periodTitle },
-              message: { stringValue: `Lucro ${label}: ${formatBRLSigned(total)} — ${phrase}` },
-              type: { stringValue: 'info' },
+              message: { stringValue: body },
+              type: { stringValue: total < 0 ? 'warning' : 'success' },
               read: { booleanValue: false },
               timestamp: { stringValue: new Date().toISOString() },
               targetUser: { stringValue: admin },
