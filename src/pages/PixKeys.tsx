@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSyncedState } from '../hooks/useSyncedState';
-import { RefreshCw, Plus, Upload, Copy, Download, Search, Trash2, CheckCircle, XCircle } from "lucide-react";
+import { RefreshCw, Plus, Upload, Copy, Download, Search, Trash2, CheckCircle, XCircle, Smartphone, IdCard, Mail, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { TasksHero, type HeroKpi } from '../components/heroes/TasksHero';
 
@@ -147,13 +147,15 @@ export default function PixKeys() {
       {/* Type distribution */}
       <div data-tour="pix-stats" className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: 'Phone', value: getCountType('PHONE'), tone: 'text-success', icon: '📱' },
-          { label: 'CPF', value: getCountType('CPF'), tone: 'text-warning', icon: '🪪' },
-          { label: 'Email', value: getCountType('EMAIL'), tone: 'text-primary', icon: '✉️' },
-          { label: 'Inválidas', value: getCountType('INVALIDO'), tone: 'text-destructive', icon: '⚠️' },
+          { label: 'Phone', value: getCountType('PHONE'), tone: 'text-success', accent: 'bg-success/10 border-success/30 text-success', Icon: Smartphone },
+          { label: 'CPF', value: getCountType('CPF'), tone: 'text-warning', accent: 'bg-warning/10 border-warning/30 text-warning', Icon: IdCard },
+          { label: 'Email', value: getCountType('EMAIL'), tone: 'text-primary', accent: 'bg-primary/10 border-primary/30 text-primary', Icon: Mail },
+          { label: 'Inválidas', value: getCountType('INVALIDO'), tone: 'text-destructive', accent: 'bg-destructive/10 border-destructive/30 text-destructive', Icon: AlertTriangle },
         ].map((s) => (
           <div key={s.label} className="surface-2 hairline-gold rounded-2xl p-4 flex items-center gap-3">
-            <div className="text-2xl">{s.icon}</div>
+            <div className={`w-10 h-10 rounded-lg border flex items-center justify-center shrink-0 ${s.accent}`}>
+              <s.Icon className="w-5 h-5" />
+            </div>
             <div>
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{s.label}</p>
               <p className={`text-2xl font-black tabular-nums tracking-tight ${s.tone}`}>{s.value}</p>
