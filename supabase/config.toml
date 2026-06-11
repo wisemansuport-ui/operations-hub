@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.mercadopago-check-payment]
 verify_jwt = false
+
+[functions.send-profit-summary]
+verify_jwt = false
+
+[functions.operator-inactive-check]
+verify_jwt = false
