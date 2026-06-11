@@ -233,7 +233,10 @@ export const TopBar = () => {
       return notifications.filter((n) => parseNotif(n).category === "meta_finalizada");
     }
     if (activeTab === "info") {
-      return notifications.filter((n) => parseNotif(n).category === "info_oficial");
+      return notifications.filter((n) => {
+        const c = parseNotif(n).category;
+        return c === "info_oficial" || c === "resumo_lucro";
+      });
     }
     return notifications.filter((n) => n.type === activeTab);
   }, [notifications, activeTab]);
@@ -242,9 +245,12 @@ export const TopBar = () => {
     const counts: Partial<Record<FilterTab, number>> = {
       all: notifications.filter((n) => !n.read).length,
       success: notifications.filter((n) => !n.read && parseNotif(n).category === "meta_finalizada").length,
-      info: notifications.filter((n) => !n.read && parseNotif(n).category === "info_oficial").length,
+      info: notifications.filter((n) => {
+        if (n.read) return false;
+        const c = parseNotif(n).category;
+        return c === "info_oficial" || c === "resumo_lucro";
+      }).length,
       warning: notifications.filter((n) => !n.read && n.type === "warning").length,
-      error: notifications.filter((n) => !n.read && n.type === "error").length,
     };
     return counts;
   }, [notifications]);
