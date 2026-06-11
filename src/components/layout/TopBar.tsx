@@ -1,4 +1,5 @@
-import { Bell, Sun, Moon, User, Check, Trash2, Info, AlertTriangle, XCircle, CheckCircle2, Zap, RefreshCw, ArrowDownRight, ArrowUpRight, Trophy, PlayCircle, Megaphone, Receipt, TrendingUp } from "lucide-react";
+import { Bell, Sun, Moon, User, Check, Trash2, Info, AlertTriangle, XCircle, CheckCircle2, Zap, RefreshCw, ArrowDownRight, ArrowUpRight, Trophy, PlayCircle, Megaphone, Receipt, TrendingUp, Settings } from "lucide-react";
+import { SettingsModal } from "@/components/SettingsModal";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useNotifications, AppNotification } from "@/contexts/NotificationContext";
 import { useState, useRef, useEffect, useMemo } from "react";
@@ -203,6 +204,7 @@ export const TopBar = () => {
   const { theme, toggleTheme } = useTheme();
   const { notifications, unreadCount, markAsRead, markAllRead, deleteNotification } = useNotifications();
   const [showNotifs, setShowNotifs] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const ref = useRef<HTMLDivElement>(null);
   const [user, setUser] = useLocalStorage<any>("nytzer-user", null);
@@ -505,13 +507,22 @@ export const TopBar = () => {
                 </div>
 
                 {user?.role === "ADMIN" && (
-                  <button
-                    onClick={() => setRole(role === "ADMIN" ? "OPERADOR" : "ADMIN")}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors w-full mb-1"
-                  >
-                    <UserCog className="w-4 h-4" />
-                    Visão: {role}
-                  </button>
+                  <>
+                    <button
+                      onClick={() => setShowSettings(true)}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors w-full"
+                    >
+                      <Settings className="w-4 h-4" />
+                      Configurações
+                    </button>
+                    <button
+                      onClick={() => setRole(role === "ADMIN" ? "OPERADOR" : "ADMIN")}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors w-full mb-1"
+                    >
+                      <UserCog className="w-4 h-4" />
+                      Visão: {role}
+                    </button>
+                  </>
                 )}
 
                 <button
@@ -526,6 +537,9 @@ export const TopBar = () => {
           </div>
         </div>
 
+      {user?.id && (
+        <SettingsModal open={showSettings} onOpenChange={setShowSettings} adminUserId={user.id} />
+      )}
     </header>
   );
 };
