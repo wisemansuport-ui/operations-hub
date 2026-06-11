@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Send, CalendarDays, CalendarRange, CalendarClock, History, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useFirestoreData } from "@/hooks/useFirestoreData";
+import { calculateProfitSummary } from "@/lib/profitSummary";
 
 interface Props {
   open: boolean;
@@ -31,6 +33,7 @@ const friendlyTriggerError = (message?: string) => {
 
 export const TriggerProfitModal = ({ open, onOpenChange }: Props) => {
   const [user] = useLocalStorage<any>("nytzer-user", null);
+  const { metas, users, costs, loading } = useFirestoreData();
   const [period, setPeriod] = useState<Period>("daily");
   const [firing, setFiring] = useState(false);
   const [lastResult, setLastResult] = useState<string | null>(null);
@@ -40,12 +43,23 @@ export const TriggerProfitModal = ({ open, onOpenChange }: Props) => {
       toast.error("Sem usuário logado.");
       return;
     }
+    if (loading) {
+      toast.info("Carregando dados da operação. Tente novamente em instantes.");
+      return;
+    }
+    const localSummary = calculateProfitSummary({
+      period,
+      adminUsername: user.username,
+      metas,
+      users,
+      costs,
+    });
     setFiring(true);
     setLastResult(null);
     const tId = toast.loading("Disparando notificação...");
     try {
       const { data, error } = await supabase.functions.invoke("send-profit-summary", {
-        body: { period, targetAdmin: user.username, allowZero: true },
+        body: { period, targetAdmin: user.username, allowZero: true, localSummary },
       });
       toast.dismiss(tId);
 
