@@ -255,7 +255,7 @@ Deno.serve(async (req) => {
     const [users, metas, costs] = await Promise.all([
       fetchCollection('users'),
       fetchCollection('metas'),
-      fetchCollection('costs'),
+      fetchCollection('costs', { optional: true }),
     ]);
     const startMs = getPeriodStart(period);
 
