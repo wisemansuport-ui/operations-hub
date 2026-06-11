@@ -223,8 +223,14 @@ Deno.serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const period = (url.searchParams.get('period') || 'daily') as 'daily' | 'weekly' | 'monthly';
-    if (!['daily', 'weekly', 'monthly'].includes(period)) {
+    let bodyParams: any = {};
+    if (req.method === 'POST') {
+      try { bodyParams = await req.json(); } catch { bodyParams = {}; }
+    }
+    const period = ((bodyParams.period || url.searchParams.get('period') || 'daily') as Period);
+    const targetAdmin = (bodyParams.targetAdmin || url.searchParams.get('targetAdmin') || '').toString().trim();
+    const allowZero = !!(bodyParams.allowZero || url.searchParams.get('allowZero'));
+    if (!['daily', 'weekly', 'monthly', '7d', '30d'].includes(period)) {
       return new Response(JSON.stringify({ error: 'invalid period' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -237,6 +243,7 @@ Deno.serve(async (req) => {
       fetchCollection('costs'),
     ]);
     const startMs = getPeriodStart(period);
+
 
     // Build admin list: every user with role ADMIN
     const admins: any[] = users.filter((u: any) => u.role === 'ADMIN');
