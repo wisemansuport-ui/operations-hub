@@ -161,17 +161,12 @@ export const SettingsModal = ({ open, onOpenChange, adminUserId }: Props) => {
     setFiring(true);
     toast.loading("Disparando notificação...", { id: "fire-notif" });
     try {
-      const res = await fetch("/api/send-profit-summary", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ period, targetAdmin: user.username, allowZero: true }),
+      const { data, error } = await supabase.functions.invoke("send-profit-summary", {
+        body: { period, targetAdmin: user.username, allowZero: true },
       });
-      const raw = await res.text();
-      let data: any = {};
-      try { data = raw ? JSON.parse(raw) : {}; } catch { data = { error: raw?.slice(0, 200) || "Resposta vazia do servidor" }; }
       toast.dismiss("fire-notif");
-      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
-      const count = (data as any)?.count ?? 0;
+      if (error) throw new Error(error.message || "Erro ao invocar função");
+      const count = (data as any)?.count ?? (Array.isArray((data as any)?.results) ? (data as any).results.length : 0);
       if (count > 0) toast.success("✅ Notificação enviada!");
       else toast.info("Função executada, mas nenhum envio realizado.");
     } catch (e: any) {

@@ -160,11 +160,11 @@ function periodKey(period: Period): 'daily' | 'weekly' | 'monthly' {
 
 function periodTitleOf(period: Period): string {
   switch (period) {
-    case 'daily': return 'Resumo do dia';
-    case 'weekly': return 'Resumo da semana';
-    case 'monthly': return 'Resumo do mês';
-    case '7d': return 'Resumo — últimos 7 dias';
-    case '30d': return 'Resumo — últimos 30 dias';
+    case 'daily':   return 'Fechamento do Dia 🗓️';
+    case 'weekly':  return 'Fechamento Semanal 🗓️';
+    case 'monthly': return 'Fechamento Mensal 🗓️';
+    case '7d':      return 'Fechamento — Últimos 7 Dias 🗓️';
+    case '30d':     return 'Fechamento — Últimos 30 Dias 🗓️';
   }
 }
 
@@ -389,13 +389,13 @@ Deno.serve(async (req) => {
       const body = buildMessage(period, name, total, valueStr, goalPct);
       const periodTitle = periodTitleOf(period);
       const titleMap: Record<string, string> = {
-        daily: 'Caixa do Dia 💰',
-        weekly: 'Balanço da Semana 🏛️',
-        monthly: 'Resultado do Mês 🏆',
-        '7d': 'Radar 7 Dias 📡',
-        '30d': 'Visão 30 Dias 🔭'
+        daily:   'Fechamento do Dia 🗓️',
+        weekly:  'Fechamento Semanal 🗓️',
+        monthly: 'Fechamento Mensal 🗓️',
+        '7d':    'Fechamento — Últimos 7 Dias 🗓️',
+        '30d':   'Fechamento — Últimos 30 Dias 🗓️',
       };
-      const title = titleMap[period] || 'Caixa do Dia 💰';
+      const title = titleMap[period] || 'Fechamento do Dia 🗓️';
       try {
         const r = await fetch(NOTIFY_URL, {
           method: 'POST',
