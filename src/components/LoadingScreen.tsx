@@ -46,14 +46,13 @@ export const LoadingScreen = ({
 
   if (hidden) return null;
 
-  return (
+  const node = (
     <div
       className="fixed inset-0 flex items-center justify-center bg-background overflow-hidden"
       style={{
-        zIndex: 9999,
-        animation: "nv-loader-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both",
+        zIndex: 99999,
+        animation: "nv-loader-in 260ms cubic-bezier(0.22, 1, 0.36, 1) both",
         willChange: "opacity",
-        contain: "layout paint style",
         backfaceVisibility: "hidden",
       }}
     >
