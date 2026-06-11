@@ -345,12 +345,34 @@ Deno.serve(async (req) => {
     const nameByAdmin: Record<string, string> = {};
     for (const a of admins) nameByAdmin[a.username] = capitalize(String(a.displayName || a.username));
 
+    // ensure target admin shows up even with zero profit (manual trigger)
+    if (targetAdmin && !profitByAdmin.has(targetAdmin) && admins.find(a => a.username === targetAdmin)) {
+      profitByAdmin.set(targetAdmin, 0);
+    }
+
+    // monthly goal lookup helper (used only for monthly / 30d periods)
+    const goalPctOf = async (adminUsername: string, total: number): Promise<number | undefined> => {
+      if (!(period === 'monthly' || period === '30d')) return undefined;
+      try {
+        const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT}/databases/(default)/documents/user_data/${encodeURIComponent(adminUsername + '_nytzer-goals')}?key=${FIREBASE_API_KEY}`;
+        const r = await fetch(url);
+        if (!r.ok) return undefined;
+        const j = await r.json();
+        const value = fsValue(j.fields?.value);
+        const goals: any[] = Array.isArray(value) ? value : [];
+        const monthly = goals.find((g: any) => g?.type === 'monthly' && Number(g?.target) > 0);
+        if (!monthly) return undefined;
+        return (total / Number(monthly.target)) * 100;
+      } catch { return undefined; }
+    };
+
     for (const [admin, total] of profitByAdmin.entries()) {
-      if (!total) continue;
+      if (!allowZero && !targetAdmin && !total) continue;
       const name = nameByAdmin[admin] || capitalize(admin);
       const valueStr = formatBRLSigned(total);
-      const body = buildMessage(period, name, total, valueStr);
-      const periodTitle = period === 'daily' ? 'Resumo do dia' : period === 'weekly' ? 'Resumo da semana' : 'Resumo do mês';
+      const goalPct = await goalPctOf(admin, total);
+      const body = buildMessage(period, name, total, valueStr, goalPct);
+      const periodTitle = periodTitleOf(period);
       const title = `NytzerVision`;
       try {
         const r = await fetch(NOTIFY_URL, {
@@ -364,8 +386,6 @@ Deno.serve(async (req) => {
         results.push({ admin, total, error: String(e) });
       }
 
-      // Also persist as an in-app notification (Firestore) so it shows
-      // up in the bell center under "Todas" and "Info".
       try {
         const fsUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT}/databases/(default)/documents/notifications?key=${FIREBASE_API_KEY}`;
         await fetch(fsUrl, {
@@ -387,6 +407,7 @@ Deno.serve(async (req) => {
         console.error('[firestore-notif]', admin, e);
       }
     }
+
 
     return new Response(JSON.stringify({ period, count: results.length, results }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
