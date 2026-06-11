@@ -51,8 +51,18 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         transaction_amount: Number(body.amount.toFixed(2)),
-        description: body.description,
+        description: `NytzerVision - ${body.description}`,
+        statement_descriptor: 'NYTZERVISION',
         payment_method_id: 'pix',
+        additional_info: {
+          items: [{
+            id: body.plan,
+            title: 'NytzerVision',
+            description: body.description,
+            quantity: 1,
+            unit_price: Number(body.amount.toFixed(2)),
+          }],
+        },
         payer: {
           email: body.payerEmail,
           first_name: firstName,
