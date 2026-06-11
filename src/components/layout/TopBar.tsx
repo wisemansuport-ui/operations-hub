@@ -1,5 +1,6 @@
 import { Bell, Sun, Moon, User, Check, Trash2, Info, AlertTriangle, XCircle, CheckCircle2, Zap, RefreshCw, ArrowDownRight, ArrowUpRight, Trophy, PlayCircle, Megaphone, Receipt, TrendingUp, Settings } from "lucide-react";
 import { SettingsModal } from "@/components/SettingsModal";
+import { TriggerProfitModal } from "@/components/TriggerProfitModal";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useNotifications, AppNotification } from "@/contexts/NotificationContext";
 import { useState, useRef, useEffect, useMemo } from "react";
@@ -205,6 +206,7 @@ export const TopBar = () => {
   const { notifications, unreadCount, markAsRead, markAllRead, deleteNotification } = useNotifications();
   const [showNotifs, setShowNotifs] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showTrigger, setShowTrigger] = useState(false);
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const ref = useRef<HTMLDivElement>(null);
   const [user, setUser] = useLocalStorage<any>("nytzer-user", null);
@@ -519,6 +521,13 @@ export const TopBar = () => {
                       Configurações
                     </button>
                     <button
+                      onClick={() => setShowTrigger(true)}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors w-full"
+                    >
+                      <Megaphone className="w-4 h-4" />
+                      Disparar lucros
+                    </button>
+                    <button
                       onClick={() => setRole(role === "ADMIN" ? "OPERADOR" : "ADMIN")}
                       className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors w-full mb-1"
                     >
@@ -543,6 +552,7 @@ export const TopBar = () => {
       {user?.id && (
         <SettingsModal open={showSettings} onOpenChange={setShowSettings} adminUserId={user.id} />
       )}
+      <TriggerProfitModal open={showTrigger} onOpenChange={setShowTrigger} />
     </header>
   );
 };
