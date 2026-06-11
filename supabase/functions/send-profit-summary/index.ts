@@ -160,11 +160,11 @@ function periodKey(period: Period): 'daily' | 'weekly' | 'monthly' {
 
 function periodTitleOf(period: Period): string {
   switch (period) {
-    case 'daily': return 'Resumo do dia';
-    case 'weekly': return 'Resumo da semana';
-    case 'monthly': return 'Resumo do mês';
-    case '7d': return 'Resumo — últimos 7 dias';
-    case '30d': return 'Resumo — últimos 30 dias';
+    case 'daily':   return 'Fechamento do Dia 🗓️';
+    case 'weekly':  return 'Fechamento Semanal 🗓️';
+    case 'monthly': return 'Fechamento Mensal 🗓️';
+    case '7d':      return 'Fechamento — Últimos 7 Dias 🗓️';
+    case '30d':     return 'Fechamento — Últimos 30 Dias 🗓️';
   }
 }
 
