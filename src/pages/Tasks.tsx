@@ -224,7 +224,7 @@ const MetaInterior = ({ meta, onBack, onUpdateMeta, addNotification, users, acti
     const operatorName = getOperatorName(activeOperator, users);
     const operatorFirst = String(operatorName).trim().split(/\s+/)[0] || operatorName;
     const plataformaFirst = String(meta.plataforma || '').trim().split(/\s+/)[0] || meta.plataforma;
-    const redeLabel = meta.rede && meta.rede !== 'Selecione' ? ` ${meta.rede}` : '';
+    const redeLabel = meta.rede && meta.rede !== 'Selecione' ? ` - ${meta.rede}` : '';
     const resStr = `R$ ${resValue >= 0 ? '+' : '-'}${Math.abs(resValue).toFixed(2)}`;
     pushNotify(
       `📊 ${operatorFirst} • ${plataformaFirst}${redeLabel}`,
