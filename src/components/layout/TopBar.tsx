@@ -1,4 +1,5 @@
-import { Bell, Sun, Moon, User, Check, Trash2, Info, AlertTriangle, XCircle, CheckCircle2, Zap, RefreshCw, ArrowDownRight, ArrowUpRight, Trophy, PlayCircle, Megaphone, Receipt, TrendingUp } from "lucide-react";
+import { Bell, Sun, Moon, User, Check, Trash2, Info, AlertTriangle, XCircle, CheckCircle2, Zap, RefreshCw, ArrowDownRight, ArrowUpRight, Trophy, PlayCircle, Megaphone, Receipt, TrendingUp, Settings } from "lucide-react";
+import { SettingsModal } from "@/components/SettingsModal";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useNotifications, AppNotification } from "@/contexts/NotificationContext";
 import { useState, useRef, useEffect, useMemo } from "react";
