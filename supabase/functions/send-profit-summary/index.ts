@@ -426,11 +426,12 @@ Deno.serve(async (req) => {
     }
 
 
+    const results: any[] = [];
     for (const [admin, total] of profitByAdmin.entries()) {
       if (!allowZero && !targetAdmin && !total) continue;
       const name = nameByAdmin[admin] || capitalize(admin);
       const valueStr = formatBRLSigned(total);
-      const goalPct = await goalPctOf(admin, total);
+      const goalPct = goalPctByAdmin[admin];
       const body = buildMessage(period, name, total, valueStr, goalPct);
       const periodTitle = periodTitleOf(period);
       const titleMap: Record<string, string> = {
