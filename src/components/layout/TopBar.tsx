@@ -526,6 +526,7 @@ export const TopBar = () => {
                     >
                       <Megaphone className="w-4 h-4" />
                       Disparar lucros
+                    </button>
                     <button
                       onClick={() => setRole(role === "ADMIN" ? "OPERADOR" : "ADMIN")}
                       className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors w-full mb-1"
