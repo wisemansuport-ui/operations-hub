@@ -1,12 +1,14 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { Settings, Megaphone, UserCog, LogOut, Sun, Moon, Bell, User } from "lucide-react";
+import { Settings, Megaphone, UserCog, LogOut, Sun, Moon, Bell, User, Calendar, ShieldCheck, Clock, Crown, Unlink } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { useNavigate } from "react-router-dom";
 import { SettingsModal } from "@/components/SettingsModal";
 import { TriggerProfitModal } from "@/components/TriggerProfitModal";
+import { usePlan } from "@/hooks/usePlan";
 import { useState } from "react";
+
 
 interface Props {
   open: boolean;
@@ -20,7 +22,9 @@ export const UserPanelSheet = ({ open, onOpenChange }: Props) => {
   const [role, setRole] = useLocalStorage<"ADMIN" | "OPERADOR">("nytzer-role", "ADMIN");
   const [showSettings, setShowSettings] = useState(false);
   const [showTrigger, setShowTrigger] = useState(false);
+  const plan = usePlan();
   const navigate = useNavigate();
+
 
   const isAdmin = user?.role === "ADMIN" || user?.username?.toUpperCase() === "NYTZER" || user?.username?.toUpperCase() === "WISEMAN";
 
@@ -77,34 +81,72 @@ export const UserPanelSheet = ({ open, onOpenChange }: Props) => {
             </div>
           </SheetHeader>
 
-          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
-            <Row
-              icon={theme === "dark" ? Sun : Moon}
-              label={theme === "dark" ? "Tema claro" : "Tema escuro"}
-              onClick={toggleTheme}
-            />
-            <Row
-              icon={Bell}
-              label="Notificações"
-              onClick={openNotifications}
-              right={unreadCount > 0 ? (
-                <span className="min-w-[20px] h-5 px-1.5 text-[10px] font-extrabold bg-primary text-primary-foreground rounded-full flex items-center justify-center">
-                  {unreadCount > 99 ? "99+" : unreadCount}
-                </span>
-              ) : undefined}
-            />
+          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
             {isAdmin && (
-              <>
-                <Row icon={Settings} label="Configurações" onClick={() => setShowSettings(true)} />
-                <Row icon={Megaphone} label="Disparar lucros" onClick={() => setShowTrigger(true)} />
-                <Row
-                  icon={UserCog}
-                  label={`Visão: ${role}`}
-                  onClick={() => setRole(role === "ADMIN" ? "OPERADOR" : "ADMIN")}
+              <div className="rounded-2xl border border-border/40 bg-card/40 p-4 space-y-2.5">
+                <InfoRow icon={Calendar} label="Membro desde" value={formatDate(user?.createdAt)} />
+                <InfoRow
+                  icon={ShieldCheck}
+                  label="Status da Assinatura"
+                  value={planStatusLabel(plan.status)}
+                  valueClass={planStatusColor(plan.status)}
                 />
-              </>
+                <InfoRow icon={Clock} label="Expira em" value={formatDate(plan.planExpiry)} />
+                <InfoRow icon={Crown} label="Plano" value={plan.planName} valueClass="text-foreground font-bold" />
+              </div>
             )}
+
+            {user?.method === "Google SSO" && (
+              <div className="rounded-2xl border border-border/40 bg-card/40 p-4 space-y-2.5">
+                <div className="flex items-center gap-2">
+                  <GoogleIcon />
+                  <span className="text-sm font-bold text-foreground">Conta Google</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="inline-flex items-center gap-1 text-success font-semibold">
+                    <span className="w-2 h-2 rounded-full bg-success" /> Vinculada
+                  </span>
+                  <span className="text-muted-foreground truncate">({user?.email || `${user?.username}@gmail.com`})</span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-destructive/40 bg-destructive/10 text-destructive text-xs font-bold hover:bg-destructive/20 transition-all"
+                >
+                  <Unlink className="w-3.5 h-3.5" /> Desvincular
+                </button>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Row
+                icon={theme === "dark" ? Sun : Moon}
+                label={theme === "dark" ? "Tema claro" : "Tema escuro"}
+                onClick={toggleTheme}
+              />
+              <Row
+                icon={Bell}
+                label="Notificações"
+                onClick={openNotifications}
+                right={unreadCount > 0 ? (
+                  <span className="min-w-[20px] h-5 px-1.5 text-[10px] font-extrabold bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                ) : undefined}
+              />
+              {isAdmin && (
+                <>
+                  <Row icon={Settings} label="Configurações" onClick={() => setShowSettings(true)} />
+                  <Row icon={Megaphone} label="Disparar lucros" onClick={() => setShowTrigger(true)} />
+                  <Row
+                    icon={UserCog}
+                    label={`Visão: ${role}`}
+                    onClick={() => setRole(role === "ADMIN" ? "OPERADOR" : "ADMIN")}
+                  />
+                </>
+              )}
+            </div>
           </div>
+
 
           <div className="px-4 py-3 border-t border-border/40">
             <Row icon={LogOut} label="Sair da conta" onClick={handleLogout} danger />
@@ -119,3 +161,35 @@ export const UserPanelSheet = ({ open, onOpenChange }: Props) => {
     </>
   );
 };
+
+const InfoRow = ({ icon: Icon, label, value, valueClass }: { icon: any; label: string; value: string; valueClass?: string }) => (
+  <div className="flex items-center justify-between gap-3">
+    <span className="flex items-center gap-2 text-xs text-muted-foreground">
+      <Icon className="w-3.5 h-3.5" /> {label}
+    </span>
+    <span className={`text-xs font-semibold text-foreground truncate ${valueClass || ""}`}>{value}</span>
+  </div>
+);
+
+const formatDate = (iso?: string | null) => {
+  if (!iso) return "—";
+  try {
+    return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  } catch {
+    return "—";
+  }
+};
+
+const planStatusLabel = (s: string) =>
+  s === "active" ? "Ativa" : s === "trial" ? "Trial" : s === "expired" ? "Expirada" : "Sem plano";
+
+const planStatusColor = (s: string) =>
+  s === "active" ? "text-success" : s === "trial" ? "text-primary" : s === "expired" ? "text-destructive" : "text-muted-foreground";
+
+const GoogleIcon = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true">
+    <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.4-1.6 4-5.5 4-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.4 14.6 2.4 12 2.4 6.7 2.4 2.4 6.7 2.4 12s4.3 9.6 9.6 9.6c5.5 0 9.2-3.9 9.2-9.4 0-.6-.1-1.1-.2-1.6H12z"/>
+    <path fill="#34A853" d="M3.9 7.5l3.2 2.3C8 7.9 9.8 6.5 12 6.5c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.4 14.6 2.4 12 2.4 8.3 2.4 5.1 4.5 3.9 7.5z" opacity=".0"/>
+  </svg>
+);
+
