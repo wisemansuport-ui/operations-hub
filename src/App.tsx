@@ -22,6 +22,7 @@ const Landing = lazy(() => import("./pages/Landing"));
 const Index = lazy(() => import("./pages/Index"));
 const Production = lazy(() => import("./pages/Production"));
 const Tasks = lazy(() => import("./pages/Tasks"));
+const FullBau = lazy(() => import("./pages/FullBau"));
 const Networks = lazy(() => import("./pages/Networks"));
 const PixKeys = lazy(() => import("./pages/PixKeys"));
 const Quality = lazy(() => import("./pages/Quality"));
