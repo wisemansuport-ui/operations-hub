@@ -1,11 +1,13 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 /**
  * Lightweight cross-fade for route changes.
- * No blur filter (too expensive on mobile GPUs) and shorter duration
- * so navigation feels snappy.
+ * IMPORTANT: We must NOT use key={pathname} on the outer wrapper because that
+ * forces React to unmount/remount the entire tree (including Suspense boundaries),
+ * causing a black screen while lazy-loaded pages re-initialize.
+ * Instead, we animate only a transparent overlay element keyed by pathname.
  */
 export const RouteTransition = ({ children }: { children: ReactNode }) => {
   const { pathname } = useLocation();
@@ -15,27 +17,34 @@ export const RouteTransition = ({ children }: { children: ReactNode }) => {
   if (isMobile) return <>{children}</>;
 
   return (
-    <>
+    <div style={{ position: 'relative', minHeight: '100dvh' }}>
+      {/* Overlay that fades in on each route change — keyed so it remounts and replays animation */}
       <div
         key={pathname}
+        aria-hidden
         style={{
-          animation: `nytzer-route-in 180ms ${easing} both`,
-          minHeight: '100dvh',
+          position: 'fixed',
+          inset: 0,
           background: 'hsl(var(--background))',
-          willChange: 'opacity, transform',
+          animation: `nytzer-route-overlay 220ms ${easing} both`,
+          pointerEvents: 'none',
+          zIndex: 10,
+          willChange: 'opacity',
         }}
-      >
+      />
+      {/* Children are NEVER remounted — only the overlay above animates */}
+      <div style={{ position: 'relative', zIndex: 11 }}>
         {children}
       </div>
       <style>{`
-        @keyframes nytzer-route-in {
-          0%   { opacity: 0.15; transform: translateY(4px); }
-          100% { opacity: 1; transform: translateY(0); }
+        @keyframes nytzer-route-overlay {
+          0%   { opacity: 0.6; }
+          100% { opacity: 0; }
         }
         @media (prefers-reduced-motion: reduce) {
-          @keyframes nytzer-route-in { from,to { opacity: 1; transform: none; } }
+          @keyframes nytzer-route-overlay { from, to { opacity: 0; } }
         }
       `}</style>
-    </>
+    </div>
   );
 };

@@ -11,6 +11,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { RouteTransition } from "@/components/layout/RouteTransition";
+import { ErrorBoundary } from "@/components/layout/ErrorBoundary";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import NotFound from "./pages/NotFound";
 import NotificationPrompt from "@/components/NotificationPrompt";
@@ -112,6 +113,7 @@ const App = () => {
             <Sonner />
             <BrowserRouter>
                 <RouteTransition>
+                <ErrorBoundary>
                 <Suspense fallback={<RouteFallback />}>
                 <Routes>
                   <Route path="/login" element={<Login />} />
@@ -134,6 +136,7 @@ const App = () => {
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 </Suspense>
+                </ErrorBoundary>
                 </RouteTransition>
             </BrowserRouter>
           </TooltipProvider>

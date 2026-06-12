@@ -1,0 +1,40 @@
+name: Operator Inactive Check (Cron)
+
+# Roda a cada 30 minutos para verificar operadores que não registraram remessa
+# dentro do threshold configurado no workspace (padrão: 120 min).
+# Dispara push (OneSignal) + notificação in-app (Firestore) para o admin.
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'   # a cada 30 minutos
+  workflow_dispatch:           # permite disparar manualmente também
+
+jobs:
+  check-inactive-operators:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Call operator-inactive-check edge function
+        run: |
+          echo "⏰ $(date -u '+%Y-%m-%dT%H:%M:%SZ') — Chamando operator-inactive-check..."
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            "${{ secrets.SUPABASE_FUNCTIONS_URL }}/operator-inactive-check")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response: $BODY"
+
+          if [ "$HTTP_CODE" -ge 400 ]; then
+            echo "❌ Erro na chamada! HTTP $HTTP_CODE"
+            exit 1
+          fi
+
+          COUNT=$(echo "$BODY" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('count',0))" 2>/dev/null || echo "?")
+          echo "✅ Concluído. Operadores alertados: $COUNT"

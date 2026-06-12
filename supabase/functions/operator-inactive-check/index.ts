@@ -11,11 +11,13 @@ const corsHeaders = {
 
 const FIREBASE_PROJECT = 'nytzer-vision';
 const FIREBASE_API_KEY = 'AIzaSyDiiKqZWL3X880z1Lcy5_QGXgjSaOHUdhA';
-const NOTIFY_URL = 'https://www.nytzervision.com/api/notify';
 
-const DEFAULT_INACTIVE_MS = 2 * 60 * 60 * 1000; // 2h padrão
-const MIN_INACTIVE_MS = 15 * 60 * 1000; // 15 min
-const MAX_INACTIVE_MS = 12 * 60 * 60 * 1000; // 12h
+// URL do notify — tenta env var primeiro, fallback para o domínio de produção
+const NOTIFY_URL = (Deno.env.get('NOTIFY_URL') || 'https://operations-hub-main.vercel.app') + '/api/notify';
+
+const DEFAULT_INACTIVE_MS = 120 * 60 * 1000; // 120min padrão (alinhado com SettingsModal)
+const MIN_INACTIVE_MS = 15 * 60 * 1000;       // 15 min mínimo
+const MAX_INACTIVE_MS = 12 * 60 * 60 * 1000;  // 12h máximo
 
 function fsValue(v: any): any {
   if (v == null) return null;
@@ -60,13 +62,16 @@ async function fetchCollection(name: string): Promise<any[]> {
 
 async function patchMetaAlert(metaId: string, ts: string) {
   const url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT}/databases/(default)/documents/metas/${metaId}?key=${FIREBASE_API_KEY}&updateMask.fieldPaths=lastInactiveAlertAt`;
-  await fetch(url, {
+  const res = await fetch(url, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       fields: { lastInactiveAlertAt: { stringValue: ts } },
     }),
   });
+  if (!res.ok) {
+    console.error(`[patchMetaAlert] Failed for meta ${metaId}: ${res.status} ${await res.text()}`);
+  }
 }
 
 function fmtHrs(ms: number) {
@@ -86,21 +91,26 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
+    console.log(`[operator-inactive-check] Starting check... NOTIFY_URL=${NOTIFY_URL}`);
+
     const [users, metas] = await Promise.all([
       fetchCollection('users'),
       fetchCollection('metas'),
     ]);
+
+    console.log(`[operator-inactive-check] Loaded ${users.length} users, ${metas.length} metas`);
 
     const usersByName: Record<string, any> = {};
     for (const u of users) usersByName[u.username] = u;
 
     const now = Date.now();
     const results: any[] = [];
+    const skipped: any[] = [];
 
     for (const meta of metas) {
       if (!meta.operador) continue;
       if (meta.status === 'fechada' || meta.status === 'lixeira') continue;
-      if (meta.isAdminMeta) continue; // metas operadas pelo próprio admin não contam
+      if (meta.isAdminMeta) continue;
 
       const remessas: any[] = meta.remessas || [];
       // Última atividade = max(data da última remessa, createdAt)
@@ -111,15 +121,24 @@ Deno.serve(async (req) => {
       }
       const createdAt = meta.createdAt ? new Date(meta.createdAt).getTime() : 0;
       if (createdAt > lastActivity) lastActivity = createdAt;
-      if (!lastActivity) continue;
+      if (!lastActivity) {
+        skipped.push({ meta: meta.id, reason: 'no lastActivity' });
+        continue;
+      }
 
       const elapsed = now - lastActivity;
 
       // Descobre admin(s) do workspace do operador
       const operator = usersByName[meta.operador];
-      if (!operator) continue;
+      if (!operator) {
+        skipped.push({ meta: meta.id, reason: `operator "${meta.operador}" not found in users collection` });
+        continue;
+      }
       const adminUsername = operator.affiliatedTo || (operator.role === 'ADMIN' ? operator.username : null);
-      if (!adminUsername) continue;
+      if (!adminUsername) {
+        skipped.push({ meta: meta.id, reason: `no affiliatedTo/admin for operator "${meta.operador}"` });
+        continue;
+      }
 
       // Threshold por workspace (config no doc do admin), com clamp.
       const admin = usersByName[adminUsername];
@@ -128,35 +147,65 @@ Deno.serve(async (req) => {
         ? Math.min(Math.max(raw * 60_000, MIN_INACTIVE_MS), MAX_INACTIVE_MS)
         : DEFAULT_INACTIVE_MS;
 
-      if (elapsed < thresholdMs) continue;
+      const thresholdMin = Math.round(thresholdMs / 60_000);
+      const elapsedStr = fmtHrs(elapsed);
+
+      if (elapsed < thresholdMs) {
+        skipped.push({
+          meta: meta.id,
+          operator: meta.operador,
+          elapsed: elapsedStr,
+          threshold: `${thresholdMin}min`,
+          reason: 'not yet inactive'
+        });
+        continue;
+      }
 
       // Anti-spam: só re-alertar a cada N (mesmo threshold do workspace)
       const lastAlert = meta.lastInactiveAlertAt ? new Date(meta.lastInactiveAlertAt).getTime() : 0;
-      if (lastAlert && now - lastAlert < thresholdMs) continue;
+      if (lastAlert && now - lastAlert < thresholdMs) {
+        skipped.push({
+          meta: meta.id,
+          operator: meta.operador,
+          reason: 'anti-spam',
+          lastAlert: meta.lastInactiveAlertAt,
+          nextAlertIn: fmtHrs(thresholdMs - (now - lastAlert))
+        });
+        continue;
+      }
 
       const opName = capitalize(String(operator.displayName || operator.username));
-      const elapsedStr = fmtHrs(elapsed);
       const metaName = meta.nome || meta.modelo || 'meta';
 
-      const title = 'Operador sumido 👀';
-      const body = `${opName} está há ${elapsedStr} sem registrar remessa na meta "${metaName}". Cola lá e vê por onde anda!`;
+      const title = '⚠️ Operador sumido';
+      const body = `${opName} está há ${elapsedStr} sem registrar remessa na meta "${metaName}". Verifique o que está acontecendo!`;
 
+      console.log(`[operator-inactive-check] ALERTING → operator=${meta.operador}, elapsed=${elapsedStr}, admin=${adminUsername}, meta=${meta.id}`);
+
+      // ── 1. Push notification (OneSignal) ──
+      let pushResult: any = null;
       try {
-        const r = await fetch(NOTIFY_URL, {
+        const pushRes = await fetch(NOTIFY_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ title, body, targets: [adminUsername] }),
         });
-        const j = await r.json().catch(() => ({}));
-        results.push({ meta: meta.id, operator: meta.operador, admin: adminUsername, elapsedStr, status: r.status, response: j });
+        const pushJson = await pushRes.json().catch(() => ({}));
+        pushResult = { status: pushRes.status, ok: pushRes.ok, response: pushJson };
+        if (!pushRes.ok) {
+          console.error(`[operator-inactive-check] Push FAILED (${pushRes.status}) for meta ${meta.id}:`, JSON.stringify(pushJson));
+        } else {
+          console.log(`[operator-inactive-check] Push OK ✅ id=${pushJson.id}, recipients=${pushJson.recipients}`);
+        }
       } catch (e) {
-        results.push({ meta: meta.id, error: String(e) });
+        pushResult = { error: String(e) };
+        console.error(`[operator-inactive-check] Push exception for meta ${meta.id}:`, e);
       }
 
-      // In-app notification (sino)
+      // ── 2. In-app notification (sino) ──
       try {
         const fsUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT}/databases/(default)/documents/notifications?key=${FIREBASE_API_KEY}`;
-        await fetch(fsUrl, {
+        const fsRes = await fetch(fsUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -171,18 +220,34 @@ Deno.serve(async (req) => {
             },
           }),
         });
+        if (!fsRes.ok) {
+          console.error(`[firestore-notif] FAILED for meta ${meta.id}: ${fsRes.status} ${await fsRes.text()}`);
+        } else {
+          console.log(`[firestore-notif] In-app notification saved ✅`);
+        }
       } catch (e) {
-        console.error('[firestore-notif]', meta.id, e);
+        console.error('[firestore-notif] Exception for meta', meta.id, e);
       }
 
       await patchMetaAlert(meta.id, new Date().toISOString());
+
+      results.push({
+        meta: meta.id,
+        operator: meta.operador,
+        admin: adminUsername,
+        elapsedStr,
+        threshold: `${thresholdMin}min`,
+        push: pushResult,
+      });
     }
 
-    return new Response(JSON.stringify({ count: results.length, results }), {
+    console.log(`[operator-inactive-check] ✅ Done. Alerted: ${results.length} | Skipped: ${skipped.length}`);
+
+    return new Response(JSON.stringify({ count: results.length, results, skipped }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (e) {
-    console.error('[operator-inactive-check]', e);
+    console.error('[operator-inactive-check] FATAL ERROR:', e);
     return new Response(JSON.stringify({ error: String(e) }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
