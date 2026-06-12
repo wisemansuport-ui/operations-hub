@@ -179,13 +179,13 @@ const Login = () => {
              try { window.localStorage.removeItem(k); } catch(e) {}
            });
            toast.success('Conta criada via Google com sucesso!');
-        } else {
-           const userDoc = querySnapshot.docs[0];
-           existingUser = { ...userDoc.data(), id: userDoc.id };
-           toast.success('Bem-vindo de volta, ' + usernameFromGoogle + '!');
-        }
+         } else {
+            const userDoc = querySnapshot.docs[0];
+            existingUser = { ...userDoc.data(), id: userDoc.id, email: userInfo.email || userDoc.data().email || '', photoURL: userDoc.data().photoURL || userInfo.picture || '' };
+            toast.success('Bem-vindo de volta, ' + usernameFromGoogle + '!');
+         }
 
-        setUserData({ ...existingUser, token: Math.random().toString(36).substring(2, 10), method: 'Google SSO' });
+         setUserData({ ...existingUser, token: Math.random().toString(36).substring(2, 10), method: 'Google SSO' });
         setGlobalRole(existingUser.role || 'OPERADOR');
         // Tag this device in OneSignal immediately after Google login
         registerDeviceTag(existingUser.username, existingUser.role || 'OPERADOR').catch(console.warn);
