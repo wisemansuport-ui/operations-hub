@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutGrid, CalendarDays, Globe2, ShieldCheck,
   BarChart3, ChevronLeft, ChevronRight, Zap, CreditCard, UsersRound, Wallet, UserCog, CirclePlay,
-  LineChart, ReceiptText, Crosshair, WandSparkles, Crown, Bell, User
+  LineChart, ReceiptText, Crosshair, WandSparkles, Crown, Bell, User, Briefcase, FolderTree
 } from "lucide-react";
 import { useState } from "react";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
@@ -88,18 +88,47 @@ export const AppSidebar = () => {
 
         <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
           {navItems.map(({ path, label, icon: Icon }) => {
-            const active = location.pathname === path;
+            const active = location.pathname === path || (path === '/tasks' && location.pathname.startsWith('/tasks'));
+            const isTasks = path === '/tasks';
+            const tasksOpen = location.pathname.startsWith('/tasks');
             return (
-              <Link
-                key={path}
-                to={path}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  active ? "bg-primary/10 text-primary" : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                }`}
-              >
-                <Icon className={`w-[18px] h-[18px] shrink-0 ${active ? "text-primary" : ""}`} />
-                {!collapsed && <span>{label}</span>}
-              </Link>
+              <div key={path}>
+                <Link
+                  to={path}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    active ? "bg-primary/10 text-primary" : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  }`}
+                >
+                  <Icon className={`w-[18px] h-[18px] shrink-0 ${active ? "text-primary" : ""}`} />
+                  {!collapsed && <span>{label}</span>}
+                </Link>
+                {isTasks && !collapsed && tasksOpen && (
+                  <div className="mt-1 ml-3 pl-3 border-l border-border/40 space-y-0.5">
+                    <Link
+                      to="/tasks"
+                      className={`flex items-center gap-2 px-2.5 py-1.5 rounded-md text-[12px] font-medium transition-all ${
+                        location.pathname === '/tasks'
+                          ? "bg-primary/10 text-primary"
+                          : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/60"
+                      }`}
+                    >
+                      <FolderTree className="w-3.5 h-3.5" />
+                      Cooperações
+                    </Link>
+                    <Link
+                      to="/tasks/full-bau"
+                      className={`flex items-center gap-2 px-2.5 py-1.5 rounded-md text-[12px] font-medium transition-all ${
+                        location.pathname === '/tasks/full-bau'
+                          ? "bg-primary/10 text-primary"
+                          : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/60"
+                      }`}
+                    >
+                      <Briefcase className="w-3.5 h-3.5" />
+                      Operação Full Baú
+                    </Link>
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>

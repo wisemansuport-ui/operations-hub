@@ -22,6 +22,7 @@ const Landing = lazy(() => import("./pages/Landing"));
 const Index = lazy(() => import("./pages/Index"));
 const Production = lazy(() => import("./pages/Production"));
 const Tasks = lazy(() => import("./pages/Tasks"));
+const FullBau = lazy(() => import("./pages/FullBau"));
 const Networks = lazy(() => import("./pages/Networks"));
 const PixKeys = lazy(() => import("./pages/PixKeys"));
 const Quality = lazy(() => import("./pages/Quality"));
@@ -118,6 +119,7 @@ const App = () => {
                   <Route path="/app" element={<PrivateRoute><Index /></PrivateRoute>} />
                   <Route path="/production" element={<PrivateRoute><Production /></PrivateRoute>} />
                   <Route path="/tasks" element={<PrivateRoute><Tasks /></PrivateRoute>} />
+                  <Route path="/tasks/full-bau" element={<PrivateRoute><FullBau /></PrivateRoute>} />
                   <Route path="/networks" element={<PrivateRoute><Networks /></PrivateRoute>} />
                   <Route path="/pix" element={<PrivateRoute><PixKeys /></PrivateRoute>} />
                   <Route path="/quality" element={<PrivateRoute><Quality /></PrivateRoute>} />
