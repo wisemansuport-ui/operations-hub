@@ -181,10 +181,10 @@ const formatDate = (iso?: string | null) => {
 };
 
 const planStatusLabel = (s: string) =>
-  s === "active" ? "Ativa" : s === "trial" ? "Trial" : s === "expired" ? "Expirada" : "Sem plano";
+  s === "eternal" ? "🟢 Online" : s === "active" ? "Ativa" : s === "trial" ? "Trial" : s === "expired" ? "Expirada" : "Sem plano";
 
 const planStatusColor = (s: string) =>
-  s === "active" ? "text-success" : s === "trial" ? "text-primary" : s === "expired" ? "text-destructive" : "text-muted-foreground";
+  s === "eternal" ? "text-success" : s === "active" ? "text-success" : s === "trial" ? "text-primary" : s === "expired" ? "text-destructive" : "text-muted-foreground";
 
 const GoogleIcon = () => (
   <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true">
