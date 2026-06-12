@@ -270,6 +270,52 @@ export const SettingsModal = ({ open, onOpenChange, adminUserId }: Props) => {
           </TabsContent>
         </Tabs>
       </DialogContent>
+
+      {/* ───── CROPPER ───── */}
+      <Dialog open={!!rawImage} onOpenChange={(o) => { if (!o) setRawImage(null); }}>
+        <DialogContent className="bg-[#0a0a0a]/95 border-primary/20 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-primary">Ajustar foto de perfil</DialogTitle>
+            <DialogDescription>Arraste para posicionar e use o zoom para enquadrar.</DialogDescription>
+          </DialogHeader>
+          <div className="relative w-full h-72 bg-black rounded-lg overflow-hidden">
+            {rawImage && (
+              <Cropper
+                image={rawImage}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                cropShape="round"
+                showGrid={false}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+                restrictPosition
+                objectFit="contain"
+              />
+            )}
+          </div>
+          <div className="flex items-center gap-3 px-1">
+            <ZoomIn className="w-4 h-4 text-muted-foreground shrink-0" />
+            <Slider
+              value={[zoom]}
+              min={1}
+              max={4}
+              step={0.01}
+              onValueChange={(v) => setZoom(v[0])}
+            />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setRawImage(null)} className="border-primary/30">
+              Cancelar
+            </Button>
+            <Button onClick={handleConfirmCrop} disabled={processingCrop} className="bg-primary text-primary-foreground hover:bg-primary/90">
+              {processingCrop ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Aplicar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 };
