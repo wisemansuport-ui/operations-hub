@@ -118,21 +118,6 @@ export const UserPanelSheet = ({ open, onOpenChange }: Props) => {
             )}
 
             <div className="space-y-2">
-              <Row
-                icon={theme === "dark" ? Sun : Moon}
-                label={theme === "dark" ? "Tema claro" : "Tema escuro"}
-                onClick={toggleTheme}
-              />
-              <Row
-                icon={Bell}
-                label="Notificações"
-                onClick={openNotifications}
-                right={unreadCount > 0 ? (
-                  <span className="min-w-[20px] h-5 px-1.5 text-[10px] font-extrabold bg-primary text-primary-foreground rounded-full flex items-center justify-center">
-                    {unreadCount > 99 ? "99+" : unreadCount}
-                  </span>
-                ) : undefined}
-              />
               {isAdmin && (
                 <>
                   <Row icon={Settings} label="Configurações" onClick={() => setShowSettings(true)} />
