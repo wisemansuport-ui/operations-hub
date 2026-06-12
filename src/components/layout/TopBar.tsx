@@ -327,13 +327,7 @@ export const TopBar = () => {
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
       <div className="h-12 flex items-center justify-end px-3 md:px-5 gap-0.5">
-        <button
-          onClick={toggleTheme}
-          aria-label="Alternar tema"
-          className="w-8 h-8 flex items-center justify-center rounded-md text-muted-foreground/70 hover:text-foreground hover:bg-muted/60 transition-colors"
-        >
-          {theme === "dark" ? <Sun className="w-[15px] h-[15px]" /> : <Moon className="w-[15px] h-[15px]" />}
-        </button>
+
 
 
           {/* ── Notification Bell ── */}
