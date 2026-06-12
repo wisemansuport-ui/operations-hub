@@ -82,14 +82,6 @@ export const AppSidebar = () => {
                 <p className="text-[12.5px] font-semibold text-foreground truncate">{user?.username || "Usuário"}</p>
                 <p className="text-[10px] text-muted-foreground truncate">{user?.role || "Operador"}</p>
               </div>
-              <div className="relative shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground/80 group-hover/usercard:text-primary transition-colors">
-                <Bell className="w-[15px] h-[15px]" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] px-1 text-[9px] font-extrabold bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-md shadow-primary/40">
-                    {unreadCount > 99 ? "99+" : unreadCount}
-                  </span>
-                )}
-              </div>
             </>
           )}
         </button>
