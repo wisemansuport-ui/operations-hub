@@ -199,45 +199,38 @@ export const SettingsModal = ({ open, onOpenChange, adminUserId }: Props) => {
           {/* ───── CONTA ───── */}
           <TabsContent value="conta" className="space-y-4 pt-4">
             <div className="flex items-center gap-4">
-              <div className="w-20 h-20 rounded-full bg-primary/10 border-2 border-primary/30 overflow-hidden flex items-center justify-center shrink-0">
+              <button
+                type="button"
+                onClick={handlePickFile}
+                className="group relative w-24 h-24 rounded-full bg-primary/10 border-2 border-primary/30 overflow-hidden flex items-center justify-center shrink-0 hover:border-primary transition-colors"
+                title="Trocar foto"
+              >
                 {photoURL
-                  ? <img src={photoURL} alt="avatar" className="w-full h-full object-cover" />
-                  : <UserIcon className="w-8 h-8 text-primary" />}
-              </div>
+                  ? <img src={photoURL} alt="foto de perfil" className="w-full h-full object-cover" />
+                  : <UserIcon className="w-10 h-10 text-primary" />}
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Camera className="w-6 h-6 text-white" />
+                </div>
+              </button>
               <div className="flex-1 space-y-2">
                 <Label htmlFor="dn" className="text-xs text-muted-foreground">Nome do admin (exibição)</Label>
                 <Input id="dn" value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="bg-black/40 border-primary/20" />
+                <div className="flex gap-2">
+                  <Button type="button" size="sm" variant="outline" onClick={handlePickFile} className="border-primary/30 text-primary hover:bg-primary/10">
+                    <Camera className="w-3.5 h-3.5 mr-1.5" />
+                    {photoURL ? "Trocar foto" : "Adicionar foto"}
+                  </Button>
+                  {photoURL && (
+                    <Button type="button" size="sm" variant="ghost" onClick={handleRemovePhoto} className="text-red-400 hover:text-red-300 hover:bg-red-500/10">
+                      <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                      Remover
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
 
-            <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">Escolha seu avatar</Label>
-              <div className="grid grid-cols-6 gap-2">
-                {AVATARS.map((url) => {
-                  const selected = photoURL === url;
-                  return (
-                    <button
-                      key={url}
-                      type="button"
-                      onClick={() => setPhotoURL(url)}
-                      className={`relative aspect-square rounded-full overflow-hidden border-2 transition-all ${
-                        selected
-                          ? "border-primary ring-2 ring-primary/40 scale-105"
-                          : "border-primary/15 hover:border-primary/40"
-                      }`}
-                      title="Selecionar avatar"
-                    >
-                      <img src={url} alt="avatar" className="w-full h-full object-cover bg-black/40" />
-                      {selected && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-primary/20">
-                          <Check className="w-4 h-4 text-primary" />
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
 
             <Button onClick={handleSaveAccount} disabled={savingAcc || loadingWs} className="bg-primary text-primary-foreground hover:bg-primary/90 w-full">
               {savingAcc ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
