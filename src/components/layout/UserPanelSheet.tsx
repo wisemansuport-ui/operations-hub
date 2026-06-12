@@ -81,34 +81,72 @@ export const UserPanelSheet = ({ open, onOpenChange }: Props) => {
             </div>
           </SheetHeader>
 
-          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
-            <Row
-              icon={theme === "dark" ? Sun : Moon}
-              label={theme === "dark" ? "Tema claro" : "Tema escuro"}
-              onClick={toggleTheme}
-            />
-            <Row
-              icon={Bell}
-              label="Notificações"
-              onClick={openNotifications}
-              right={unreadCount > 0 ? (
-                <span className="min-w-[20px] h-5 px-1.5 text-[10px] font-extrabold bg-primary text-primary-foreground rounded-full flex items-center justify-center">
-                  {unreadCount > 99 ? "99+" : unreadCount}
-                </span>
-              ) : undefined}
-            />
+          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
             {isAdmin && (
-              <>
-                <Row icon={Settings} label="Configurações" onClick={() => setShowSettings(true)} />
-                <Row icon={Megaphone} label="Disparar lucros" onClick={() => setShowTrigger(true)} />
-                <Row
-                  icon={UserCog}
-                  label={`Visão: ${role}`}
-                  onClick={() => setRole(role === "ADMIN" ? "OPERADOR" : "ADMIN")}
+              <div className="rounded-2xl border border-border/40 bg-card/40 p-4 space-y-2.5">
+                <InfoRow icon={Calendar} label="Membro desde" value={formatDate(user?.createdAt)} />
+                <InfoRow
+                  icon={ShieldCheck}
+                  label="Status da Assinatura"
+                  value={planStatusLabel(plan.status)}
+                  valueClass={planStatusColor(plan.status)}
                 />
-              </>
+                <InfoRow icon={Clock} label="Expira em" value={formatDate(plan.planExpiry)} />
+                <InfoRow icon={Crown} label="Plano" value={plan.planName} valueClass="text-foreground font-bold" />
+              </div>
             )}
+
+            {user?.method === "Google SSO" && (
+              <div className="rounded-2xl border border-border/40 bg-card/40 p-4 space-y-2.5">
+                <div className="flex items-center gap-2">
+                  <GoogleIcon />
+                  <span className="text-sm font-bold text-foreground">Conta Google</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="inline-flex items-center gap-1 text-success font-semibold">
+                    <span className="w-2 h-2 rounded-full bg-success" /> Vinculada
+                  </span>
+                  <span className="text-muted-foreground truncate">({user?.email || `${user?.username}@gmail.com`})</span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-destructive/40 bg-destructive/10 text-destructive text-xs font-bold hover:bg-destructive/20 transition-all"
+                >
+                  <Unlink className="w-3.5 h-3.5" /> Desvincular
+                </button>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Row
+                icon={theme === "dark" ? Sun : Moon}
+                label={theme === "dark" ? "Tema claro" : "Tema escuro"}
+                onClick={toggleTheme}
+              />
+              <Row
+                icon={Bell}
+                label="Notificações"
+                onClick={openNotifications}
+                right={unreadCount > 0 ? (
+                  <span className="min-w-[20px] h-5 px-1.5 text-[10px] font-extrabold bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                ) : undefined}
+              />
+              {isAdmin && (
+                <>
+                  <Row icon={Settings} label="Configurações" onClick={() => setShowSettings(true)} />
+                  <Row icon={Megaphone} label="Disparar lucros" onClick={() => setShowTrigger(true)} />
+                  <Row
+                    icon={UserCog}
+                    label={`Visão: ${role}`}
+                    onClick={() => setRole(role === "ADMIN" ? "OPERADOR" : "ADMIN")}
+                  />
+                </>
+              )}
+            </div>
           </div>
+
 
           <div className="px-4 py-3 border-t border-border/40">
             <Row icon={LogOut} label="Sair da conta" onClick={handleLogout} danger />
