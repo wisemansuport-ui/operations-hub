@@ -91,7 +91,7 @@ export const UserPanelSheet = ({ open, onOpenChange }: Props) => {
                   value={planStatusLabel(plan.status)}
                   valueClass={planStatusColor(plan.status)}
                 />
-                <InfoRow icon={Clock} label="Expira em" value={formatDate(plan.planExpiry)} />
+                <InfoRow icon={Clock} label="Expira em" value={plan.status === "eternal" ? "∞ Infinito" : formatDate(plan.planExpiry)} valueClass={plan.status === "eternal" ? "text-success font-bold" : ""} />
                 <InfoRow icon={Crown} label="Plano" value={plan.planName} valueClass="text-foreground font-bold" />
               </div>
             )}
