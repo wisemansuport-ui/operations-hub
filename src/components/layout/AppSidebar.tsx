@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutGrid, CalendarDays, Globe2, ShieldCheck,
   BarChart3, ChevronLeft, ChevronRight, Zap, CreditCard, UsersRound, Wallet, UserCog, CirclePlay,
-  LineChart, ReceiptText, Crosshair, WandSparkles, Crown, Bell, User
+  LineChart, ReceiptText, Crosshair, WandSparkles, Crown, Bell, User, Briefcase, FolderTree
 } from "lucide-react";
 import { useState } from "react";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
