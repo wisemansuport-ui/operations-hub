@@ -22,7 +22,9 @@ export const UserPanelSheet = ({ open, onOpenChange }: Props) => {
   const [role, setRole] = useLocalStorage<"ADMIN" | "OPERADOR">("nytzer-role", "ADMIN");
   const [showSettings, setShowSettings] = useState(false);
   const [showTrigger, setShowTrigger] = useState(false);
+  const plan = usePlan();
   const navigate = useNavigate();
+
 
   const isAdmin = user?.role === "ADMIN" || user?.username?.toUpperCase() === "NYTZER" || user?.username?.toUpperCase() === "WISEMAN";
 
