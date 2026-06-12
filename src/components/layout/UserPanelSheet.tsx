@@ -91,7 +91,7 @@ export const UserPanelSheet = ({ open, onOpenChange }: Props) => {
                   value={planStatusLabel(plan.status)}
                   valueClass={planStatusColor(plan.status)}
                 />
-                <InfoRow icon={Clock} label="Expira em" value={formatDate(plan.planExpiry)} />
+                <InfoRow icon={Clock} label="Expira em" value={plan.status === "eternal" ? "∞ Infinito" : formatDate(plan.planExpiry)} valueClass={plan.status === "eternal" ? "text-success font-bold" : ""} />
                 <InfoRow icon={Crown} label="Plano" value={plan.planName} valueClass="text-foreground font-bold" />
               </div>
             )}
@@ -181,10 +181,10 @@ const formatDate = (iso?: string | null) => {
 };
 
 const planStatusLabel = (s: string) =>
-  s === "active" ? "Ativa" : s === "trial" ? "Trial" : s === "expired" ? "Expirada" : "Sem plano";
+  s === "eternal" ? "🟢 Online" : s === "active" ? "Ativa" : s === "trial" ? "Trial" : s === "expired" ? "Expirada" : "Sem plano";
 
 const planStatusColor = (s: string) =>
-  s === "active" ? "text-success" : s === "trial" ? "text-primary" : s === "expired" ? "text-destructive" : "text-muted-foreground";
+  s === "eternal" ? "text-success" : s === "active" ? "text-success" : s === "trial" ? "text-primary" : s === "expired" ? "text-destructive" : "text-muted-foreground";
 
 const GoogleIcon = () => (
   <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true">
