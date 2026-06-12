@@ -178,6 +178,7 @@ export const AppSidebar = () => {
       </nav>
 
       <SubscriptionModal open={planModalOpen} onOpenChange={setPlanModalOpen} />
+      <UserPanelSheet open={userPanelOpen} onOpenChange={setUserPanelOpen} />
     </>
   );
 };
