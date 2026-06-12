@@ -2,19 +2,23 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutGrid, CalendarDays, Globe2, ShieldCheck,
   BarChart3, ChevronLeft, ChevronRight, Zap, CreditCard, UsersRound, Wallet, UserCog, CirclePlay,
-  LineChart, ReceiptText, Crosshair, WandSparkles, Crown
+  LineChart, ReceiptText, Crosshair, WandSparkles, Crown, Bell, User
 } from "lucide-react";
 import { useState } from "react";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
 import { SubscriptionModal } from "../SubscriptionModal";
+import { UserPanelSheet } from "./UserPanelSheet";
+import { useNotifications } from "@/contexts/NotificationContext";
 
 export const AppSidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [planModalOpen, setPlanModalOpen] = useState(false);
+  const [userPanelOpen, setUserPanelOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const [role, setRole] = useLocalStorage<'ADMIN' | 'OPERADOR'>('nytzer-role', 'ADMIN');
   const [user] = useLocalStorage<any>('nytzer-user', null);
+  const { unreadCount } = useNotifications();
 
   const navItems = [
     { path: "/app", label: "Dashboard", icon: LayoutGrid, roles: ['ADMIN', 'OPERADOR'] },
@@ -56,6 +60,39 @@ export const AppSidebar = () => {
             </span>
           )}
         </Link>
+
+        {/* ── User card ── */}
+        <button
+          onClick={() => setUserPanelOpen(true)}
+          className={`mx-2 mt-2 flex items-center gap-2.5 ${collapsed ? "p-1.5 justify-center" : "p-2"} rounded-xl border border-border/40 bg-card/40 hover:bg-card/80 hover:border-primary/40 transition-all group/usercard`}
+          title="Abrir painel"
+        >
+          <div className={`relative ${collapsed ? "w-8 h-8" : "w-9 h-9"} rounded-xl overflow-hidden ring-1 ring-primary/30 bg-primary/10 shrink-0`}>
+            {user?.photoURL ? (
+              <img src={user.photoURL} alt="avatar" className="w-full h-full object-cover" draggable={false} />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-primary text-[11px] font-bold">
+                {(user?.username || "U").slice(0, 2).toUpperCase()}
+              </div>
+            )}
+          </div>
+          {!collapsed && (
+            <>
+              <div className="flex-1 min-w-0 text-left leading-tight">
+                <p className="text-[12.5px] font-semibold text-foreground truncate">{user?.username || "Usuário"}</p>
+                <p className="text-[10px] text-muted-foreground truncate">{user?.role || "Operador"}</p>
+              </div>
+              <div className="relative shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground/80 group-hover/usercard:text-primary transition-colors">
+                <Bell className="w-[15px] h-[15px]" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] px-1 text-[9px] font-extrabold bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-md shadow-primary/40">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </div>
+            </>
+          )}
+        </button>
 
         <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
           {navItems.map(({ path, label, icon: Icon }) => {
@@ -141,6 +178,7 @@ export const AppSidebar = () => {
       </nav>
 
       <SubscriptionModal open={planModalOpen} onOpenChange={setPlanModalOpen} />
+      <UserPanelSheet open={userPanelOpen} onOpenChange={setUserPanelOpen} />
     </>
   );
 };
