@@ -1,14 +1,16 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Cropper, { Area } from "react-easy-crop";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Clock, User as UserIcon, Lock, Check, Loader2 } from "lucide-react";
+import { Clock, User as UserIcon, Lock, Loader2, Camera, ZoomIn, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 
@@ -21,14 +23,30 @@ interface Props {
 const DEFAULT_MIN = 120;
 const MIN_VAL = 15;
 const MAX_VAL = 720;
+const OUTPUT_SIZE = 512; // px — alta nitidez
 
-const AVATAR_SEEDS = [
-  "Luna", "Zeus", "Atlas", "Nova", "Orion", "Sage",
-  "Phoenix", "Echo", "Vega", "Kai", "Ember", "Onyx",
-];
-const avatarUrl = (seed: string) =>
-  `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(seed)}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
-const AVATARS = AVATAR_SEEDS.map(avatarUrl);
+// Recorta a imagem na área selecionada e devolve um JPEG nítido em data URL
+async function cropToDataUrl(src: string, area: Area): Promise<string> {
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const i = new Image();
+    i.crossOrigin = "anonymous";
+    i.onload = () => resolve(i);
+    i.onerror = reject;
+    i.src = src;
+  });
+  const canvas = document.createElement("canvas");
+  canvas.width = OUTPUT_SIZE;
+  canvas.height = OUTPUT_SIZE;
+  const ctx = canvas.getContext("2d")!;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(
+    img,
+    area.x, area.y, area.width, area.height,
+    0, 0, OUTPUT_SIZE, OUTPUT_SIZE,
+  );
+  return canvas.toDataURL("image/jpeg", 0.92);
+}
 
 export const SettingsModal = ({ open, onOpenChange, adminUserId }: Props) => {
   const [user, setUser] = useLocalStorage<any>("nytzer-user", null);
