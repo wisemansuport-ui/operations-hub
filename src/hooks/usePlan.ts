@@ -1,7 +1,7 @@
 import { useLocalStorage } from './useLocalStorage';
 import { useMemo } from 'react';
 
-export type PlanStatus = 'trial' | 'active' | 'expired' | 'none';
+export type PlanStatus = 'trial' | 'active' | 'expired' | 'none' | 'eternal';
 
 export interface PlanInfo {
   status: PlanStatus;
@@ -14,11 +14,28 @@ export interface PlanInfo {
   canAccess: boolean;
 }
 
+// Contas de desenvolvedor com acesso eterno
+const DEV_ACCOUNTS = ['nytzer'];
+
 export const usePlan = (): PlanInfo => {
   const [user] = useLocalStorage<any>('nytzer-user', null);
 
   return useMemo(() => {
     const isAdmin = user?.role === 'ADMIN';
+    const isDev = !!user?.username && DEV_ACCOUNTS.includes(String(user.username).toLowerCase());
+
+    if (isDev) {
+      return {
+        status: 'eternal',
+        daysLeft: Infinity,
+        hoursLeft: Infinity,
+        planName: 'Desenvolvedor · Eterno',
+        planExpiry: null,
+        trialStartedAt: user?.createdAt || null,
+        isAdmin: true,
+        canAccess: true,
+      };
+    }
 
     if (!user || !isAdmin) {
       return {
