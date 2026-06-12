@@ -23,9 +23,9 @@ interface Props {
 const DEFAULT_MIN = 120;
 const MIN_VAL = 15;
 const MAX_VAL = 720;
-const OUTPUT_SIZE = 512; // px — alta nitidez
+const OUTPUT_SIZE = 1024; // px — alta nitidez para qualquer tamanho de exibição
 
-// Recorta a imagem na área selecionada e devolve um JPEG nítido em data URL
+// Recorta a imagem na área selecionada e devolve um PNG nítido em data URL
 async function cropToDataUrl(src: string, area: Area): Promise<string> {
   const img = await new Promise<HTMLImageElement>((resolve, reject) => {
     const i = new Image();
@@ -34,18 +34,21 @@ async function cropToDataUrl(src: string, area: Area): Promise<string> {
     i.onerror = reject;
     i.src = src;
   });
+  // Não fazer upscale: limita a saída à resolução real do recorte
+  const size = Math.min(OUTPUT_SIZE, Math.round(Math.min(area.width, area.height)));
   const canvas = document.createElement("canvas");
-  canvas.width = OUTPUT_SIZE;
-  canvas.height = OUTPUT_SIZE;
+  canvas.width = size;
+  canvas.height = size;
   const ctx = canvas.getContext("2d")!;
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
   ctx.drawImage(
     img,
     area.x, area.y, area.width, area.height,
-    0, 0, OUTPUT_SIZE, OUTPUT_SIZE,
+    0, 0, size, size,
   );
-  return canvas.toDataURL("image/jpeg", 0.92);
+  // PNG = sem compressão com perdas; mantém máxima nitidez
+  return canvas.toDataURL("image/png");
 }
 
 export const SettingsModal = ({ open, onOpenChange, adminUserId }: Props) => {
