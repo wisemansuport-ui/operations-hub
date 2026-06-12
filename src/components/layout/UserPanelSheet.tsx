@@ -1,12 +1,14 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { Settings, Megaphone, UserCog, LogOut, Sun, Moon, Bell, User } from "lucide-react";
+import { Settings, Megaphone, UserCog, LogOut, Sun, Moon, Bell, User, Calendar, ShieldCheck, Clock, Crown, Unlink } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { useNavigate } from "react-router-dom";
 import { SettingsModal } from "@/components/SettingsModal";
 import { TriggerProfitModal } from "@/components/TriggerProfitModal";
+import { usePlan } from "@/hooks/usePlan";
 import { useState } from "react";
+
 
 interface Props {
   open: boolean;
