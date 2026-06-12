@@ -67,6 +67,50 @@ export const SettingsModal = ({ open, onOpenChange, adminUserId }: Props) => {
   const [confirmPwd, setConfirmPwd] = useState("");
   const [savingPwd, setSavingPwd] = useState(false);
 
+  // cropper
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [rawImage, setRawImage] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedArea, setCroppedArea] = useState<Area | null>(null);
+  const [processingCrop, setProcessingCrop] = useState(false);
+
+  const onCropComplete = useCallback((_: Area, areaPixels: Area) => {
+    setCroppedArea(areaPixels);
+  }, []);
+
+  const handlePickFile = () => fileInputRef.current?.click();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    e.target.value = "";
+    if (!f) return;
+    if (!f.type.startsWith("image/")) { toast.error("Selecione uma imagem."); return; }
+    if (f.size > 8 * 1024 * 1024) { toast.error("Imagem muito grande (máx. 8MB)."); return; }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setRawImage(reader.result as string);
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+    };
+    reader.readAsDataURL(f);
+  };
+
+  const handleConfirmCrop = async () => {
+    if (!rawImage || !croppedArea) return;
+    setProcessingCrop(true);
+    try {
+      const dataUrl = await cropToDataUrl(rawImage, croppedArea);
+      setPhotoURL(dataUrl);
+      setRawImage(null);
+    } catch (e) {
+      console.error(e);
+      toast.error("Erro ao recortar imagem.");
+    } finally { setProcessingCrop(false); }
+  };
+
+  const handleRemovePhoto = () => setPhotoURL("");
+
   useEffect(() => {
     if (!open || !adminUserId) return;
     setLoadingWs(true);
