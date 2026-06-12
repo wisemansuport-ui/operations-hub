@@ -491,11 +491,20 @@ export const TopBar = () => {
 
           {/* ── User Menu ── */}
           <div className="ml-1.5 flex items-center gap-2 pl-2 relative group">
-            <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center overflow-hidden">
+            <div className="relative w-9 h-9 rounded-full bg-primary/10 ring-1 ring-primary/30 overflow-hidden shrink-0 transition-transform duration-200 group-hover:scale-110 group-hover:ring-primary/60 group-hover:shadow-[0_4px_18px_-4px_hsl(var(--primary)/0.55)]">
               {user?.photoURL
-                ? <img src={user.photoURL} alt="avatar" className="w-full h-full object-cover" />
-                : <User className="w-3.5 h-3.5 text-primary" />}
+                ? <img src={user.photoURL} alt="avatar" className="w-full h-full object-cover" draggable={false} style={{ imageRendering: "auto" }} />
+                : <div className="w-full h-full flex items-center justify-center"><User className="w-4 h-4 text-primary" /></div>}
             </div>
+
+            {/* Preview ampliado no hover */}
+            {user?.photoURL && (
+              <div className="absolute right-0 top-full mt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[60] pointer-events-none">
+                <div className="w-32 h-32 rounded-2xl overflow-hidden border border-primary/40 shadow-2xl bg-black/80 backdrop-blur-xl">
+                  <img src={user.photoURL} alt="avatar grande" className="w-full h-full object-cover" />
+                </div>
+              </div>
+            )}
 
             <div className="hidden sm:block leading-tight">
               <p className="text-[13px] font-medium text-foreground truncate max-w-[120px]">
