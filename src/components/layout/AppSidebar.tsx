@@ -2,19 +2,23 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutGrid, CalendarDays, Globe2, ShieldCheck,
   BarChart3, ChevronLeft, ChevronRight, Zap, CreditCard, UsersRound, Wallet, UserCog, CirclePlay,
-  LineChart, ReceiptText, Crosshair, WandSparkles, Crown
+  LineChart, ReceiptText, Crosshair, WandSparkles, Crown, Bell, User
 } from "lucide-react";
 import { useState } from "react";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
 import { SubscriptionModal } from "../SubscriptionModal";
+import { UserPanelSheet } from "./UserPanelSheet";
+import { useNotifications } from "@/contexts/NotificationContext";
 
 export const AppSidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [planModalOpen, setPlanModalOpen] = useState(false);
+  const [userPanelOpen, setUserPanelOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const [role, setRole] = useLocalStorage<'ADMIN' | 'OPERADOR'>('nytzer-role', 'ADMIN');
   const [user] = useLocalStorage<any>('nytzer-user', null);
+  const { unreadCount } = useNotifications();
 
   const navItems = [
     { path: "/app", label: "Dashboard", icon: LayoutGrid, roles: ['ADMIN', 'OPERADOR'] },
