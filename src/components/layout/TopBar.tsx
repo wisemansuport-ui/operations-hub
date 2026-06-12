@@ -483,74 +483,8 @@ export const TopBar = () => {
             )}
           </div>
 
-          {/* ── User Menu ── */}
-          <div className="ml-1.5 flex items-center gap-2 pl-2 relative group">
-            <div className="relative w-9 h-9 rounded-full bg-primary/10 ring-1 ring-primary/30 overflow-hidden shrink-0 transition-transform duration-200 group-hover:scale-110 group-hover:ring-primary/60 group-hover:shadow-[0_4px_18px_-4px_hsl(var(--primary)/0.55)]">
-              {user?.photoURL
-                ? <img src={user.photoURL} alt="avatar" className="w-full h-full object-cover" draggable={false} style={{ imageRendering: "auto" }} />
-                : <div className="w-full h-full flex items-center justify-center"><User className="w-4 h-4 text-primary" /></div>}
-            </div>
-
-            {/* Preview ampliado no hover */}
-            {user?.photoURL && (
-              <div className="absolute right-0 top-full mt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[60] pointer-events-none">
-                <div className="w-32 h-32 rounded-2xl overflow-hidden border border-primary/40 shadow-2xl bg-black/80 backdrop-blur-xl">
-                  <img src={user.photoURL} alt="avatar grande" className="w-full h-full object-cover" />
-                </div>
-              </div>
-            )}
-
-            <div className="hidden sm:block leading-tight">
-              <p className="text-[13px] font-medium text-foreground truncate max-w-[120px]">
-                {user?.username || "Usuário"}
-              </p>
-              <p className="text-[10px] text-muted-foreground/70">{user?.role || "Operador"}</p>
-            </div>
-
-            <div className="absolute right-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 min-w-[160px]">
-              <div className="bg-[#0A0A0B]/95 backdrop-blur-xl border border-border/60 rounded-xl shadow-2xl p-1.5 flex flex-col">
-                <div className="px-3 py-2 mb-1 border-b border-border/50 sm:hidden">
-                  <p className="text-sm font-bold text-foreground truncate">{user?.username || "Usuário"}</p>
-                  <p className="text-[11px] text-muted-foreground">{user?.role || "Operador"}</p>
-                </div>
-
-                {user?.role === "ADMIN" && (
-                  <>
-                    <button
-                      onClick={() => setShowSettings(true)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors w-full"
-                    >
-                      <Settings className="w-4 h-4" />
-                      Configurações
-                    </button>
-                    <button
-                      onClick={() => setShowTrigger(true)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors w-full"
-                    >
-                      <Megaphone className="w-4 h-4" />
-                      Disparar lucros
-                    </button>
-                    <button
-                      onClick={() => setRole(role === "ADMIN" ? "OPERADOR" : "ADMIN")}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors w-full mb-1"
-                    >
-                      <UserCog className="w-4 h-4" />
-                      Visão: {role}
-                    </button>
-                  </>
-                )}
-
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 hover:text-red-400 transition-colors w-full"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Sair da Conta
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
+
 
       {user?.id && (
         <SettingsModal open={showSettings} onOpenChange={setShowSettings} adminUserId={user.id} />
