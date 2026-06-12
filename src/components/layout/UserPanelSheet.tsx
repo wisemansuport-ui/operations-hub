@@ -161,3 +161,35 @@ export const UserPanelSheet = ({ open, onOpenChange }: Props) => {
     </>
   );
 };
+
+const InfoRow = ({ icon: Icon, label, value, valueClass }: { icon: any; label: string; value: string; valueClass?: string }) => (
+  <div className="flex items-center justify-between gap-3">
+    <span className="flex items-center gap-2 text-xs text-muted-foreground">
+      <Icon className="w-3.5 h-3.5" /> {label}
+    </span>
+    <span className={`text-xs font-semibold text-foreground truncate ${valueClass || ""}`}>{value}</span>
+  </div>
+);
+
+const formatDate = (iso?: string | null) => {
+  if (!iso) return "—";
+  try {
+    return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  } catch {
+    return "—";
+  }
+};
+
+const planStatusLabel = (s: string) =>
+  s === "active" ? "Ativa" : s === "trial" ? "Trial" : s === "expired" ? "Expirada" : "Sem plano";
+
+const planStatusColor = (s: string) =>
+  s === "active" ? "text-success" : s === "trial" ? "text-primary" : s === "expired" ? "text-destructive" : "text-muted-foreground";
+
+const GoogleIcon = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true">
+    <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.4-1.6 4-5.5 4-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.4 14.6 2.4 12 2.4 6.7 2.4 2.4 6.7 2.4 12s4.3 9.6 9.6 9.6c5.5 0 9.2-3.9 9.2-9.4 0-.6-.1-1.1-.2-1.6H12z"/>
+    <path fill="#34A853" d="M3.9 7.5l3.2 2.3C8 7.9 9.8 6.5 12 6.5c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.4 14.6 2.4 12 2.4 8.3 2.4 5.1 4.5 3.9 7.5z" opacity=".0"/>
+  </svg>
+);
+
