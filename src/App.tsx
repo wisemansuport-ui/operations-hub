@@ -119,6 +119,7 @@ const App = () => {
                   <Route path="/app" element={<PrivateRoute><Index /></PrivateRoute>} />
                   <Route path="/production" element={<PrivateRoute><Production /></PrivateRoute>} />
                   <Route path="/tasks" element={<PrivateRoute><Tasks /></PrivateRoute>} />
+                  <Route path="/tasks/full-bau" element={<PrivateRoute><FullBau /></PrivateRoute>} />
                   <Route path="/networks" element={<PrivateRoute><Networks /></PrivateRoute>} />
                   <Route path="/pix" element={<PrivateRoute><PixKeys /></PrivateRoute>} />
                   <Route path="/quality" element={<PrivateRoute><Quality /></PrivateRoute>} />
