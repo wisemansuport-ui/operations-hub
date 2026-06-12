@@ -155,19 +155,22 @@ const Login = () => {
            const trialStartedAt = new Date().toISOString();
            const planExpiry = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
            
-           existingUser = {
-             username: usernameFromGoogle,
-             password: Math.random().toString(36).slice(-8),
-             fullName: userInfo.name || '',
-             teamName: '',
-             phoneNumber: '',
-             role,
-             affiliatedTo: ref || null,
-             token: Math.random().toString(36).substring(2, 10),
-             createdAt: new Date().toISOString(),
-             method: 'Google SSO',
-             ...(role === 'ADMIN' ? { plan: 'trial', trialStartedAt, planExpiry } : {})
-           };
+            existingUser = {
+              username: usernameFromGoogle,
+              password: Math.random().toString(36).slice(-8),
+              fullName: userInfo.name || '',
+              email: userInfo.email || '',
+              photoURL: userInfo.picture || '',
+              teamName: '',
+              phoneNumber: '',
+              role,
+              affiliatedTo: ref || null,
+              token: Math.random().toString(36).substring(2, 10),
+              createdAt: new Date().toISOString(),
+              method: 'Google SSO',
+              ...(role === 'ADMIN' ? { plan: 'trial', trialStartedAt, planExpiry } : {})
+            };
+
            
            const docRef = await addDoc(usersRef, existingUser);
            existingUser.id = docRef.id;
